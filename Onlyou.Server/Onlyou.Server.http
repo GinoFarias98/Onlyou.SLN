@@ -1,0 +1,6 @@
+@Onlyou.Server_HostAddress = http://localhost:5258
+
+GET {{Onlyou.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
