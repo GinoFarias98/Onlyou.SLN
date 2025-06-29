@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 namespace Onlyou.BD.Data
 {
     public class EntidadBase : IEntidadBase
-    {   
+    {
         public int Id { get; set; }
         public string? Codigo { get; set; }
+
+        public bool? Estado { get; set; }
     }
 }

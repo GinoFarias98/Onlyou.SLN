@@ -8,9 +8,7 @@ namespace Onlyou.BD.Data.Entidades
 {
     public class Categoria : EntidadBase
     {
- 
         public string? Nombre { get; set; }
-        public bool? Estado { get; set; }
     }
 }
 

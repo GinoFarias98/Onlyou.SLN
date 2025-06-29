@@ -10,5 +10,6 @@ namespace Onlyou.BD.Data
     {
         int Id { get; set; }
         string? Codigo { get; set; }
+        bool? Estado { get; set; }
     }
 }
