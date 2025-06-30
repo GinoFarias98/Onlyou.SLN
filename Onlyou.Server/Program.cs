@@ -1,6 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
+using Onlyou.Client.Servicios;
+using Onlyou.Server.Repositorio;
 using System.Text.Json.Serialization;
 
 
@@ -25,6 +27,15 @@ builder.Services.AddRazorPages();
 // Coneccion con la BD / Context
 
 builder.Services.AddDbContext<Context>(op => op.UseSqlServer("name=conn"));
+
+//
+
+
+//AUTOMAPPER
+builder.Services.AddAutoMapper(typeof(Program));
+
+//
+builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 
 
 // =====================================================================================================================================

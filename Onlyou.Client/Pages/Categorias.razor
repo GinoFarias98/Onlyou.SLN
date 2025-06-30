@@ -1,0 +1,154 @@
+﻿@page "/categorias"
+@using Onlyou.Client.Servicios
+@using Onlyou.Shared.DTOS.Categorias
+@inject IHttpServicios http
+@inject IJSRuntime JS
+
+<h3 class="titulo-seccion">Gestión de Categorías</h3>
+
+<div class="categoria-form">
+    <input @bind="nombre" placeholder="Nombre de la categoría" />
+    <label>
+        <input type="checkbox" @bind="estado" />
+        Activa
+    </label>
+    <button class="boton-accion" @onclick="GuardarCategoria">Guardar</button>
+    @if (modoEdicion)
+    {
+        <button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
+    }
+</div>
+
+@if (categorias == null)
+{
+    <p>Cargando categorías...</p>
+}
+else if (!categorias.Any())
+{
+    <p>No hay categorías para mostrar.</p>
+}
+else
+{
+    <table class="categoria-tabla">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cat in categorias)
+            {
+                <tr>
+                    <td>@cat.Nombre</td>
+                    <td>@(cat.Estado ? "Activa" : "Inactiva")</td>
+                    <td>
+                        <button class="boton-accion" @onclick="() => EditarCategoria(cat)">Editar</button>
+                        <button class="boton-accion" @onclick="() => EliminarCategoria(cat.Id)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GetCategoriasDTO> categorias = new();
+    private string nombre = string.Empty;
+    private bool estado = true;
+    private int categoriaEditandoId = 0;
+    private bool modoEdicion = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCategorias();
+    }
+
+    private async Task CargarCategorias()
+    {
+        var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
+        if (!resultado.Error)
+        {
+            categorias = resultado.Respuesta;
+        }
+    }
+
+    private async Task GuardarCategoria()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await JS.InvokeVoidAsync("alert", "El nombre es obligatorio.");
+            return;
+        }
+
+        if (modoEdicion)
+        {
+            var dto = new EditarCategoriasDTO
+            {
+                Id = categoriaEditandoId,
+                Nombre = nombre,
+                Estado = estado
+            };
+
+            var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
+
+            if (respuesta.Error)
+            {
+                await JS.InvokeVoidAsync("alert", "Ocurrió un error al editar la categoría.");
+                return;
+            }
+
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new CrearCategoriasDTO
+            {
+                Nombre = nombre,
+                Estado = estado
+            };
+
+            var respuesta = await http.Post("api/Categorias", dto);
+
+            if (respuesta.Error)
+            {
+                await JS.InvokeVoidAsync("alert", "Ocurrió un error al crear la categoría.");
+                return;
+            }
+        }
+
+        nombre = string.Empty;
+        estado = true;
+        categoriaEditandoId = 0;
+
+        await CargarCategorias();
+    }
+
+    private void EditarCategoria(GetCategoriasDTO cat)
+    {
+        nombre = cat.Nombre;
+        estado = cat.Estado;
+        categoriaEditandoId = cat.Id;
+        modoEdicion = true;
+    }
+
+
+    private async Task EliminarCategoria(int id)
+    {
+        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro que deseas eliminar esta categoría?");
+        if (confirmado)
+        {
+            await http.Delete($"api/Categorias/{id}");
+            await CargarCategorias();
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        nombre = string.Empty;
+        estado = true;
+        modoEdicion = false;
+    }
+}

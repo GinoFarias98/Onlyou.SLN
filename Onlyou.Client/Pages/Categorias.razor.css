@@ -1,0 +1,39 @@
+﻿.titulo-seccion {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2a2a2a;
+    margin-bottom: 1rem;
+}
+
+.categoria-form input {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-right: 1rem;
+}
+
+.categoria-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+}
+
+    .categoria-tabla th,
+    .categoria-tabla td {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+    }
+
+.boton-accion {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+    .boton-accion:hover {
+        background-color: #0056b3;
+    }
