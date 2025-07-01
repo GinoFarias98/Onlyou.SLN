@@ -137,7 +137,7 @@ namespace Onlyou.Server.Repositorio
                 return false;
             }
 
-            var EntidadExiste = SelectById(id);
+            var EntidadExiste = await SelectById(id);
 
             if (EntidadExiste == null)
             {

@@ -1,154 +1,217 @@
 ﻿@page "/categorias"
-@using Onlyou.Client.Servicios
 @using Onlyou.Shared.DTOS.Categorias
 @inject IHttpServicios http
 @inject IJSRuntime JS
+@inject SweetAlertService swal
 
 <h3 class="titulo-seccion">Gestión de Categorías</h3>
 
 <div class="categoria-form">
-    <input @bind="nombre" placeholder="Nombre de la categoría" />
-    <label>
-        <input type="checkbox" @bind="estado" />
-        Activa
-    </label>
-    <button class="boton-accion" @onclick="GuardarCategoria">Guardar</button>
-    @if (modoEdicion)
-    {
-        <button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
-    }
+	<input @bind="nombre" placeholder="Nombre de la categoría" />
+	<label>
+		<input type="checkbox" @bind="estado" />
+		Activa
+	</label>
+	<button class="boton-accion" @onclick="GuardarCategoria">Guardar</button>
+	@if (modoEdicion)
+	{
+		<button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
+	}
 </div>
 
 @if (categorias == null)
 {
-    <p>Cargando categorías...</p>
+	<p>Cargando categorías...</p>
 }
 else if (!categorias.Any())
 {
-    <p>No hay categorías para mostrar.</p>
+	<p>No hay categorías para mostrar.</p>
 }
 else
 {
-    <table class="categoria-tabla">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cat in categorias)
-            {
-                <tr>
-                    <td>@cat.Nombre</td>
-                    <td>@(cat.Estado ? "Activa" : "Inactiva")</td>
-                    <td>
-                        <button class="boton-accion" @onclick="() => EditarCategoria(cat)">Editar</button>
-                        <button class="boton-accion" @onclick="() => EliminarCategoria(cat.Id)">Eliminar</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<table class="categoria-tabla">
+		<thead>
+			<tr>
+				<th>Nombre</th>
+				<th>Estado</th>
+				<th>Acciones</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var cat in categorias)
+			{
+				<tr>
+					<td>@cat.Nombre</td>
+					<td>@(cat.Estado ? "Activa" : "Inactiva")</td>
+					<td>
+						<button class="boton-accion" @onclick="() => EditarCategoria(cat)">Editar</button>
+						<button class="boton-accion" @onclick="() => EliminarCategoria(cat.Id, cat.Nombre)">Eliminar</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
 }
 
 @code {
-    private List<GetCategoriasDTO> categorias = new();
-    private string nombre = string.Empty;
-    private bool estado = true;
-    private int categoriaEditandoId = 0;
-    private bool modoEdicion = false;
+	private List<GetCategoriasDTO> categorias = new();
+	private string nombre = string.Empty;
+	private bool estado = true;
+	private int categoriaEditandoId = 0;
+	private bool modoEdicion = false;
 
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarCategorias();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await CargarCategorias();
+	}
 
-    private async Task CargarCategorias()
-    {
-        var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
-        if (!resultado.Error)
-        {
-            categorias = resultado.Respuesta;
-        }
-    }
+	private async Task CargarCategorias()
+	{
+		var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
+		if (!resultado.Error)
+		{
 
-    private async Task GuardarCategoria()
-    {
-        if (string.IsNullOrWhiteSpace(nombre))
-        {
-            await JS.InvokeVoidAsync("alert", "El nombre es obligatorio.");
-            return;
-        }
+			categorias = resultado.Respuesta;
+		}
+	}
 
-        if (modoEdicion)
-        {
-            var dto = new EditarCategoriasDTO
-            {
-                Id = categoriaEditandoId,
-                Nombre = nombre,
-                Estado = estado
-            };
+	private async Task GuardarCategoria()
+	{
+		if (string.IsNullOrWhiteSpace(nombre))
+		{
+			await swal.FireAsync(new SweetAlertOptions
+			{
+				Title = "Atención",
+				Text = "El nombre de la Categoria es obligatorio",
+				Icon = SweetAlertIcon.Warning,
+				Background = "#F1C4C4",       // fondo del recuadro
+				Color = "#D4006A",            // color del texto
+				ConfirmButtonColor = "#D4006A", // color rosa oscuro
+				ConfirmButtonText = "Ok",	
+				CustomClass = new SweetAlertCustomClass
+				{
+					Icon = "icono-custom" // 🎯 Aplica color al ícono
+				}
+			});
+			return;
+		}
 
-            var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
+		if (modoEdicion)
+		{
+			var dto = new EditarCategoriasDTO
+			{
+				Id = categoriaEditandoId,
+				Nombre = nombre,
+				Estado = estado
+			};
 
-            if (respuesta.Error)
-            {
-                await JS.InvokeVoidAsync("alert", "Ocurrió un error al editar la categoría.");
-                return;
-            }
+			var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
 
-            modoEdicion = false;
-        }
-        else
-        {
-            var dto = new CrearCategoriasDTO
-            {
-                Nombre = nombre,
-                Estado = estado
-            };
+			if (respuesta.Error)
+			{
+				await swal.FireAsync(new SweetAlertOptions
+				{
+					Title = "Atención",
+					Text = "Ocurrio un error al Editar la categoria",
+					Icon = SweetAlertIcon.Warning,
+					Background = "#F1C4C4",       // fondo del recuadro
+					Color = "#D4006A",            // color del texto
+					ConfirmButtonColor = "#D4006A", // color rosa oscuro
+					ConfirmButtonText = "Ok",
+					CustomClass = new SweetAlertCustomClass
+					{
+						Icon = "icono-custom" // 🎯 Aplica color al ícono
+					}
+				});
+				return;
+			}
 
-            var respuesta = await http.Post("api/Categorias", dto);
+			modoEdicion = false;
+		}
+		else
+		{
+			var dto = new CrearCategoriasDTO
+			{
+				Nombre = nombre,
+				Estado = estado
+			};
 
-            if (respuesta.Error)
-            {
-                await JS.InvokeVoidAsync("alert", "Ocurrió un error al crear la categoría.");
-                return;
-            }
-        }
+			var respuesta = await http.Post("api/Categorias", dto);
 
-        nombre = string.Empty;
-        estado = true;
-        categoriaEditandoId = 0;
+			if (respuesta.Error)
+			{
+				await swal.FireAsync(new SweetAlertOptions
+				{
+					Title = "Atención",
+					Text = "Ocurrio un error al cargar la categoria",
+					Icon = SweetAlertIcon.Warning,
+					Background = "#F1C4C4",       // fondo del recuadro
+					Color = "#D4006A",            // color del texto
+					ConfirmButtonColor = "#D4006A", // color rosa oscuro
+					ConfirmButtonText = "Ok",
+					CustomClass = new SweetAlertCustomClass
+					{
+						Icon = "icono-custom" // 🎯 Aplica color al ícono
+					}
+				});
+				return;
+			}
+		}
 
-        await CargarCategorias();
-    }
+		nombre = string.Empty;
+		estado = true;
+		categoriaEditandoId = 0;
 
-    private void EditarCategoria(GetCategoriasDTO cat)
-    {
-        nombre = cat.Nombre;
-        estado = cat.Estado;
-        categoriaEditandoId = cat.Id;
-        modoEdicion = true;
-    }
+		await CargarCategorias();
+	}
+
+	private void EditarCategoria(GetCategoriasDTO cat)
+	{
+		nombre = cat.Nombre;
+		estado = cat.Estado;
+		categoriaEditandoId = cat.Id;
+		modoEdicion = true;
+	}
+
+	private async Task<bool> Confirmar(string nombre)
+	{
+		var result = await swal.FireAsync(new SweetAlertOptions
+		{
+			Title = "Atencion",
+			Text = $"Estas a punto de eliminar la Categoria {nombre.ToLower()} de forma PERMANENTE. Deseas continuar?",
+			Icon = SweetAlertIcon.Question,
+			ShowCancelButton = true,
+			ConfirmButtonText = "Sí",
+			CancelButtonText = "Cancelar",
+			Background = "#F1C4C4",         // fondo rosado
+			Color = "#D4006A",              // color del texto rosa oscuro
+			ConfirmButtonColor = "#D4006A", // botón  rosa oscuri
+			CancelButtonColor = "#D4006A",   // botón rosa oscuri
+			CustomClass = new SweetAlertCustomClass
+			{
+				Icon = "icono-custom" // 🎯 Aplica color al ícono
+			}
+		});
+
+		return result.IsConfirmed;
+	}
 
 
-    private async Task EliminarCategoria(int id)
-    {
-        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro que deseas eliminar esta categoría?");
-        if (confirmado)
-        {
-            await http.Delete($"api/Categorias/{id}");
-            await CargarCategorias();
-        }
-    }
+	private async Task EliminarCategoria(int id, string nombre)
+	{
+		var confirmado = await Confirmar(nombre);
+		if (confirmado)
+		{
+			await http.Delete($"api/Categorias/{id}");
+			await CargarCategorias();
+		}
+	}
 
-    private void CancelarEdicion()
-    {
-        nombre = string.Empty;
-        estado = true;
-        modoEdicion = false;
-    }
+	private void CancelarEdicion()
+	{
+		nombre = string.Empty;
+		estado = true;
+		modoEdicion = false;
+	}
 }

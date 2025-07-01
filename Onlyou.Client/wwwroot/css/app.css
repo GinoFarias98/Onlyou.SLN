@@ -101,3 +101,7 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.icono-custom {
+    color: #D4006A !important; /* color del icono de sweetAlert2 */
+}

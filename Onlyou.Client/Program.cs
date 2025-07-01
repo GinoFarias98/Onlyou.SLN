@@ -1,3 +1,4 @@
+using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Onlyou.Client;
@@ -12,6 +13,7 @@ builder.Services.AddScoped(sp =>
 
 builder.Services.AddScoped<IHttpServicios, HttpServicios>();
 builder.Services.AddScoped<ICategoriaServicios, CategoriaServicios>();
+builder.Services.AddSweetAlert2();
 
 
 await builder.Build().RunAsync();
