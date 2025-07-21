@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    public class Categoria : EntidadBase
+    public class Color : EntidadBase
     {
         public string? Nombre { get; set; }
-
-        public ICollection<Producto>? Productos { get; set; } = new List<Producto>();
+        public string? Hexadecimal { get; set; }
     }
 }
-

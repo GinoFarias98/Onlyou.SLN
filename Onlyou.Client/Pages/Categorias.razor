@@ -179,7 +179,7 @@ else
 		var result = await swal.FireAsync(new SweetAlertOptions
 		{
 			Title = "Atencion",
-			Text = $"Estas a punto de eliminar la Categoria {nombre.ToLower()} de forma PERMANENTE. Deseas continuar?",
+			Text = $"Estas a punto de eliminar la Categoria {nombre.ToUpper()} de forma PERMANENTE. Deseas continuar?",
 			Icon = SweetAlertIcon.Question,
 			ShowCancelButton = true,
 			ConfirmButtonText = "Sí",

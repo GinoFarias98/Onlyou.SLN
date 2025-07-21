@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    public class Categoria : EntidadBase
+    public class EstadoPedido : EntidadBase
     {
         public string? Nombre { get; set; }
 
-        public ICollection<Producto>? Productos { get; set; } = new List<Producto>();
+        public ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     }
 }
-
