@@ -10,5 +10,7 @@ namespace Onlyou.BD.Data.Entidades
     {
         public string? Nombre { get; set; }
         public string? Hexadecimal { get; set; }
+
+        public ICollection<ProductoColor>? ProductosColores { get; set; } = new List<ProductoColor>();
     }
 }

@@ -44,6 +44,10 @@ namespace Onlyou.BD.Data
 
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ProductoColor>().HasKey(x => new { x.ProductoId, x.ColorId });
+            modelBuilder.Entity<ProductoTalle>().HasKey(x => new { x.ProductoId, x.TalleId });
+
         }
 
     }
