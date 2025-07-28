@@ -29,6 +29,8 @@ namespace Onlyou.BD.Data
 
         // Consultar: ¿Corresponde agregar una tabla "Direccion" donde guardar calle, barrio, loc, prov?
 
+        // Es necesario trabajar con DNI en Clientes, para indexar mejor, AGREGAR
+
         public Context(DbContextOptions options) : base(options)
         {
 

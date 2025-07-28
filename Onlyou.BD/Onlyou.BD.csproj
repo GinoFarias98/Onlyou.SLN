@@ -15,6 +15,10 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Onlyou.Shared\Onlyou.Shared.csproj" />
+	</ItemGroup>
+
 	
 	
 </Project>
