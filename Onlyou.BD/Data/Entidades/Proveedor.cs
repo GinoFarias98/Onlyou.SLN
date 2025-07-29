@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,17 +8,35 @@ using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
+    [Index(nameof(CUIT), IsUnique = true)]
+    [Index(nameof(Email), IsUnique = true)]
     public class Proveedor : EntidadBase
     {
-        public string? Nombre { get; set; }
-        public string? Direccion { get; set; }
-        public string? RazonSocial { get; set; }
-        public string? CUIT { get; set; }
-        public string? Telefono { get; set; }
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [MaxLength(128, ErrorMessage = "El nombre no debe superar los 128 caracteres.")]
+        public string Nombre { get; set; } = null!;
 
-        [EmailAddress(ErrorMessage = "El formato introducido no es valido")]
-        public string? Email { get; set; }
+        [Required(ErrorMessage = "La Direccion es obligatoria.")]
+        [MaxLength(256, ErrorMessage = "La dirección no debe superar los 256 caracteres.")]
+        public string Direccion { get; set; } = null!;
 
-        public ICollection<Producto>? Productos { get; set; } = new List<Producto>();
+        [Required(ErrorMessage = "La Razon Social es obligatoria.")]
+        [MaxLength(128, ErrorMessage = "La razón social no debe superar los 128 caracteres.")]
+        public string RazonSocial { get; set; } = null!;
+
+        [Required(ErrorMessage = "El CUIT es obligatorio.")]
+        [MaxLength(20, ErrorMessage = "El CUIT no debe superar los 20 caracteres.")]
+        public string CUIT { get; set; } = null!;
+
+        [Required(ErrorMessage = "El Telefono es obligatorio.")]
+        [MaxLength(20, ErrorMessage = "El teléfono no debe superar los 20 caracteres.")]
+        public string Telefono { get; set; } = null!;
+
+        [Required(ErrorMessage = "El Mail es obligatorio.")]
+        [EmailAddress(ErrorMessage = "El formato del email no es válido.")]
+        [MaxLength(128, ErrorMessage = "El email no debe superar los 128 caracteres.")]
+        public string Email { get; set; } = null!;
+
+        public ICollection<Producto> Productos { get; set; } = new List<Producto>();
     }
 }

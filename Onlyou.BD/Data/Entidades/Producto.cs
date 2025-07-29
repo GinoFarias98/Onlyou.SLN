@@ -26,9 +26,9 @@ namespace Onlyou.BD.Data.Entidades
         [StringLength(1000, ErrorMessage = "La Descripcion debe tener entre 0 y 1000 caracteres")]
         public string? Descripcion { get; set; }
 
-        
+
         [StringLength(255)]
-        public string? Imagen { get; set; }
+        public string Imagen { get; set; } = null!;
 
 
         [Required(ErrorMessage = "Fecha obligatoria.")]
@@ -41,7 +41,7 @@ namespace Onlyou.BD.Data.Entidades
 
 
         [Column(TypeName = "decimal(18,2)")]
-        [Range(0, 1000000, ErrorMessage = "El valor debe ser un número positivo o cero.")]
+        [Range(0, 10000000, ErrorMessage = "El valor debe ser un número positivo o cero.")]
         public decimal Precio { get; set; }
 
 
@@ -71,9 +71,9 @@ namespace Onlyou.BD.Data.Entidades
 
         // Relaciones
 
-        public ICollection<CarritoItem>? CarritoItems { get; set; } = new List<CarritoItem>();
-        public ICollection<ProductoColor>? ProductosColores { get; set; } = new List<ProductoColor>();
-        public ICollection<ProductoTalle>? ProductosTalles { get; set; } = new List<ProductoTalle>();
+        public ICollection<CarritoItem> CarritoItems { get; set; } = new List<CarritoItem>();
+        public ICollection<ProductoColor> ProductosColores { get; set; } = new List<ProductoColor>();
+        public ICollection<ProductoTalle> ProductosTalles { get; set; } = new List<ProductoTalle>();
 
     }
 }

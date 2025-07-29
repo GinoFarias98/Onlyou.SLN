@@ -19,13 +19,13 @@ namespace Onlyou.BD.Data.Entidades
         public decimal Total { get; set; }
 
 
-        [Required]
+        [Required] // Corroborar esta propiedad
         public bool Pedido { get; set; }
 
-        [Required(ErrorMessage = "El Cliente es una entidad necesaria")]
-        public int ClienteId { get; set; }
 
-        [ForeignKey(nameof(ClienteId))]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Cliente.")]
+        [ForeignKey(nameof(Cliente))]
+        public int ClienteId { get; set; }
         public Cliente Cliente { get; set; } = null!;
 
         public ICollection<CarritoItem>? CarritoItems { get; set; }

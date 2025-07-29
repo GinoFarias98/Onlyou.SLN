@@ -25,12 +25,17 @@ namespace Onlyou.BD.Data.Entidades
         public decimal SubTotal => PrecioUnitario * Cantidad;
 
         // FK y navegación al carrito
+
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Carrito.")]
+        [ForeignKey(nameof(Carrito))]
         public int CarritoId { get; set; }
-        public Carrito? Carrito { get; set; }
+        public Carrito Carrito { get; set; } = null!;
 
         // FK y navegación al producto
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Producto.")]
+        [ForeignKey(nameof(Producto))]
         public int ProductoId { get; set; }
-        public Producto? Producto { get; set; }
+        public Producto Producto { get; set; } = null!;
 
         // Idea para el nombre del item, que deberia ser el nombre del producto x ej
         // [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres.")]

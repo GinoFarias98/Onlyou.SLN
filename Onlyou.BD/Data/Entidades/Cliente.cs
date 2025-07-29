@@ -35,6 +35,6 @@ namespace Onlyou.BD.Data.Entidades
         public string Direccion { get; set; } = null!;
 
         // Relación con carrito
-        public ICollection<Carrito>? Carritos { get; set; } = new List<Carrito>();
+        public ICollection<Carrito> Carritos { get; set; } = new List<Carrito>();
     }
 }
