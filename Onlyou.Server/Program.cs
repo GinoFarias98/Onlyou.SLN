@@ -32,11 +32,13 @@ builder.Services.AddDbContext<Context>(op => op.UseSqlServer("name=conn"));
 
 
 //AUTOMAPPER
+
 builder.Services.AddAutoMapper(typeof(Program));
 
-//
-builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
+// REPOSITORIOS
 
+builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
+builder.Services.AddScoped<IRepositorioProveedor, RepositorioProveedor>();
 
 // =====================================================================================================================================
 

@@ -7,7 +7,7 @@ namespace Onlyou.Server.Repositorio
     public class Repositorio<E> : IRepositorio<E> where E : class, IEntidadBase
     {
 
-        private static void ImprimirError(Exception exception)
+        protected static void ImprimirError(Exception exception)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"[ERROR] {DateTime.Now}: {exception.Message}");
