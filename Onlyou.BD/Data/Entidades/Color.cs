@@ -3,25 +3,33 @@ using Onlyou.Shared.DataValidators;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    [Index(nameof(Nombre), IsUnique = true)]
+    [Index(nameof(Nombre), IsUnique = true)] // Índice único en Nombre
     public class Color : EntidadBase
     {
-        [Required(ErrorMessage = "El Nombre es obligatorio")]
-        [MaxLength(128, ErrorMessage = "Maximo de 128 caracteres")]
+        // Nombre -------------------------------------------------------------------
+
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(128, ErrorMessage = "Máximo {1} caracteres.")]
+        [Display(Name = "Nombre",
+                 Description = "Nombre único del color.")]
         public string Nombre { get; set; } = null!;
 
+        // Hexadecimal ---------------------------------------------------------------
 
-        [Required(ErrorMessage = "El Hexadecimal del Color es obligatorio")]
-        [MaxLength(7, ErrorMessage = "Maximo de 7 caracteres")]
-        [EmpiezaConHash] //valida que empiece con # y sea valor hexa
+        [Required(ErrorMessage = "El hexadecimal del color es obligatorio.")]
+        [StringLength(7, ErrorMessage = "Máximo {1} caracteres.")]
+        [EmpiezaConHash] // Valida que empiece con # y sea valor hexadecimal válido
+        [Display(Name = "Hexadecimal",
+                 Description = "Código hexadecimal del color, debe comenzar con #.")]
         public string Hexadecimal { get; set; } = null!;
 
+        // ProductosColores relacionados --------------------------------------------
+
+        [Display(Name = "Productos colores",
+                 Description = "Lista de relaciones entre productos y colores.")]
         public ICollection<ProductoColor>? ProductosColores { get; set; } = new List<ProductoColor>();
     }
 }

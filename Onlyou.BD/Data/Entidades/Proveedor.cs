@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
@@ -14,29 +11,43 @@ namespace Onlyou.BD.Data.Entidades
     {
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [MaxLength(128, ErrorMessage = "El nombre no debe superar los 128 caracteres.")]
+        [Display(Name = "Nombre",
+                 Description = "Nombre del proveedor.")]
         public string Nombre { get; set; } = null!;
 
-        [Required(ErrorMessage = "La Direccion es obligatoria.")]
+        [Required(ErrorMessage = "La dirección es obligatoria.")]
         [MaxLength(256, ErrorMessage = "La dirección no debe superar los 256 caracteres.")]
+        [Display(Name = "Dirección",
+                 Description = "Dirección del proveedor.")]
         public string Direccion { get; set; } = null!;
 
-        [Required(ErrorMessage = "La Razon Social es obligatoria.")]
+        [Required(ErrorMessage = "La razón social es obligatoria.")]
         [MaxLength(128, ErrorMessage = "La razón social no debe superar los 128 caracteres.")]
+        [Display(Name = "Razón Social",
+                 Description = "Razón social del proveedor.")]
         public string RazonSocial { get; set; } = null!;
 
         [Required(ErrorMessage = "El CUIT es obligatorio.")]
         [MaxLength(20, ErrorMessage = "El CUIT no debe superar los 20 caracteres.")]
+        [Display(Name = "CUIT",
+                 Description = "Clave Única de Identificación Tributaria.")]
         public string CUIT { get; set; } = null!;
 
-        [Required(ErrorMessage = "El Telefono es obligatorio.")]
+        [Required(ErrorMessage = "El teléfono es obligatorio.")]
         [MaxLength(20, ErrorMessage = "El teléfono no debe superar los 20 caracteres.")]
+        [Display(Name = "Teléfono",
+                 Description = "Número telefónico del proveedor.")]
         public string Telefono { get; set; } = null!;
 
-        [Required(ErrorMessage = "El Mail es obligatorio.")]
+        [Required(ErrorMessage = "El email es obligatorio.")]
         [EmailAddress(ErrorMessage = "El formato del email no es válido.")]
         [MaxLength(128, ErrorMessage = "El email no debe superar los 128 caracteres.")]
+        [Display(Name = "Email",
+                 Description = "Correo electrónico del proveedor.")]
         public string Email { get; set; } = null!;
 
+        [Display(Name = "Productos",
+                 Description = "Lista de productos asociados al proveedor.")]
         public ICollection<Producto> Productos { get; set; } = new List<Producto>();
     }
 }

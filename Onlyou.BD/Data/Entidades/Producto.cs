@@ -3,77 +3,118 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    [Index(nameof(Nombre))] // Indexa el nombre del producto para búsquedas rápidas
-    [Index(nameof(MarcaId), nameof(TipoProductoId))] // Index compuesto útil para filtros por marca y tipo
+    [Index(nameof(Nombre))] // Índice para búsquedas rápidas por nombre
+    [Index(nameof(MarcaId), nameof(TipoProductoId))] // Índice compuesto para filtros por marca y tipo
     public class Producto : EntidadBase
     {
-        [Required]
-        [StringLength(100, MinimumLength = 3, ErrorMessage = "El Nombre debe tener entre 3 y 100 caracteres")]
+        // Nombre -------------------------------------------------------------------
+
+        [Required(ErrorMessage = "El nombre del producto es obligatorio.")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres.")]
+        [Display(Name = "Nombre",
+                 Description = "Nombre del producto.")]
         public string Nombre { get; set; } = null!;
 
+        // Stock --------------------------------------------------------------------
 
-        [Required]
         [Range(0, int.MaxValue, ErrorMessage = "El valor debe ser un número entero positivo o cero.")]
+        [Display(Name = "Stock",
+                 Description = "Cantidad disponible en stock.")]
         public int Stock { get; set; }
 
+        // Descripción ---------------------------------------------------------------
 
-        [StringLength(1000, ErrorMessage = "La Descripcion debe tener entre 0 y 1000 caracteres")]
+        [StringLength(1000, ErrorMessage = "La descripción no debe superar los 1000 caracteres.")]
+        [Display(Name = "Descripción",
+                 Description = "Descripción detallada del producto.")]
         public string? Descripcion { get; set; }
 
+        // Imagen -------------------------------------------------------------------
 
-        [StringLength(255)]
+        [Required(ErrorMessage = "La imagen es obligatoria.")]
+        [StringLength(255, ErrorMessage = "La ruta de la imagen no puede superar los 255 caracteres.")]
+        [Display(Name = "Imagen",
+                 Description = "Ruta o URL de la imagen del producto.")]
         public string Imagen { get; set; } = null!;
 
+        // Fecha última modificación -----------------------------------------------
 
-        [Required(ErrorMessage = "Fecha obligatoria.")]
+        [Required(ErrorMessage = "La fecha de última modificación es obligatoria.")]
+        [Display(Name = "Fecha última modificación",
+                 Description = "Fecha en la que se modificó el producto por última vez.")]
         public DateTime FecUltimaModificacion { get; set; } = DateTime.UtcNow;
 
+        // Costo --------------------------------------------------------------------
 
         [Column(TypeName = "decimal(18,2)")]
-        [Range(0, 1000000, ErrorMessage = "El valor debe ser un número positivo o cero.")]
+        [Range(0, 1000000, ErrorMessage = "El costo debe ser un número positivo o cero.")]
+        [Display(Name = "Costo",
+                 Description = "Costo del producto.")]
         public decimal Costo { get; set; }
 
+        // Precio -------------------------------------------------------------------
 
         [Column(TypeName = "decimal(18,2)")]
-        [Range(0, 10000000, ErrorMessage = "El valor debe ser un número positivo o cero.")]
+        [Range(0, 10000000, ErrorMessage = "El precio debe ser un número positivo o cero.")]
+        [Display(Name = "Precio",
+                 Description = "Precio de venta del producto.")]
         public decimal Precio { get; set; }
 
+        // FK Proveedor -------------------------------------------------------------
 
+        [Required(ErrorMessage = "El proveedor es obligatorio.")]
         [ForeignKey(nameof(Proveedor))]
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor válido.")]
+        [Display(Name = "Proveedor",
+                 Description = "Proveedor del producto.")]
         public int ProveedorId { get; set; }
         public Proveedor Proveedor { get; set; } = null!;
 
+        // FK Categoria -------------------------------------------------------------
 
+        [Required(ErrorMessage = "La categoría es obligatoria.")]
         [ForeignKey(nameof(Categoria))]
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una Categoria.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría válida.")]
+        [Display(Name = "Categoría",
+                 Description = "Categoría del producto.")]
         public int CategoriaId { get; set; }
         public Categoria Categoria { get; set; } = null!;
 
+        // FK TipoProducto ----------------------------------------------------------
 
+        [Required(ErrorMessage = "El tipo de producto es obligatorio.")]
         [ForeignKey(nameof(TipoProducto))]
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Tipo de Producto.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un tipo de producto válido.")]
+        [Display(Name = "Tipo de producto",
+                 Description = "Tipo o clasificación del producto.")]
         public int TipoProductoId { get; set; }
         public TipoProducto TipoProducto { get; set; } = null!;
 
+        // FK Marca -----------------------------------------------------------------
 
+        [Required(ErrorMessage = "La marca es obligatoria.")]
         [ForeignKey(nameof(Marca))]
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una Marca.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una marca válida.")]
+        [Display(Name = "Marca",
+                 Description = "Marca del producto.")]
         public int MarcaId { get; set; }
         public Marca Marca { get; set; } = null!;
 
+        // Relaciones ---------------------------------------------------------------
 
-        // Relaciones
+        [Display(Name = "Items de pedido",
+                 Description = "Lista de ítems donde se incluye este producto.")]
+        public ICollection<PedidoItem> PedidoItems { get; set; } = new List<PedidoItem>();
 
-        public ICollection<CarritoItem> CarritoItems { get; set; } = new List<CarritoItem>();
+        [Display(Name = "Colores",
+                 Description = "Colores asociados al producto.")]
         public ICollection<ProductoColor> ProductosColores { get; set; } = new List<ProductoColor>();
-        public ICollection<ProductoTalle> ProductosTalles { get; set; } = new List<ProductoTalle>();
 
+        [Display(Name = "Talles",
+                 Description = "Talles disponibles para el producto.")]
+        public ICollection<ProductoTalle> ProductosTalles { get; set; } = new List<ProductoTalle>();
     }
 }

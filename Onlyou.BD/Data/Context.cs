@@ -10,10 +10,8 @@ namespace Onlyou.BD.Data
 {
     public class Context : DbContext
     {
-        public DbSet<Carrito> Carritos { get; set; }
-        public DbSet<CarritoItem> CarritoItems { get; set; }
+        public DbSet<PedidoItem> PedidoItems { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
-        public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Color> Colores { get; set; }
         public DbSet<EstadoPedido> EstadoPedidos { get; set; }
         public DbSet<Marca> Marcas { get; set; }
@@ -24,10 +22,12 @@ namespace Onlyou.BD.Data
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Talle> Talles { get; set; }
         public DbSet<TipoProducto> TipoProductos { get; set; }
-        public DbSet<TipoUsuario> TipoUsuarios { get; set; }
-        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<TipoMovimiento> TipoMovimientos { get; set; }
+        public DbSet<Caja> Cajas { get; set; }
+        public DbSet<Movimiento> Movimientos { get; set; }
+        public DbSet<Pago> Pagos { get; set; }
 
-        // Consultar: ¿Corresponde agregar una tabla "Direccion" donde guardar calle, barrio, loc, prov?
+
 
         // Es necesario trabajar con DNI en Clientes, para indexar mejor, AGREGAR
 

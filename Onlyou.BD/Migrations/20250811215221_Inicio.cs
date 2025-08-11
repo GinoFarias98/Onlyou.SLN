@@ -6,39 +6,42 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Onlyou.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class AtributosEntidades : Migration
+    public partial class Inicio : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "Nombre",
-                table: "Categorias",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
-
             migrationBuilder.CreateTable(
-                name: "Clientes",
+                name: "Cajas",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Direccion = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EstadoCaja = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Clientes", x => x.Id);
+                    table.PrimaryKey("PK_Cajas", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Categorias",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Estado = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categorias", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -123,6 +126,22 @@ namespace Onlyou.BD.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TipoMovimientos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    EsIngreso = table.Column<bool>(type: "bit", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Estado = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TipoMovimientos", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TipoProductos",
                 columns: table => new
                 {
@@ -138,40 +157,34 @@ namespace Onlyou.BD.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TipoUsuarios",
+                name: "Pedidos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FechaGenerado = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MontoTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    FechaPedidoAProveedor = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NombreCliente = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DireccionCliente = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Localidad = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DNI = table.Column<int>(type: "int", nullable: false),
+                    EstadoEntrega = table.Column<int>(type: "int", nullable: false),
+                    MontoEntregado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EstadoPago = table.Column<int>(type: "int", nullable: false),
+                    MontoPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EstadoPedidoId = table.Column<int>(type: "int", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TipoUsuarios", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Carritos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Pedido = table.Column<bool>(type: "bit", nullable: false),
-                    ClienteId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Estado = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Carritos", x => x.Id);
+                    table.PrimaryKey("PK_Pedidos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Carritos_Clientes_ClienteId",
-                        column: x => x.ClienteId,
-                        principalTable: "Clientes",
+                        name: "FK_Pedidos_EstadoPedidos_EstadoPedidoId",
+                        column: x => x.EstadoPedidoId,
+                        principalTable: "EstadoPedidos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -226,84 +239,73 @@ namespace Onlyou.BD.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Usuarios",
+                name: "Movimientos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Contrasenia = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    TipoUsuarioId = table.Column<int>(type: "int", nullable: false),
+                    FechaDelMovimiento = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    EstadoMovimiento = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CajaId = table.Column<int>(type: "int", nullable: false),
+                    TipoMovimientoId = table.Column<int>(type: "int", nullable: false),
+                    ProveedorId = table.Column<int>(type: "int", nullable: true),
+                    PedidoId = table.Column<int>(type: "int", nullable: true),
                     Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.PrimaryKey("PK_Movimientos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Usuarios_TipoUsuarios_TipoUsuarioId",
-                        column: x => x.TipoUsuarioId,
-                        principalTable: "TipoUsuarios",
+                        name: "FK_Movimientos_Cajas_CajaId",
+                        column: x => x.CajaId,
+                        principalTable: "Cajas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Movimientos_Pedidos_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedidos",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Movimientos_Proveedores_ProveedorId",
+                        column: x => x.ProveedorId,
+                        principalTable: "Proveedores",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Movimientos_TipoMovimientos_TipoMovimientoId",
+                        column: x => x.TipoMovimientoId,
+                        principalTable: "TipoMovimientos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Pedidos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FechaGenerado = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    MontoTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    FechaPedidoAProveedor = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CarritoId = table.Column<int>(type: "int", nullable: false),
-                    EstadoPedidoId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Estado = table.Column<bool>(type: "bit", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Pedidos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Pedidos_Carritos_CarritoId",
-                        column: x => x.CarritoId,
-                        principalTable: "Carritos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Pedidos_EstadoPedidos_EstadoPedidoId",
-                        column: x => x.EstadoPedidoId,
-                        principalTable: "EstadoPedidos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CarritoItems",
+                name: "PedidoItems",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Cantidad = table.Column<int>(type: "int", nullable: false),
-                    PrecioUnitario = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CarritoId = table.Column<int>(type: "int", nullable: false),
+                    PrecioUnitarioVenta = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PedidoId = table.Column<int>(type: "int", nullable: false),
                     ProductoId = table.Column<int>(type: "int", nullable: false),
                     Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CarritoItems", x => x.Id);
+                    table.PrimaryKey("PK_PedidoItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CarritoItems_Carritos_CarritoId",
-                        column: x => x.CarritoId,
-                        principalTable: "Carritos",
+                        name: "FK_PedidoItems_Pedidos_PedidoId",
+                        column: x => x.PedidoId,
+                        principalTable: "Pedidos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CarritoItems_Poductos_ProductoId",
+                        name: "FK_PedidoItems_Poductos_ProductoId",
                         column: x => x.ProductoId,
                         principalTable: "Poductos",
                         principalColumn: "Id",
@@ -360,47 +362,53 @@ namespace Onlyou.BD.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Pagos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FechaRealizado = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Situacion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    MetodoDePago = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    EsPagoCliente = table.Column<bool>(type: "bit", nullable: false),
+                    MovimientoId = table.Column<int>(type: "int", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Estado = table.Column<bool>(type: "bit", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pagos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Pagos_Movimientos_MovimientoId",
+                        column: x => x.MovimientoId,
+                        principalTable: "Movimientos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cajas_EstadoCaja",
+                table: "Cajas",
+                column: "EstadoCaja");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cajas_FechaFin",
+                table: "Cajas",
+                column: "FechaFin");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cajas_FechaInicio",
+                table: "Cajas",
+                column: "FechaInicio");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Categorias_Nombre",
                 table: "Categorias",
                 column: "Nombre",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CarritoItems_CarritoId",
-                table: "CarritoItems",
-                column: "CarritoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CarritoItems_CarritoId_ProductoId",
-                table: "CarritoItems",
-                columns: new[] { "CarritoId", "ProductoId" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CarritoItems_ProductoId",
-                table: "CarritoItems",
-                column: "ProductoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Carritos_ClienteId",
-                table: "Carritos",
-                column: "ClienteId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Clientes_Apellido",
-                table: "Clientes",
-                column: "Apellido");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Clientes_Nombre",
-                table: "Clientes",
-                column: "Nombre");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Clientes_Nombre_Apellido",
-                table: "Clientes",
-                columns: new[] { "Nombre", "Apellido" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Colores_Nombre",
@@ -421,10 +429,82 @@ namespace Onlyou.BD.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Pedidos_CarritoId",
-                table: "Pedidos",
-                column: "CarritoId",
+                name: "IX_Movimientos_CajaId",
+                table: "Movimientos",
+                column: "CajaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimientos_EstadoMovimiento",
+                table: "Movimientos",
+                column: "EstadoMovimiento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimientos_FechaDelMovimiento",
+                table: "Movimientos",
+                column: "FechaDelMovimiento");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimientos_PedidoId",
+                table: "Movimientos",
+                column: "PedidoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimientos_ProveedorId",
+                table: "Movimientos",
+                column: "ProveedorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Movimientos_TipoMovimientoId",
+                table: "Movimientos",
+                column: "TipoMovimientoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_FechaRealizado",
+                table: "Pagos",
+                column: "FechaRealizado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_FechaRealizado_MovimientoId",
+                table: "Pagos",
+                columns: new[] { "FechaRealizado", "MovimientoId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_MetodoDePago",
+                table: "Pagos",
+                column: "MetodoDePago");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_MovimientoId",
+                table: "Pagos",
+                column: "MovimientoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_Situacion",
+                table: "Pagos",
+                column: "Situacion");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PedidoItems_PedidoId",
+                table: "PedidoItems",
+                column: "PedidoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PedidoItems_PedidoId_ProductoId",
+                table: "PedidoItems",
+                columns: new[] { "PedidoId", "ProductoId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PedidoItems_ProductoId",
+                table: "PedidoItems",
+                column: "ProductoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pedidos_Codigo",
+                table: "Pedidos",
+                column: "Codigo",
+                unique: true,
+                filter: "[Codigo] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Pedidos_EstadoPedidoId",
@@ -512,26 +592,15 @@ namespace Onlyou.BD.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TipoMovimientos_Nombre",
+                table: "TipoMovimientos",
+                column: "Nombre",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TipoProductos_Nombre",
                 table: "TipoProductos",
                 column: "Nombre",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TipoUsuarios_Nombre",
-                table: "TipoUsuarios",
-                column: "Nombre",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Usuarios_TipoUsuarioId",
-                table: "Usuarios",
-                column: "TipoUsuarioId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Usuarios_UserName",
-                table: "Usuarios",
-                column: "UserName",
                 unique: true);
         }
 
@@ -539,10 +608,10 @@ namespace Onlyou.BD.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CarritoItems");
+                name: "Pagos");
 
             migrationBuilder.DropTable(
-                name: "Pedidos");
+                name: "PedidoItems");
 
             migrationBuilder.DropTable(
                 name: "ProductoColores");
@@ -551,13 +620,7 @@ namespace Onlyou.BD.Migrations
                 name: "ProductoTalles");
 
             migrationBuilder.DropTable(
-                name: "Usuarios");
-
-            migrationBuilder.DropTable(
-                name: "Carritos");
-
-            migrationBuilder.DropTable(
-                name: "EstadoPedidos");
+                name: "Movimientos");
 
             migrationBuilder.DropTable(
                 name: "Colores");
@@ -569,10 +632,16 @@ namespace Onlyou.BD.Migrations
                 name: "Talles");
 
             migrationBuilder.DropTable(
-                name: "TipoUsuarios");
+                name: "Cajas");
 
             migrationBuilder.DropTable(
-                name: "Clientes");
+                name: "Pedidos");
+
+            migrationBuilder.DropTable(
+                name: "TipoMovimientos");
+
+            migrationBuilder.DropTable(
+                name: "Categorias");
 
             migrationBuilder.DropTable(
                 name: "Marcas");
@@ -583,18 +652,8 @@ namespace Onlyou.BD.Migrations
             migrationBuilder.DropTable(
                 name: "TipoProductos");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Categorias_Nombre",
-                table: "Categorias");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Nombre",
-                table: "Categorias",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128);
+            migrationBuilder.DropTable(
+                name: "EstadoPedidos");
         }
     }
 }

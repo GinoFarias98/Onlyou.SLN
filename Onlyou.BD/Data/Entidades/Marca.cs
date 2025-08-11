@@ -2,19 +2,24 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    [Index(nameof(Nombre), IsUnique = true)]
+    [Index(nameof(Nombre), IsUnique = true)] // Índice único en Nombre
     public class Marca : EntidadBase
     {
-        [Required(ErrorMessage = "El Nombre es obligatorio")]
-        [MaxLength(128, ErrorMessage = "Maximo de 128 caracteres")]
+        // Nombre -------------------------------------------------------------------
+
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(128, ErrorMessage = "Máximo {1} caracteres.")]
+        [Display(Name = "Nombre",
+                 Description = "Nombre único de la marca.")]
         public string Nombre { get; set; } = null!;
 
-        public ICollection<Producto>? Productos { get; set; } = new List<Producto>();
+        // Productos relacionados ---------------------------------------------------
+
+        [Display(Name = "Productos",
+                 Description = "Lista de productos asociados a esta marca.")]
+        public ICollection<Producto> Productos { get; set; } = new List<Producto>();
     }
 }
