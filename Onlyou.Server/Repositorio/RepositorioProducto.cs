@@ -12,6 +12,12 @@ namespace Onlyou.Server.Repositorio
             this.context = context;
         }
 
+        //public async Task<Producto> SelectByProveedor():
+        //{
+        //    var producto = await context.
+        //}
+
+
 
 
     }

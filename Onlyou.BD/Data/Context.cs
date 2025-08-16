@@ -16,7 +16,7 @@ namespace Onlyou.BD.Data
         public DbSet<EstadoPedido> EstadoPedidos { get; set; }
         public DbSet<Marca> Marcas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
-        public DbSet<Producto> Poductos { get; set; }
+        public DbSet<Producto> Productos { get; set; }
         public DbSet<ProductoColor> ProductoColores { get; set; }
         public DbSet<ProductoTalle> ProductoTalles { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
