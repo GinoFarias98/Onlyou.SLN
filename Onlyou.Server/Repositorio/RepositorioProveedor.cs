@@ -41,5 +41,65 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
+        public async Task<List<Proveedor>> SelectByEmail(string email)
+        {
+            try
+            {
+                var proveedoresByEmail = await context.Proveedores.Where(prov => EF.Functions.Like(prov.Email, $"%{email}")).ToListAsync();
+                return proveedoresByEmail;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
+        public async Task<List<Proveedor>> SelectBySimilName(string similName)
+        {
+            try
+            {
+                var ProveedoresByName = await context.Proveedores.Where(prov => EF.Functions.Like(prov.Nombre, $"{similName.ToLower()}")).ToListAsync();
+                return ProveedoresByName;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+
+        }
+
+        public async Task<Proveedor?> SelectByCuit(string cuit)
+        {
+            try
+            {
+                var proveedorByCuit = await context.Proveedores.FirstOrDefaultAsync(p => p.CUIT == cuit);
+                return proveedorByCuit;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+
+        }
+
+        public async Task<bool> ExisteProv(string cuit, string email)
+        {
+            try
+            {
+                bool ExisteProv = await context.Proveedores.AnyAsync(p => p.CUIT == cuit || p.Email == email);
+                return ExisteProv;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+
+                throw;
+            }
+
+        }
+
     }
 }

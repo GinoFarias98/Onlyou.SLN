@@ -39,7 +39,13 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 builder.Services.AddScoped<IRepositorioProveedor, RepositorioProveedor>();
-
+builder.Services.AddScoped<IRepositorioProducto, RepositorioProducto>();
+builder.Services.AddScoped<IRepositorioMarca, RepositorioMarca>();
+builder.Services.AddScoped<IRepositorioColor, RepositorioColor>();
+builder.Services.AddScoped<IRepositorioTalle, RepositorioTalle>();
+builder.Services.AddScoped<IRepositorioEstadoPedido, RepositorioEstadoPedido>();
+builder.Services.AddScoped<IRepositorioTipoProducto, RepositorioTipoProducto>();
+builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
 // =====================================================================================================================================
 
 
