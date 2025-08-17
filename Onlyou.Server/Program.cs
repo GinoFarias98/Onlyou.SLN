@@ -46,6 +46,14 @@ builder.Services.AddScoped<IRepositorioTalle, RepositorioTalle>();
 builder.Services.AddScoped<IRepositorioEstadoPedido, RepositorioEstadoPedido>();
 builder.Services.AddScoped<IRepositorioTipoProducto, RepositorioTipoProducto>();
 builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
+
+builder.Services.AddScoped<IRepositorioMovimiento, RepositorioMovimiento>();
+builder.Services.AddScoped<IRepositorioTipoMovimiento, RepositorioTipoMovimiento>();
+builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
+builder.Services.AddScoped<IRepositorioPedido, RepositorioPedido>();
+builder.Services.AddScoped<IRepositorioPedidoItem, RepositorioPedidoItem>();
+builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
+    
 // =====================================================================================================================================
 
 
