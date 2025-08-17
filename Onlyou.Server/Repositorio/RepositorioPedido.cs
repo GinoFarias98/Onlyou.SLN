@@ -54,40 +54,40 @@ namespace Onlyou.Server.Repositorio
         }
 
         //Obtener pedidos por estado de pago
-        public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoPagoAsync(Pedido.EstadoPago estadoPago)
-        {
-            try
-            {
-                return await context.Pedidos
-                    .Where(p => p.EstadoPago == estadoPago)
-                    .Include(p => p.PedidoItems)
-                    .Include(p => p.Movimientos)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-        }
+       // public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoPagoAsync(Pedido.EstadoPago estadoPago)
+       // {
+       //     try
+       //     {
+       //         return await context.Pedidos
+       //             .Where(p => p.EstadoPago == estadoPago)
+       //             .Include(p => p.PedidoItems)
+       //             .Include(p => p.Movimientos)
+       //             .ToListAsync();
+       //     }
+       //     catch (Exception ex)
+       //     {
+       //         ImprimirError(ex);
+       //         throw;
+       //     }
+       // }
 
-        Obtener pedidos por estado de entrega
-        public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoEntregaAsync(Pedido.EstadoEntrega estadoEntrega)
-        {
-            try
-            {
-                return await context.Pedidos
-                    .Where(p => p.EstadoEntrega == estadoEntrega)
-                    .Include(p => p.PedidoItems)
-                    .Include(p => p.Movimientos)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-        }
+       //// Obtener pedidos por estado de entrega
+       // public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoEntregaAsync(Pedido.EstadoEntrega estadoEntrega)
+       // {
+       //     try
+       //     {
+       //         return await context.Pedidos
+       //             .Where(p => p.EstadoEntrega == estadoEntrega)
+       //             .Include(p => p.PedidoItems)
+       //             .Include(p => p.Movimientos)
+       //             .ToListAsync();
+       //     }
+       //     catch (Exception ex)
+       //     {
+       //         ImprimirError(ex);
+       //         throw;
+       //     }
+       // }
 
         // Obtener pedidos por rango de fechas
         public async Task<IEnumerable<Pedido>> SelectPedidosPorRangoFechasAsync(DateTime inicio, DateTime fin)
