@@ -67,6 +67,47 @@ namespace Onlyou.Client.Servicios
         }
 
 
+
+        #region Sobreescritura Metodos Put y Post
+
+        public async Task<HttpRespuesta<TResponse>> Post<TRequest, TResponse>(string url, TRequest entidad)
+        {
+            var EntSerializada = JsonSerializer.Serialize(entidad);
+            var EnviarJSON = new StringContent(EntSerializada, Encoding.UTF8, "application/json");
+            var response = await http.PostAsync(url, EnviarJSON);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var respuesta = await DesSerealizar<TResponse>(response);
+                return new HttpRespuesta<TResponse>(respuesta, false, response);
+            }
+            else
+            {
+                return new HttpRespuesta<TResponse>(default!, true, response);
+            }
+        }
+
+        public async Task<HttpRespuesta<TResponse>> Put<TRequest, TResponse>(string url, TRequest entidad)
+        {
+            var EntSerializada = JsonSerializer.Serialize(entidad);
+            var EnviarJSON = new StringContent(EntSerializada, Encoding.UTF8, "application/json");
+            var response = await http.PutAsync(url, EnviarJSON);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var respuesta = await DesSerealizar<TResponse>(response);
+                return new HttpRespuesta<TResponse>(respuesta, false, response);
+            }
+            else
+            {
+                return new HttpRespuesta<TResponse>(default!, true, response);
+            }
+        }
+
+
+        #endregion
+
+
         public async Task<HttpRespuesta<object>> Delete(string url)
         {
             var response = await http.DeleteAsync(url);

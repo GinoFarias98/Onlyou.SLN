@@ -1,0 +1,191 @@
+﻿@page "/colores"
+@using Onlyou.Shared.DTOS.Color
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<h3 class="titulo-seccion">Gestión de Colores</h3>
+
+<div class="color-form">
+    <input @bind="nombre" placeholder="Nombre del color" />
+    <input @bind="hexadecimal" placeholder="#FFFFFF" maxlength="7" />
+    <input @bind="codigo" placeholder="Código (opcional)" />
+    <label>
+        <input type="checkbox" @bind="estado" /> Activo
+    </label>
+
+    <button class="boton-accion" @onclick="GuardarColor">Guardar</button>
+    @if (modoEdicion)
+    {
+        <button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
+    }
+</div>
+
+@if (colores == null)
+{
+    <p>Cargando colores...</p>
+}
+else if (!colores.Any())
+{
+    <p>No hay colores para mostrar.</p>
+}
+else
+{
+    <table class="color-tabla">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Hexadecimal</th>
+                <th>Vista</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var color in colores)
+            {
+                <tr>
+                    <td>@color.Codigo</td>
+                    <td>@color.Nombre</td>
+                    <td>@color.Hexadecimal</td>
+                    <td>
+                        <div style="width:20px;height:20px;border:1px solid black;background-color:@color.Hexadecimal"></div>
+                    </td>
+                    <td>@(color.Estado ? "Activo" : "Inactivo")</td>
+                    <td>
+                        <button class="boton-accion" @onclick="() => EditarColor(color)">Editar</button>
+                        <button class="boton-accion" @onclick="() => EliminarColor(color.Id, color.Nombre)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GetColorDTO> colores = new();
+    private string nombre = string.Empty;
+    private string hexadecimal = "#000000";
+    private string? codigo;
+    private bool estado = true;
+    private int colorEditandoId = 0;
+    private bool modoEdicion = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarColores();
+    }
+
+    private async Task CargarColores()
+    {
+        // ✅ Ruta correcta del backend
+        var resultado = await http.Get<List<GetColorDTO>>("api/ManageColor");
+        if (!resultado.Error)
+        {
+            colores = resultado.Respuesta!;
+        }
+    }
+
+private async Task GuardarColor()
+{
+    if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(hexadecimal))
+    {
+        await swal.FireAsync("Atención", "El nombre y el código hexadecimal son obligatorios", SweetAlertIcon.Warning);
+        return;
+    }
+
+    if (modoEdicion)
+    {
+        var dto = new PutColorDTO
+        {
+            Nombre = nombre,
+            Hexadecimal = hexadecimal,
+            Estado = estado,
+            Codigo = codigo
+        };
+
+        var respuesta = await http.Put<PutColorDTO,GetColorDTO>($"api/ManageColor/ModificarColorId/{colorEditandoId}", dto);
+
+        if (respuesta.Error)
+        {
+            await swal.FireAsync("Error", "No se pudo editar el color", SweetAlertIcon.Error);
+            return;
+        }
+
+        // ✅ Mostrar en SweetAlert el color actualizado
+        var colorActualizado = respuesta.Respuesta!;
+        await swal.FireAsync("Éxito", 
+            $"Color '{colorActualizado.Nombre}' actualizado correctamente con HEX {colorActualizado.Hexadecimal}", 
+            SweetAlertIcon.Success);
+
+        modoEdicion = false;
+    }
+    else
+    {
+        var dto = new PostColorDTO
+        {
+            Nombre = nombre,
+            Hexadecimal = hexadecimal,
+            Codigo = codigo
+        };
+
+        var respuesta = await http.Post<PostColorDTO, GetColorDTO>("api/ManageColor", dto);
+
+        if (respuesta.Error)
+        {
+            await swal.FireAsync("Error", "No se pudo guardar el color", SweetAlertIcon.Error);
+            return;
+        }
+
+        var colorNuevo = respuesta.Respuesta!;
+        await swal.FireAsync("Éxito", 
+            $"Color '{colorNuevo.Nombre}' creado correctamente con HEX {colorNuevo.Hexadecimal}", 
+            SweetAlertIcon.Success);
+    }
+
+    LimpiarFormulario();
+    await CargarColores();
+}
+
+    private void EditarColor(GetColorDTO color)
+    {
+        colorEditandoId = color.Id;
+        nombre = color.Nombre;
+        hexadecimal = color.Hexadecimal;
+        estado = color.Estado;
+        codigo = color.Codigo;
+        modoEdicion = true;
+    }
+
+    private async Task EliminarColor(int id, string nombre)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas eliminar el color {nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirm.IsConfirmed)
+        {
+            // ✅ Ruta correcta para eliminar
+            await http.Delete($"api/ManageColor/EliminarCodigo/{id}");
+            await CargarColores();
+        }
+    }
+
+    private void CancelarEdicion() => LimpiarFormulario();
+
+    private void LimpiarFormulario()
+    {
+        nombre = string.Empty;
+        hexadecimal = "#000000";
+        codigo = null;
+        estado = true;
+        colorEditandoId = 0;
+        modoEdicion = false;
+    }
+}
