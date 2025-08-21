@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 
@@ -7,9 +8,12 @@ namespace Onlyou.Server.Repositorio
     public class RepositorioPedido : Repositorio<Pedido>, IRepositorioPedido
     {
         private readonly Context context;
-        public RepositorioPedido(Context context) : base(context)
+        private readonly IMapper mapper;
+
+        public RepositorioPedido(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         // Obtener pedido por ID incluyendo items y movimientos ------no hace falta mepa

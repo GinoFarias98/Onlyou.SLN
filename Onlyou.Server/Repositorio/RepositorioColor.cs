@@ -12,7 +12,7 @@ namespace Onlyou.Server.Repositorio
         private readonly Context context;
         private readonly IMapper mapper;
 
-        public RepositorioColor(Context context,IMapper mapper) : base(context)
+        public RepositorioColor(Context context,IMapper mapper) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;

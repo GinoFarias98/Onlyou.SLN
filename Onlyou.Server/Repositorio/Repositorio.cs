@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.Server.Utils;
 
@@ -16,10 +17,12 @@ namespace Onlyou.Server.Repositorio
         }
 
         private Context context;
+        private readonly IMapper mapper;
 
-        public Repositorio(Context context)
+        public Repositorio(Context context, IMapper mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         public async Task<bool> Existe(int id)
@@ -129,6 +132,32 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
+
+        public async Task<TDTO> InsertDevuelveDTO<TDTO>(E entidad)
+        {
+            if (entidad == null)
+            {
+                throw new ArgumentNullException(nameof(entidad), "La entidad no puede ser nula.");
+
+            }
+
+            try
+            {
+                await context.AddAsync(entidad);
+                await context.SaveChangesAsync();
+
+                var dto = mapper.Map<TDTO>(entidad);
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                //Descomentar al Publicar el proyecto en IIS
+                //Logger.LogError(ex);
+                throw;
+            }
+        }
+
 
         public async Task<bool> UpdateEntidad(int id, E entidad)
         {

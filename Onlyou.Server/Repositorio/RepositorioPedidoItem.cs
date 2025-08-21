@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 
@@ -7,9 +8,12 @@ namespace Onlyou.Server.Repositorio
     public class RepositorioPedidoItem : Repositorio<PedidoItem>, IRepositorioPedidoItem
     {
         private readonly Context context;
-        public RepositorioPedidoItem(Context context) : base(context)
+        private readonly IMapper mapper;
+
+        public RepositorioPedidoItem(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         // Obtener todos los ítems de un pedido

@@ -1,0 +1,176 @@
+﻿@page "/tipo-productos"
+@using Onlyou.Shared.DTOS.TipoProducto
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<h3 class="titulo-seccion">Gestión de Tipo de Productos</h3>
+
+<div class="tipoproducto-tabla">
+    <input @bind="nombre" placeholder="Nombre del tipo de producto" />
+    <input @bind="codigo" placeholder="Código (opcional)" />
+    <label>
+        <input type="checkbox" @bind="estado" /> Activo
+    </label>
+
+    <button class="boton-accion" @onclick="GuardarTipoProducto">Guardar</button>
+    @if (modoEdicion)
+    {
+        <button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
+    }
+</div>
+
+@if (tiposProductos == null)
+{
+    <p>Cargando tipos de productos...</p>
+}
+else if (!tiposProductos.Any())
+{
+    <p>No hay tipos de productos para mostrar.</p>
+}
+else
+{
+    <table class="tipoproducto-tabla">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tipo in tiposProductos)
+            {
+                <tr>
+                    <td>@tipo.Codigo</td>
+                    <td>@tipo.Nombre</td>
+                    <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
+                    <td>
+                        <button class="boton-accion" @onclick="() => EditarTipoProducto(tipo)">Editar</button>
+                        <button class="boton-accion" @onclick="() => EliminarTipoProducto(tipo.Id, tipo.Nombre)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GetTipoProductoDTO> tiposProductos = new();
+    private string nombre = string.Empty;
+    private string? codigo;
+    private bool estado = true;
+    private int tipoEditandoId = 0;
+    private bool modoEdicion = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTipoProductos();
+    }
+
+    private async Task CargarTipoProductos()
+    {
+        var resultado = await http.Get<List<GetTipoProductoDTO>>("api/TipoProducto");
+        if (!resultado.Error)
+        {
+            tiposProductos = resultado.Respuesta!;
+        }
+    }
+
+    private async Task GuardarTipoProducto()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
+            return;
+        }
+
+        if (modoEdicion)
+        {
+            var dto = new PutTipoProductoDTO
+            {
+                Nombre = nombre,
+                Estado = estado,
+                Codigo = codigo
+            };
+
+            var respuesta = await http.Put<PutTipoProductoDTO, GetTipoProductoDTO>($"api/TipoProducto/ModificarTipoProducto/{tipoEditandoId}", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo editar el tipo de producto", SweetAlertIcon.Error);
+                return;
+            }
+
+            var tipoActualizado = respuesta.Respuesta!;
+            await swal.FireAsync("Éxito",
+                $"Tipo de producto '{tipoActualizado.Nombre}' actualizado correctamente",
+                SweetAlertIcon.Success);
+
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new PostTipoProductoDTO
+            {
+                Nombre = nombre,
+                Codigo = codigo
+            };
+
+            var respuesta = await http.Post<PostTipoProductoDTO, GetTipoProductoDTO>("api/TipoProducto", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo guardar el tipo de producto", SweetAlertIcon.Error);
+                return;
+            }
+
+            var tipoNuevo = respuesta.Respuesta!;
+            await swal.FireAsync("Éxito",
+                $"Tipo de producto '{tipoNuevo.Nombre}' creado correctamente",
+                SweetAlertIcon.Success);
+        }
+
+        LimpiarFormulario();
+        await CargarTipoProductos();
+    }
+
+    private void EditarTipoProducto(GetTipoProductoDTO tipo)
+    {
+        tipoEditandoId = tipo.Id;
+        nombre = tipo.Nombre;
+        estado = tipo.Estado;
+        codigo = tipo.Codigo;
+        modoEdicion = true;
+    }
+
+    private async Task EliminarTipoProducto(int id, string nombre)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas eliminar el tipo de producto {nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirm.IsConfirmed)
+        {
+            await http.Delete($"api/TipoProducto/EliminarTipoProducto/{id}");
+            await CargarTipoProductos();
+        }
+    }
+
+    private void CancelarEdicion() => LimpiarFormulario();
+
+    private void LimpiarFormulario()
+    {
+        nombre = string.Empty;
+        codigo = null;
+        estado = true;
+        tipoEditandoId = 0;
+        modoEdicion = false;
+    }
+}

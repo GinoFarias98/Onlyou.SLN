@@ -1,0 +1,111 @@
+﻿@typeparam TCreateDto
+@typeparam TUpdateDto
+@typeparam TResponseDto
+
+<div class="p-3 border rounded bg-light">
+	<input @bind="Nombre" placeholder="Nombre"/>
+
+	@if (UsaHexadecimal)
+	{
+		<input @bind="Hexadecimal" placeholder="#FFFFFF" maxlength="7"/>
+	}
+	@if (UsaCodigo)
+	{
+		<input @bind="Codigo" placeholder="Codigo"/>
+	}
+
+	<label>
+		<input type="checkbox" @bind="Estado"/> Activo
+	</label>
+
+	<button class="btn-primary" @onclick="Guardar">Guardar</button>
+	@if(ModoEdicion)
+	{
+		<button class="btn-warning" @onclick="Cancelar">Cancelar</button>
+	}
+
+</div>
+
+@code {
+	[Parameter] public EventCallback<TCreateDto> OnCrear { get; set; }
+	[Parameter] public EventCallback<(int, TUpdateDto)> OnEditar { get; set; }
+
+	[Parameter] public bool UsaHexadecimal { get; set; } = false;
+	[Parameter] public bool UsaCodigo { get; set; } = false;
+
+	private string Nombre { get; set; } = string.Empty;
+	private string Hexadecimal { get; set; } = "#000000";
+	private string? Codigo { get; set; }
+	private bool Estado { get; set; } = true;
+	private bool ModoEdicion { get; set; } = false;
+	private int IdEdicion { get; set; }
+
+	private async Task Guardar()
+	{
+
+		if(ModoEdicion)
+		{
+			var dto = (TUpdateDto)Activator.CreateInstance(typeof(TUpdateDto))!;
+			typeof(TUpdateDto).GetProperty("Nombre")?.SetValue(dto, Nombre);
+			if (UsaHexadecimal)
+			{
+				typeof(TUpdateDto).GetProperty("Hexadecimal")?.SetValue(dto, Hexadecimal);
+			}
+			if(UsaCodigo)
+			{
+				typeof(TUpdateDto).GetProperty("Codigo")?.SetValue(dto, Codigo);
+			}
+			typeof(TUpdateDto).GetProperty("Estado")?.SetValue(dto, Estado);
+
+			await OnEditar.InvokeAsync((IdEdicion, dto));
+			ModoEdicion = false;
+		}
+		else
+		{
+			var dto = (TCreateDto)Activator.CreateInstance(typeof(TCreateDto))!;
+			typeof(TCreateDto).GetProperty("Nombre")?.SetValue(dto, Nombre);
+			if (UsaHexadecimal)
+			{
+				typeof(TCreateDto).GetProperty("Hexadecimal")?.SetValue(dto, Hexadecimal);
+
+			}
+			if (UsaCodigo)
+			{
+				typeof(TCreateDto).GetProperty("Codigo")?.SetValue(dto, Codigo);
+			}
+
+			await OnCrear.InvokeAsync(dto);
+		}
+
+		LimpiarFormulario();
+
+	}
+
+	private void Cancelar() => LimpiarFormulario();
+
+	private void LimpiarFormulario()
+	{
+		Nombre = string.Empty;
+		Hexadecimal = "#000000";
+		Codigo = null;
+		Estado = true;
+		ModoEdicion = false;
+		IdEdicion = 0;
+	}
+
+	public void CargarParaEditar(int id, string nombre, string? hex, string? codigo, bool estado)
+	{
+		IdEdicion = id;
+		Nombre = nombre;
+		if(UsaHexadecimal && hex != null)
+		{
+			Hexadecimal = hex;
+		}
+		if (UsaCodigo && codigo != null)
+		{
+			Codigo = codigo;
+		}
+		Estado = estado;
+		ModoEdicion = true;
+	}
+}

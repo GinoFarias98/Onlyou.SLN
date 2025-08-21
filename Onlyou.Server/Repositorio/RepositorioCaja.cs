@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 
@@ -7,9 +8,12 @@ namespace Onlyou.Server.Repositorio
     public class RepositorioCaja : Repositorio<Caja>, IRepositorioCaja
     {
         private readonly Context context;
-        public RepositorioCaja(Context context) : base(context)
+        private readonly IMapper mapper;
+
+        public RepositorioCaja(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         public async Task<Caja?> SelectCajaAbiertaAsync()

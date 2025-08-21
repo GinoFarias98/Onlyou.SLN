@@ -125,8 +125,9 @@ namespace Onlyou.Server.Controllers
                 var color = await repoColor.SelectById(id);
 
                 if (color == null)
+                {
                     return BadRequest($"No se encontró un Color con Id {id}.");
-
+                }
                 // Mapear los cambios del DTO al color
                 mapper.Map(putColorDTO, color);
 

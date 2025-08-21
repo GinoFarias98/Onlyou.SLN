@@ -1,8 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
+using Onlyou.BD.Data.Entidades;
 using Onlyou.Client.Servicios;
 using Onlyou.Server.Repositorio;
+using Onlyou.Shared.DTOS.TipoProducto;
 using System.Text.Json.Serialization;
 
 
@@ -53,7 +55,9 @@ builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
 builder.Services.AddScoped<IRepositorioPedido, RepositorioPedido>();
 builder.Services.AddScoped<IRepositorioPedidoItem, RepositorioPedidoItem>();
 builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
-    
+
+
+
 // =====================================================================================================================================
 
 

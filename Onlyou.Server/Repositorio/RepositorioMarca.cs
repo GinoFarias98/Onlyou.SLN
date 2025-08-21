@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 
@@ -7,10 +8,12 @@ namespace Onlyou.Server.Repositorio
     public class RepositorioMarca : Repositorio<Marca>, IRepositorioMarca
     {
         private readonly Context context;
+        private readonly IMapper mapper;
 
-        public RepositorioMarca(Context context) : base(context)
+        public RepositorioMarca(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         public async Task<Marca?> SelectByName(string name)

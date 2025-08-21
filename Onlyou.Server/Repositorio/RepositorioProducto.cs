@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
@@ -8,10 +9,12 @@ namespace Onlyou.Server.Repositorio
     public class RepositorioProducto : Repositorio<Producto>, IRepositorioProducto
     {
         private readonly Context context;
+        private readonly IMapper mapper;
 
-        public RepositorioProducto(Context context) : base(context)
+        public RepositorioProducto(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
 

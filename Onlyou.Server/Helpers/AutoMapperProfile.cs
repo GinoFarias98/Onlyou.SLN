@@ -2,6 +2,7 @@
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Shared.DTOS.Categorias;
 using Onlyou.Shared.DTOS.Color;
+using Onlyou.Shared.DTOS.TipoProducto;
 
 namespace Onlyou.Server.Helpers
 {
@@ -17,9 +18,15 @@ namespace Onlyou.Server.Helpers
 
             // Color ===================================================
 
-            CreateMap<Color, GetColorDTO>();
+            CreateMap<Color, GetColorDTO>().ReverseMap();
             CreateMap<PostColorDTO, Color>();
             CreateMap<PutColorDTO, Color>();
+
+            // Tipo Productos
+
+            CreateMap<TipoProducto, GetTipoProductoDTO>().ReverseMap();
+            CreateMap<PostTipoProductoDTO, TipoProducto>();
+            CreateMap<PutTipoProductoDTO, TipoProducto>();
 
         }
     }
