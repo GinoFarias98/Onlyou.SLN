@@ -31,6 +31,10 @@ namespace Onlyou.Server.Helpers
             CreateMap<PostTipoProductoDTO, TipoProducto>();
             CreateMap<PutTipoProductoDTO, TipoProducto>();
 
+            //Talle
+            CreateMap<Talle, TallesDTO>().ReverseMap();
+            CreateMap<TallesDTO, Talle>();
+
         }
     }
 }
