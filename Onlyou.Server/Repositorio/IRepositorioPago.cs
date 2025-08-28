@@ -2,7 +2,7 @@
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioPago
+    public interface IRepositorioPago : IRepositorio<Pago>
     {
         Task<IEnumerable<Pago>> SelectPagosPorMetodoAsync(string metodo);
         Task<IEnumerable<Pago>> SelectPagosPorMovimientoAsync(int movimientoId);

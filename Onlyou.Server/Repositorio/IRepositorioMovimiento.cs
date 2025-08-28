@@ -2,7 +2,7 @@
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioMovimiento
+    public interface IRepositorioMovimiento : IRepositorio<Movimiento>
     {
         Task<IEnumerable<Movimiento>> SelectMovimientosPorCajaAsync(int cajaId);
         Task<IEnumerable<Movimiento>> SelectMovimientosPorEstadoAsync(string estado);

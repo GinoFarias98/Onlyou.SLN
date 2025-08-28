@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20250818220757_Correccion_EntidadBase")]
-    partial class Correccion_EntidadBase
+    [Migration("20250826124051_inicio")]
+    partial class inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

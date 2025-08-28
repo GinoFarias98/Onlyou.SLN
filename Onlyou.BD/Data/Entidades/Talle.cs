@@ -7,7 +7,7 @@ namespace Onlyou.BD.Data.Entidades
     [Index(nameof(Nombre), IsUnique = true)]
     public class Talle : EntidadBase
     {
-        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        //[Required(ErrorMessage = "El nombre es obligatorio.")]
         [MaxLength(128, ErrorMessage = "Máximo 128 caracteres.")]
         [Display(Name = "Nombre",
                  Description = "Nombre del talle.")]

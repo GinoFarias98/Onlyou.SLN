@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.Talle;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -15,6 +16,16 @@ namespace Onlyou.Server.Repositorio
             this.context = context;
             this.mapper = mapper;
         }
+        //public async Task<IEnumerable<Talle>> Select()
+        //{
+        //    return await context.Talles
+        //        .Select(t => new Talle
+        //        {
+        //            Id = t.Id,
+        //            Nombre = t.Nombre ?? "" // <- si es NULL, devuelve string vacío
+        //        })
+        //        .ToListAsync();
+        //}
 
         public async Task<List<Talle>> SelectTallePorProducto(int productoId)
         {

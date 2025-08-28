@@ -1,0 +1,152 @@
+﻿@page "/talles"
+@using Onlyou.Shared.DTOS.Talle
+@inject IHttpServicios http
+@inject IJSRuntime JS
+@inject SweetAlertService swal
+
+<h3>Gestión de Talles</h3>
+
+<div class="mb-3">
+    <input type="text" @bind="nombre" placeholder="Nombre del talle" class="form-control" />
+    <input type="text" @bind="codigo" placeholder="Codigo del talle" class="form-control" />
+   @*  <label>
+    <input type="checkbox" @bind="estado" placeholder="Estado del talle" class="form-control" /> Activo
+    </label> *@
+
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="GuardarTalle">
+        @(modoEdicion ? "Actualizar" : "Agregar")
+    </button>
+    @if (modoEdicion)
+    {
+        <button class="btn btn-secondary" @onclick="CancelarEdicion">Cancelar</button>
+    }
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (talles is not null)
+        {
+            @foreach (var talle in talles)
+            {
+                <tr>
+                    <td>@talle.Id</td>
+                    <td>@talle.Nombre</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" @onclick="() => EditarTalle(talle)">Editar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EliminarTalle(talle)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<TallesDTO> talles = new();
+    private string nombre = string.Empty;
+    private bool modoEdicion = false;
+    private int talleEditandoId = 0;
+    private string codigo = string.Empty;
+    private bool estado = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTalles();
+    }
+
+    private async Task CargarTalles()
+    {
+        var respuesta = await http.Get<List<TallesDTO>>("api/Talle");
+        if (!respuesta.Error && respuesta.Respuesta is not null)
+        {
+            talles = respuesta.Respuesta;
+        }
+    }
+
+    private async Task GuardarTalle()
+    {
+        var dto = new TallesDTO { Id = talleEditandoId, Nombre = nombre, Codigo = codigo, Estado = estado };
+
+        if (modoEdicion)
+        {
+            var respuesta = await http.Put($"api/Talle/{dto.Id}", dto);
+            if (!respuesta.Error)
+            {
+                await swal.FireAsync("Éxito", "Talle actualizado", SweetAlertIcon.Success);
+                await CargarTalles();
+                CancelarEdicion();
+            }
+            else
+            {
+                await swal.FireAsync("Error", "No se pudo actualizar", SweetAlertIcon.Error);
+            }
+        }
+        else
+        {
+            var respuesta = await http.Post("api/Talle", dto);
+            if (!respuesta.Error)
+            {
+                await swal.FireAsync("Éxito", "Talle agregado", SweetAlertIcon.Success);
+                await CargarTalles();
+                nombre = string.Empty;
+            }
+            else
+            {
+                await swal.FireAsync("Error", "No se pudo agregar", SweetAlertIcon.Error);
+            }
+        }
+    }
+
+    private void EditarTalle(TallesDTO talle)
+    {
+        talleEditandoId = talle.Id;
+        nombre = talle.Nombre;
+        modoEdicion = true;
+    }
+
+    private void CancelarEdicion()
+    {
+        talleEditandoId = 0;
+        nombre = string.Empty;
+        modoEdicion = false;
+    }
+
+    private async Task EliminarTalle(TallesDTO talle)
+    {
+        var confirmar = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Atención",
+            Text = $"¿Seguro que deseas eliminar el talle {talle.Nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirmar.IsConfirmed)
+        {
+            var respuesta = await http.Delete($"api/Talle/{talle.Id}");
+            if (!respuesta.Error)
+            {
+                await swal.FireAsync("Éxito", "Talle eliminado", SweetAlertIcon.Success);
+                await CargarTalles();
+            }
+            else
+            {
+                await swal.FireAsync("Error", "No se pudo eliminar el talle", SweetAlertIcon.Error);
+            }
+        }
+    }
+    
+}

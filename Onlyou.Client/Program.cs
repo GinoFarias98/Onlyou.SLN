@@ -13,6 +13,7 @@ builder.Services.AddScoped(sp =>
 
 builder.Services.AddScoped<IHttpServicios, HttpServicios>();
 builder.Services.AddScoped<ICategoriaServicios, CategoriaServicios>();
+
 builder.Services.AddSweetAlert2();
 
 

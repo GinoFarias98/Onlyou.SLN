@@ -16,5 +16,44 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
+        public Task<int> Insert(Movimiento entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string?> InsertDevuelveCodigo(Movimiento entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TDTO> InsertDevuelveDTO<TDTO>(Movimiento entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateEntidad(int id, Movimiento entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateEstado(int id, Movimiento entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        //Task<List<Movimiento>> IRepositorio<Movimiento>.Select()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //Task<Movimiento?> IRepositorio<Movimiento>.SelectByCod(string codigo)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //Task<Movimiento?> IRepositorio<Movimiento>.SelectById(int id)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
 using Onlyou.Shared.DTOS.Talle;
+using Onlyou.Shared.DTOS.TipoProducto;
+
+
 
 namespace Onlyou.Server.Controllers
 {
@@ -19,26 +22,40 @@ namespace Onlyou.Server.Controllers
             this.mapper = mapper;
         }
 
-        // GET: api/talles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TallesDTO>>> GetAll()
+        public async Task<ActionResult<List<TallesDTO>>> GetAll()
         {
             var talles = await repositorio.Select();
+            if (talles== null)
+            {
+                return Ok(new List<TallesDTO>());
+
+            }
             var tallesDTO = mapper.Map<List<TallesDTO>>(talles);
+
             return Ok(tallesDTO);
         }
 
-        // GET: api/talles/5
-        [HttpGet("{id:int}")]
+        [HttpGet("Id/{id:int}")]
         public async Task<ActionResult<TallesDTO>> GetById(int id)
         {
-            var talle = await repositorio.SelectById(id);
-            if (talle == null)
-                return NotFound();
-
-            var talleDTO = mapper.Map<TallesDTO>(talle);
-            return Ok(talleDTO);
+            try
+            {
+                var talle = await repositorio.SelectById(id);
+                if (talle == null)
+                {
+                    return BadRequest($"No se encontro un talle con el ID: '{id}' que mostrar");
+                }
+                var talleDTO = mapper.Map<TallesDTO>(talle);
+                return Ok(talleDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en el método GetById: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
         }
+
 
         // GET: api/talles/codigo/ABC123
         [HttpGet("codigo/{codigo}")]

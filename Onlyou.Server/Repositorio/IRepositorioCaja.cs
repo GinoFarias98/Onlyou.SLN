@@ -2,7 +2,7 @@
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioCaja
+    public interface IRepositorioCaja : IRepositorio<Caja>
     {
         Task<Caja?> SelectCajaAbiertaAsync();
         Task<IEnumerable<Caja>> SelectCajasPorRangoFechasAsync(DateTime inicio, DateTime fin);

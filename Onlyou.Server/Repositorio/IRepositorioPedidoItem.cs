@@ -2,7 +2,7 @@
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioPedidoItem
+    public interface IRepositorioPedidoItem : IRepositorio<PedidoItem>
     {
         //Task ActualizarItemAsync(PedidoItem item);
         //Task AgregarItemAsync(PedidoItem item);

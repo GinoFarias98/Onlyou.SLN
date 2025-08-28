@@ -2,7 +2,7 @@
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioPedido
+    public interface IRepositorioPedido : IRepositorio<Pedido>
     {
         Task<Pedido?> SelectPedidoPorIdAsync(int pedidoId);
         Task<IEnumerable<Pedido>> SelectPedidosPorClienteAsync(string nombreCliente, int? dni = null);
