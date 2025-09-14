@@ -1,36 +1,45 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="main-layout">
-    <header class="main-header">
+	<header class="main-header">
 
-        <button class="menu-toggle" @onclick="ToggleNavMenu">
-            <i class="bi bi-list"></i>
-        </button>
-        <h1 class="titulo">Admin.</h1>
-        <div class="logo-contenedor">
-            <img src="img/logo-onlyou.png" alt="Onlyou Logo Grande" class="logo-central" />
-        </div>
+		<button class="menu-toggle" @onclick="ToggleNavMenu">
+			<i class="bi bi-list"></i>
+		</button>
+		<h1 class="titulo">Admin.</h1>
+		<div class="logo-contenedor">
+			<ControlAutorizacion></ControlAutorizacion>
+			<img src="img/logo-onlyou.png" alt="Onlyou Logo Grande" class="logo-central" />
+		</div>
 
-    </header>
+	</header>
 
-    <div class="main-body">
-        <div class="@SidebarCssClass">
-            <NavMenu />
-        </div>
+	<div class="main-body">
 
-        <main class="content">
-            @Body
-        </main>
-    </div>
+
+		<div class="@SidebarCssClass">
+			<NavMenu />
+		</div>
+
+		<main class="content">
+
+			@* <div class="top-row px-4" style="background-color:#06163c;border: none; color: white; padding: 10px;">
+				<ControlAutorizacion></ControlAutorizacion>
+			</div> *@
+
+			@Body
+
+		</main>
+	</div>
 </div>
 
 @code {
-    private bool menuVisible = true;
+	private bool menuVisible = true;
 
-    private string SidebarCssClass => menuVisible ? "sidebar show" : "sidebar hide";
+	private string SidebarCssClass => menuVisible ? "sidebar show" : "sidebar hide";
 
-    private void ToggleNavMenu()
-    {
-        menuVisible = !menuVisible;
-    }
+	private void ToggleNavMenu()
+	{
+		menuVisible = !menuVisible;
+	}
 }

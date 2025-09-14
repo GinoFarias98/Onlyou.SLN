@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data.Entidades;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Onlyou.BD.Data
 {
-    public class Context : DbContext
+    public class Context : IdentityDbContext
     {
         public DbSet<PedidoItem> PedidoItems { get; set; }
         public DbSet<Categoria> Categorias { get; set; }

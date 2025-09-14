@@ -1,0 +1,69 @@
+﻿@page "/registrar"
+@inject IHttpServicios http
+@inject NavigationManager navigationManager
+@inject IJSRuntime js
+@inject ILoginService loginService
+@using Onlyou.Client.Autorizacion
+@using Onlyou.Shared.DTOS.Usuario
+
+<EditForm Model="userInfoDTO" OnValidSubmit="CrearUsuario">
+	<DataAnnotationsValidator/>
+
+	<div class="mb-3">
+		<label for="email" class="form-label">Email</label>
+		<InputText id="email" class="form-control" @bind-Value="userInfoDTO.Email"/>
+		<ValidationMessage For="@(() => userInfoDTO.Email)"/>
+	</div>
+
+	<div class="mb-3">
+		<label for="password" class="form-label">Password</label>
+		<div class="input-group">
+			<InputText id="password" type="@passwordInputType" class="form-control" @bind-Value="userInfoDTO.Password" />
+			<button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword">
+				<i class="bi @(passwordInputType == "password" ? "bi-eye" : "bi-eye-slash")"></i>
+			</button>
+		</div>
+		<ValidationMessage For="@(() => userInfoDTO.Password)" />
+	</div>
+
+	<button type="submit" class="btn btn-primary">Registrar</button>
+
+</EditForm>
+
+@code {
+	private UserInfoDTO userInfoDTO = new UserInfoDTO();
+
+	private string passwordInputType = "password";
+
+	private void TogglePassword()
+	{
+		passwordInputType = passwordInputType == "password" ? "text" : "password";
+	}
+
+	private async Task CrearUsuario()
+	{
+		var httpRespuesta = await http.Post<UserInfoDTO, UserTokenDTO>("usuarios/registrar", userInfoDTO);
+
+		if (httpRespuesta.Error)
+		{
+			var msg = await httpRespuesta.ObtenerError();
+			await js.Confirmar(msg);
+		}
+		else
+		{
+			var userToken = httpRespuesta.Respuesta as UserTokenDTO;
+			if (userToken != null)
+			{
+				await loginService.Login(userToken);
+				navigationManager.NavigateTo("/");
+			}
+			else
+			{
+				await js.Confirmar("no se puede obtner el token");
+			}
+
+		}
+
+	}
+
+}

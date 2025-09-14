@@ -2,6 +2,16 @@
 
 <PageTitle>Home</PageTitle>
 
+<AuthorizeView>
+    <Authorized>
+        <p>Hola desde una vista autorizada</p>
+        <p>Hola @context.User.Identity?.Name</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>No autorizado, favor logearse</p>
+    </NotAuthorized>
+</AuthorizeView>
+
 <div class="home-logo">
     <img src="img/logo-grande.png" alt="Logo Onlyou Grande" />
 </div>

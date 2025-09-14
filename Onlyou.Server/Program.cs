@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
@@ -29,6 +31,29 @@ builder.Services.AddRazorPages();
 // Coneccion con la BD / Context
 
 builder.Services.AddDbContext<Context>(op => op.UseSqlServer("name=conn"));
+
+
+// Identity
+
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<Context>().AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtKey"])),
+            ClockSkew = TimeSpan.Zero // Esto reduce el sesgo del reloj a cero para fines de prueba
+        };
+    });
 
 //
 
@@ -75,7 +100,11 @@ app.UseBlazorFrameworkFiles();
 app.UseRouting();
 app.UseStaticFiles();
 app.MapRazorPages();
+
+// Identity
+app.UseAuthentication();
 app.UseAuthorization();
+//
 
 app.MapControllers();
 app.MapFallbackToFile("index.html");

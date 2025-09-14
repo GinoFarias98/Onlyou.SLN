@@ -29,6 +29,14 @@
     </NavLink>
 
 
+    <AuthorizeView Roles="admin">
+        <Authorized>
+            <NavLink class="nav-link" href="counter">
+                <i class="bi bi-people"></i> counter
+            </NavLink>
+        </Authorized>
+    </AuthorizeView>
+
     <a class="nav-link" href="https://localhost:7144/swagger" target="_blank">
         <i class="bi bi-tools"></i> Swagger
     </a>
