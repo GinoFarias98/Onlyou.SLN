@@ -12,7 +12,7 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20250914044121_Inicio")]
+    [Migration("20250919115157_Inicio")]
     partial class Inicio
     {
         /// <inheritdoc />

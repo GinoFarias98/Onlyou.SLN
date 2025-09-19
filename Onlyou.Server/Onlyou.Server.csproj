@@ -25,4 +25,11 @@
 		<ProjectReference Include="..\Onlyou.BD\Onlyou.BD.csproj" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+	  <Content Update="appsettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 </Project>

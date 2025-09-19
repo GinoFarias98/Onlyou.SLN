@@ -133,7 +133,9 @@ private async Task GuardarColor()
 
         if (respuesta.Error)
         {
-            await swal.FireAsync("Error", "No se pudo guardar el color", SweetAlertIcon.Error);
+            string contenidoError = await respuesta.HttpResponseMessage.Content.ReadAsStringAsync();
+
+                await swal.FireAsync("Error", $"No se pudo guardar el color. Error: {contenidoError}", SweetAlertIcon.Error);
             return;
         }
 

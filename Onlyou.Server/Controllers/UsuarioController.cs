@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Onlyou.Shared.DTOS.Usuario;
@@ -10,6 +11,7 @@ namespace Onlyou.Server.Controllers
 {
     [ApiController]
     [Route("usuarios")]
+    [AllowAnonymous]
     public class UsuarioController : ControllerBase
     {
         private readonly UserManager<IdentityUser> userManager;
@@ -45,6 +47,7 @@ namespace Onlyou.Server.Controllers
         {
             var claims = new List<Claim>()
             {
+                new Claim(ClaimTypes.Name, userInfoDTO.Email),
                 new Claim(ClaimTypes.Email, userInfoDTO.Email)
                 // Codigo para agregar claims custom: new new Claim("customClaim", "valorDelClaim")
             };
