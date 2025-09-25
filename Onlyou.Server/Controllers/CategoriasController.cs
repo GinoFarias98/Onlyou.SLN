@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Onlyou.BD.Data.Entidades;
@@ -9,6 +12,7 @@ namespace Onlyou.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class CategoriasController : ControllerBase
     {
         private readonly IRepositorio<Categoria> repositorio;
@@ -29,6 +33,7 @@ namespace Onlyou.Server.Controllers
         // GET: api/categorias
         [HttpGet]
         [OutputCache(Tags = [cacheKey])]
+        [AllowAnonymous]
         public async Task<ActionResult<List<GetCategoriasDTO>>> GetCategorias()
         {
             try
