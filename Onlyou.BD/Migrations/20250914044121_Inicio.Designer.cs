@@ -19,6 +19,8 @@ namespace Onlyou.BD.Migrations
     [Migration("20250916140852_inicio")]
     partial class inicio
 >>>>>>> Update - CategoriasController:Onlyou.BD/Migrations/20250916140852_inicio.Designer.cs
+    [Migration("20250914044121_Inicio")]
+    partial class Inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
