@@ -89,7 +89,7 @@ namespace Onlyou.Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método GetByCodigo: {ex.Message}");
+                Console.WriteLine($"Error en el método GetById: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
 

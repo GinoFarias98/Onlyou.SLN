@@ -1,0 +1,368 @@
+﻿@page "/productos"
+@using Onlyou.Shared.DTOS.Categorias
+@using Onlyou.Shared.DTOS.Color
+@using Onlyou.Shared.DTOS.Marca
+@using Onlyou.Shared.DTOS.Producto
+@using Onlyou.Shared.DTOS.Proveedor
+@using Onlyou.Shared.DTOS.Talle
+@using Onlyou.Shared.DTOS.TipoProducto
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<h3 class="titulo-seccion">Gestión de Productos</h3>
+
+<div class="producto-formulario">
+    <input @bind="nombre" placeholder="Nombre del producto" />
+    <input @bind="codigo" placeholder="Codigo del producto" />
+    <textarea @bind="descripcion" placeholder="Descripción"></textarea>
+    <label>Stock</label>
+    <input type="number" @bind="stock" placeholder="Stock" />
+    <label>Costo</label>
+    <input type="number" @bind="costo" placeholder="Costo" step="0.01" />
+    <label>Precio</label>
+    <input type="number" @bind="precio" placeholder="Precio" step="0.01" />
+
+    <select @bind="proveedorId">
+        <option value="">-- Seleccione proveedor --</option>
+        @foreach (var p in proveedores)
+        {
+            <option value="@p.Id">@p.Nombre</option>
+        }
+    </select>
+
+    <select @bind="categoriaId">
+        <option value="">-- Seleccione categoría --</option>
+        @foreach (var c in categorias)
+        {
+            <option value="@c.Id">@c.Nombre</option>
+        }
+    </select>
+
+    <select @bind="tipoProductoId">
+        <option value="">-- Seleccione tipo de producto --</option>
+        @foreach (var t in tiposProducto)
+        {
+            <option value="@t.Id">@t.Nombre</option>
+        }
+    </select>
+
+    <select @bind="marcaId">
+        <option value="">-- Seleccione marca --</option>
+        @foreach (var m in marcas)
+        {
+            <option value="@m.Id">@m.Nombre</option>
+        }
+    </select>
+
+    <InputFile OnChange="SubirImagen" />
+
+    <!-- Colores -->
+    <div class="lista-dinamica">
+        <label>Colores</label>
+        <select multiple @onchange="OnColoresChange">
+            @foreach (var color in coloresDisponibles)
+            {
+                <option value="@color.Id" selected="@coloresSeleccionados.Contains(color.Id)">
+                    @color.Nombre
+                </option>
+            }
+        </select>
+    </div>
+
+    <!-- Talles -->
+    <div class="lista-dinamica">
+        <label>Talles</label>
+        <select multiple @onchange="OnTallesChange">
+            @foreach (var talle in tallesDisponibles)
+            {
+                <option value="@talle.Id" selected="@tallesSeleccionados.Contains(talle.Id)">
+                    @talle.Nombre
+                </option>
+            }
+        </select>
+    </div>
+
+    <button @onclick="GuardarProducto">Guardar</button>
+    @if (modoEdicion)
+    {
+        <button @onclick="CancelarEdicion">Cancelar</button>
+    }
+</div>
+
+@if (productos == null)
+{
+    <p>Cargando productos...</p>
+}
+else if (!productos.Any())
+{
+    <p>No hay productos para mostrar.</p>
+}
+else
+{
+    <table class="productos-tabla">
+        <thead>
+            <tr>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Categoría</th>
+                <th>Marca</th>
+                <th>Proveedor</th>
+                <th>Colores</th>
+                <th>Talles</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var prod in productos)
+            {
+                <tr>
+                    <td><img src="@prod.Imagen" alt="@prod.Nombre" width="50" /></td>
+                    <td>@prod.Nombre</td>
+                    <td>@prod.Precio</td>
+                    <td>@prod.Stock</td>
+                    <td>@prod.CategoriaNombre</td>
+                    <td>@prod.MarcaNombre</td>
+                    <td>@prod.ProveedorNombre</td>
+                    <td>
+                        @if (prod.ColoresDetalle != null && prod.ColoresDetalle.Any())
+                        {
+                            @foreach (var c in prod.ColoresDetalle)
+                            {
+                                <span class="color-chip" style="background-color:@c.Hexadecimal" title="@c.Nombre"></span>
+                                <span>@c.Nombre</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                    <td>
+                        @if (prod.TallesDetalle != null && prod.TallesDetalle.Any())
+                        {
+                            @string.Join(", ", prod.TallesDetalle.Select(t => t.Nombre))
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </td>
+                    <td>
+                        <button @onclick="() => EditarProducto(prod)">Editar</button>
+                        <button @onclick="() => EliminarProducto(prod.Id, prod.Nombre)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GetProductoDTO> productos = new();
+    private List<GetProveedorDTO> proveedores = new();
+    private List<GetCategoriasDTO> categorias = new();
+    private List<GetTipoProductoDTO> tiposProducto = new();
+    private List<GetMarcaDTO> marcas = new();
+    private List<GetColorDTO> coloresDisponibles = new();
+    private List<TallesDTO> tallesDisponibles = new();
+
+    private int productoEditandoId = 0;
+    private bool modoEdicion = false;
+
+    private string nombre = string.Empty;
+    private string codigo = string.Empty;
+    private string? descripcion;
+    private int stock;
+    private decimal costo;
+    private decimal precio;
+    private int proveedorId;
+    private int categoriaId;
+    private int tipoProductoId;
+    private int marcaId;
+    private string? imagenBase64;
+    private string? imagenExtension;
+
+    // Selecciones del usuario
+    private List<int> coloresSeleccionados = new();
+    private List<int> tallesSeleccionados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosRelacionados();
+        await CargarProductos();
+    }
+
+    private async Task CargarDatosRelacionados()
+    {
+        proveedores = (await http.Get<List<GetProveedorDTO>>("api/Proveedores")).Respuesta ?? new();
+        categorias = (await http.Get<List<GetCategoriasDTO>>("api/Categorias")).Respuesta ?? new();
+        tiposProducto = (await http.Get<List<GetTipoProductoDTO>>("api/TipoProducto")).Respuesta ?? new();
+        marcas = (await http.Get<List<GetMarcaDTO>>("api/Marca")).Respuesta ?? new();
+        coloresDisponibles = (await http.Get<List<GetColorDTO>>("api/ManageColor")).Respuesta ?? new();
+        tallesDisponibles = (await http.Get<List<TallesDTO>>("api/Talle")).Respuesta ?? new();
+    }
+
+    private async Task CargarProductos()
+    {
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta ?? new();
+    }
+
+    private async Task GuardarProducto()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
+            return;
+        }
+
+        if (modoEdicion)
+        {
+            var dto = new PutProductoDTO
+            {
+                Nombre = nombre,
+                Descripcion = descripcion,
+                Stock = stock,
+                Costo = costo,
+                Precio = precio,
+                ProveedorId = proveedorId,
+                CategoriaId = categoriaId,
+                TipoProductoId = tipoProductoId,
+                MarcaId = marcaId,
+                Imagen = imagenBase64,
+                ImagenExtension = imagenExtension,
+                Colores = coloresSeleccionados,
+                Talles = tallesSeleccionados
+            };
+
+            var respuesta = await http.Put<PutProductoDTO, GetProductoDTO>($"Productos/{productoEditandoId}", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo editar el producto", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' actualizado correctamente", SweetAlertIcon.Success);
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new PostProductoDTO
+            {
+                Nombre = nombre,
+                Codigo = codigo,
+                Descripcion = descripcion,
+                Stock = stock,
+                Costo = costo,
+                Precio = precio,
+                ProveedorId = proveedorId,
+                CategoriaId = categoriaId,
+                TipoProductoId = tipoProductoId,
+                MarcaId = marcaId,
+                Imagen = imagenBase64,
+                ImagenExtension = imagenExtension,
+                Colores = coloresSeleccionados,
+                Talles = tallesSeleccionados
+            };
+
+            var respuesta = await http.Post<PostProductoDTO, GetProductoDTO>("Productos", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo crear el producto", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+        }
+
+        LimpiarFormulario();
+        await CargarProductos();
+    }
+
+    private void EditarProducto(GetProductoDTO producto)
+    {
+        productoEditandoId = producto.Id;
+        nombre = producto.Nombre;
+        descripcion = producto.Descripcion;
+        stock = producto.Stock;
+        costo = producto.Costo;
+        precio = producto.Precio;
+        proveedorId = producto.ProveedorId;
+        categoriaId = producto.CategoriaId;
+        tipoProductoId = producto.TipoProductoId;
+        marcaId = producto.MarcaId;
+        coloresSeleccionados = producto.Colores.ToList();
+        tallesSeleccionados = producto.Talles.ToList();
+        modoEdicion = true;
+    }
+
+    private async Task EliminarProducto(int id, string nombre)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas eliminar el producto {nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirm.IsConfirmed)
+        {
+            await http.Delete($"Productos/{id}");
+            await CargarProductos();
+        }
+    }
+
+    private void CancelarEdicion() => LimpiarFormulario();
+
+    private void LimpiarFormulario()
+    {
+        nombre = string.Empty;
+        descripcion = null;
+        stock = 0;
+        costo = 0;
+        precio = 0;
+        proveedorId = 0;
+        categoriaId = 0;
+        tipoProductoId = 0;
+        marcaId = 0;
+        imagenBase64 = null;
+        imagenExtension = null;
+        productoEditandoId = 0;
+        coloresSeleccionados.Clear();
+        tallesSeleccionados.Clear();
+        modoEdicion = false;
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        imagenBase64 = Convert.ToBase64String(buffer);
+        imagenExtension = Path.GetExtension(file.Name);
+    }
+
+    private void OnColoresChange(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            var seleccion = e.Value as IEnumerable<string>;
+            coloresSeleccionados = seleccion.Select(int.Parse).ToList();
+        }
+    }
+
+    private void OnTallesChange(ChangeEventArgs e)
+    {
+        if (e.Value is not null)
+        {
+            var seleccion = e.Value as IEnumerable<string>;
+            tallesSeleccionados = seleccion.Select(int.Parse).ToList();
+        }
+    }
+}

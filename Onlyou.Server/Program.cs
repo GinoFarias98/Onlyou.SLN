@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Client.Servicios;
+using Onlyou.Server.Helpers;
 using Onlyou.Server.Repositorio;
+using Onlyou.Server.Services;
 using Onlyou.Shared.DTOS.TipoProducto;
 using System.Text.Json.Serialization;
 
@@ -57,8 +59,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-//
 
+
+// Servicios
+
+builder.Services.AddScoped<IImagenValidator, ImagenValidator>();
+builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
+builder.Services.AddHttpContextAccessor();
 
 //AUTOMAPPER
 
@@ -85,6 +92,7 @@ builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
 
 
 
+
 // =====================================================================================================================================
 
 
@@ -97,20 +105,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Redirección HTTPS
 app.UseHttpsRedirection();
-app.UseBlazorFrameworkFiles();
-app.UseRouting();
-app.UseStaticFiles();
-app.MapRazorPages();
 
-// Identity
+// Archivos estáticos y Blazor
+app.UseStaticFiles();
+app.UseBlazorFrameworkFiles();
+
+// Routing
+app.UseRouting();
+
+// Identity / Autenticación
 app.UseAuthentication();
 app.UseAuthorization();
-//
 
+// Output Cache
 app.UseOutputCache();
 
-app.MapControllers();
-app.MapFallbackToFile("index.html");
+// Mapeo de endpoints
+app.MapControllers();        // ? Tus endpoints api/... deben ir antes del fallback
+app.MapRazorPages();         // Razor pages
+app.MapFallbackToFile("index.html"); // Blazor SPA fallback
 
 app.Run();

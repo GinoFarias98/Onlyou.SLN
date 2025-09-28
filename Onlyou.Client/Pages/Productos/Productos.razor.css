@@ -1,0 +1,46 @@
+﻿.producto-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+    margin-bottom: 30px;
+}
+
+    .producto-formulario input,
+    .producto-formulario textarea,
+    .producto-formulario select {
+        padding: 5px;
+        font-size: 1rem;
+    }
+
+.lista-dinamica {
+    margin-top: 10px;
+}
+
+.item-dinamico {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    align-items: center;
+}
+
+.productos-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .productos-tabla th,
+    .productos-tabla td {
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: center;
+    }
+
+    .productos-tabla img {
+        max-width: 50px;
+        max-height: 50px;
+    }
+
+.titulo-seccion {
+    margin-bottom: 20px;
+}
