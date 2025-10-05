@@ -1,0 +1,98 @@
+﻿@* @using Onlyou.Shared.DTOS.Producto
+@using Onlyou.Shared.DTOS.Color
+@using Onlyou.Shared.DTOS.Talle
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<EditForm Model="modelo" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <InputText @bind-Value="modelo.Nombre" placeholder="Nombre" />
+    <InputNumber @bind-Value="modelo.Precio" placeholder="Precio" />
+
+    <label>Colores</label>
+    <select multiple @onchange="OnColoresChange">
+        @foreach (var color in coloresDisponibles)
+        {
+            <option value="@color.Id" selected="@coloresSeleccionados.Contains(color.Id)">
+                @color.Nombre
+            </option>
+        }
+    </select>
+
+    <label>Talles</label>
+    <select multiple @onchange="OnTallesChange">
+        @foreach (var talle in tallesDisponibles)
+        {
+            <option value="@talle.Id" selected="@tallesSeleccionados.Contains(talle.Id)">
+                @talle.Nombre
+            </option>
+        }
+    </select>
+
+    <InputFile OnChange="SubirImagen" />
+
+    <button type="submit">Guardar</button>
+    <button type="button" @onclick="OnCancelar.InvokeAsync">Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter] public GetProductoDTO? Producto { get; set; }
+    [Parameter] public EventCallback OnGuardar { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private PostProductoDTO modelo = new();
+    private List<GetColorDTO> coloresDisponibles = new();
+    private List<TallesDTO> tallesDisponibles = new();
+    private List<int> coloresSeleccionados = new();
+    private List<int> tallesSeleccionados = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        coloresDisponibles = (await http.Get<List<GetColorDTO>>("api/ManageColor")).Respuesta ?? new();
+        tallesDisponibles = (await http.Get<List<TallesDTO>>("api/Talle")).Respuesta ?? new();
+
+        if (Producto != null)
+        {
+            // modo edición
+            modelo.Nombre = Producto.Nombre;
+            modelo.Precio = Producto.Precio;
+            coloresSeleccionados = Producto.Colores.ToList();
+            tallesSeleccionados = Producto.Talles.ToList();
+        }
+    }
+
+    private async Task Guardar()
+    {
+        modelo.Colores = coloresSeleccionados;
+        modelo.Talles = tallesSeleccionados;
+
+        if (Producto == null)
+            await http.Post<PostProductoDTO, GetProductoDTO>("Productos", modelo);
+        else
+            await http.Put<PostProductoDTO, GetProductoDTO>($"Productos/{Producto.Id}", modelo);
+
+        await swal.FireAsync("Éxito", "Producto guardado correctamente", SweetAlertIcon.Success);
+        await OnGuardar.InvokeAsync();
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        modelo.Imagen = Convert.ToBase64String(buffer);
+        modelo.ImagenExtension = Path.GetExtension(file.Name);
+    }
+
+    private void OnColoresChange(ChangeEventArgs e)
+    {
+        coloresSeleccionados = ((IEnumerable<string>)e.Value).Select(int.Parse).ToList();
+    }
+
+    private void OnTallesChange(ChangeEventArgs e)
+    {
+        tallesSeleccionados = ((IEnumerable<string>)e.Value).Select(int.Parse).ToList();
+    }
+}
+ *@

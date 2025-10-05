@@ -9,12 +9,9 @@ using System.Threading.Tasks;
 namespace Onlyou.BD.Data.Entidades
 {
     [Index(nameof(ProductoId))]
-    [Index(nameof(ColorId))]
     [Index(nameof(ProductoId), nameof(ColorId), IsUnique = true)]
     public class ProductoColor
     {
-        [Key]
-        public int Id { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Producto.")]
         public int ProductoId { get; set; }

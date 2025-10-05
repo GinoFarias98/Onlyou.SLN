@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Onlyou.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class INICIO : Migration
+    public partial class DeletIDFrom_ProductoColor_And_ProductoTalle : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -462,8 +462,7 @@ namespace Onlyou.BD.Migrations
                 columns: table => new
                 {
                     ProductoId = table.Column<int>(type: "int", nullable: false),
-                    ColorId = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    ColorId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -487,8 +486,7 @@ namespace Onlyou.BD.Migrations
                 columns: table => new
                 {
                     ProductoId = table.Column<int>(type: "int", nullable: false),
-                    TalleId = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    TalleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

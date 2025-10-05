@@ -691,9 +691,6 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("ColorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.HasKey("ProductoId", "ColorId");
 
                     b.HasIndex("ColorId");
@@ -712,9 +709,6 @@ namespace Onlyou.BD.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("TalleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
                         .HasColumnType("int");
 
                     b.HasKey("ProductoId", "TalleId");

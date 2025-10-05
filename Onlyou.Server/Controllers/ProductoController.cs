@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Client.Pages.Marca;
 using Onlyou.Server.Helpers;
@@ -17,13 +19,15 @@ namespace Onlyou.Server.Controllers
         private readonly IRepositorioProducto repositorioProducto;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
+        private readonly Context context;
         private readonly string contenedor = "productos";
 
-        public ProductoController(IRepositorioProducto repositorioProducto, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos)
+        public ProductoController(IRepositorioProducto repositorioProducto, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos, Context context)
         {
             this.repositorioProducto = repositorioProducto;
             this.mapper = mapper;
             this.almacenadorArchivos = almacenadorArchivos;
+            this.context = context;
         }
 
         [HttpGet]
@@ -31,7 +35,7 @@ namespace Onlyou.Server.Controllers
         {
             try
             {
-                var productos = await repositorioProducto.Select();
+                var productos = await repositorioProducto.SelectConRelaciones();
 
 
                 if (productos == null)
@@ -60,7 +64,7 @@ namespace Onlyou.Server.Controllers
 
                 if (producto == null)
                 {
-                    return BadRequest($"No se encontro una Marca con el CODIGO '{codigo}' que mostrar");
+                    return BadRequest($"No se encontro un Producto con el CODIGO '{codigo}' que mostrar");
                 }
                 var productoDTO = mapper.Map<GetProductoDTO>(producto);
                 return Ok(productoDTO);
@@ -84,11 +88,11 @@ namespace Onlyou.Server.Controllers
 
             try
             {
-                var producto = await repositorioProducto.SelectById(id);
+                var producto = await repositorioProducto.SelectConRelacionesXId(id);
                 if (producto == null)
                 {
 
-                    return BadRequest($"No se encontro una Marca con el ID '{id}' que mostrar");
+                    return BadRequest($"No se encontro un Producto con el ID '{id}' que mostrar");
 
                 }
 
@@ -140,20 +144,83 @@ namespace Onlyou.Server.Controllers
         }
 
 
+        //[HttpPut("{id:int}")]
+        //public async Task<ActionResult> Put(int id, [FromBody] PutProductoDTO putProductoDTO, [FromServices] IImagenValidator validator)
+        //{
+        //    if (putProductoDTO == null)
+        //        return BadRequest("Datos inválidos.");
+
+        //    // Validamos que el producto exista
+        //    var productoDB = await repositorioProducto.SelectById(id);
+        //    if (productoDB == null)
+        //        return NotFound($"No se encontró el producto con ID {id}");
+
+        //    try
+        //    {
+        //        // 🖼️ Manejo de imagen
+        //        if (!string.IsNullOrWhiteSpace(putProductoDTO.Imagen))
+        //        {
+        //            if (!validator.ValidarBase64Extencion(putProductoDTO.Imagen, putProductoDTO.ImagenExtension))
+        //                return BadRequest("El contenido de la imagen no coincide con la extensión indicada.");
+
+        //            var imgProducto = Convert.FromBase64String(putProductoDTO.Imagen);
+
+        //            if (!string.IsNullOrEmpty(productoDB.Imagen))
+        //                await almacenadorArchivos.EliminarArchivo(productoDB.Imagen, contenedor);
+
+        //            productoDB.Imagen = await almacenadorArchivos.GuardarArchivo(
+        //                imgProducto,
+        //                putProductoDTO.ImagenExtension,
+        //                contenedor
+        //            );
+        //        }
+
+        //        // 🔄 Mapear datos básicos
+        //        mapper.Map(putProductoDTO, productoDB);
+
+        //        // 🔄 Actualizar relaciones (colores y talles)
+        //        productoDB.ProductosColores.Clear();
+        //        foreach (var colorId in putProductoDTO.Colores)
+        //        {
+        //            productoDB.ProductosColores.Add(new ProductoColor { ProductoId = id, ColorId = colorId });
+        //        }
+
+        //        productoDB.ProductosTalles.Clear();
+        //        foreach (var talleId in putProductoDTO.Talles)
+        //        {
+        //            productoDB.ProductosTalles.Add(new ProductoTalle { ProductoId = id, TalleId = talleId });
+        //        }
+
+        //        productoDB.FecUltimaModificacion = DateTime.UtcNow;
+
+        //        await repositorioProducto.UpdateEntidad(id, productoDB);
+
+        //        return NoContent();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Error en PUT de Producto: {ex.Message}");
+        //        return StatusCode(500, "Error interno al actualizar el producto.");
+        //    }
+        //}
+
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, [FromBody] PutProductoDTO putProductoDTO, [FromServices] IImagenValidator validator)
+        public async Task<ActionResult<GetProductoDTO>> Put(int id, [FromBody] PutProductoDTO putProductoDTO, [FromServices] IImagenValidator validator)
         {
             if (putProductoDTO == null)
                 return BadRequest("Datos inválidos.");
 
-            // Validamos que el producto exista
-            var productoDB = await repositorioProducto.SelectById(id);
+            var productoDB = await context.Productos
+                .Include(p => p.ProductosColores)
+                .Include(p => p.ProductosTalles)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (productoDB == null)
                 return NotFound($"No se encontró el producto con ID {id}");
 
             try
             {
-                // 🖼️ Manejo de imagen
+                // 🖼️ 1️⃣ Manejo de imagen
                 if (!string.IsNullOrWhiteSpace(putProductoDTO.Imagen))
                 {
                     if (!validator.ValidarBase64Extencion(putProductoDTO.Imagen, putProductoDTO.ImagenExtension))
@@ -161,9 +228,11 @@ namespace Onlyou.Server.Controllers
 
                     var imgProducto = Convert.FromBase64String(putProductoDTO.Imagen);
 
+                    // Si ya existía una imagen, la eliminamos
                     if (!string.IsNullOrEmpty(productoDB.Imagen))
                         await almacenadorArchivos.EliminarArchivo(productoDB.Imagen, contenedor);
 
+                    // Guardamos la nueva imagen
                     productoDB.Imagen = await almacenadorArchivos.GuardarArchivo(
                         imgProducto,
                         putProductoDTO.ImagenExtension,
@@ -171,27 +240,40 @@ namespace Onlyou.Server.Controllers
                     );
                 }
 
-                // 🔄 Mapear datos básicos
+                // 🔄 2️⃣ Aplicamos AutoMapper a los campos simples
                 mapper.Map(putProductoDTO, productoDB);
 
-                // 🔄 Actualizar relaciones (colores y talles)
+                // 🔁 3️⃣ Actualizamos relaciones (colores y talles)
                 productoDB.ProductosColores.Clear();
                 foreach (var colorId in putProductoDTO.Colores)
                 {
-                    productoDB.ProductosColores.Add(new ProductoColor { ProductoId = id, ColorId = colorId });
+                    productoDB.ProductosColores.Add(new ProductoColor
+                    {
+                        ProductoId = productoDB.Id,
+                        ColorId = colorId
+                    });
                 }
 
                 productoDB.ProductosTalles.Clear();
                 foreach (var talleId in putProductoDTO.Talles)
                 {
-                    productoDB.ProductosTalles.Add(new ProductoTalle { ProductoId = id, TalleId = talleId });
+                    productoDB.ProductosTalles.Add(new ProductoTalle
+                    {
+                        ProductoId = productoDB.Id,
+                        TalleId = talleId
+                    });
                 }
 
+                // 🕓 4️⃣ Actualizamos fecha de modificación
                 productoDB.FecUltimaModificacion = DateTime.UtcNow;
 
-                await repositorioProducto.UpdateEntidad(id, productoDB);
+                // 💾 5️⃣ Guardamos cambios
+                await context.SaveChangesAsync();
 
-                return NoContent();
+
+                var productoDTO = mapper.Map<GetProductoDTO>(productoDB);
+
+                return Ok(productoDTO);
             }
             catch (Exception ex)
             {
@@ -200,6 +282,8 @@ namespace Onlyou.Server.Controllers
             }
         }
 
+
+        // =============================================================
 
 
         [HttpDelete("EliminarProducto/{id}")]

@@ -1,4 +1,6 @@
 ﻿@page "/productos"
+@using Onlyou.Client.Helpers
+@using Onlyou.Client.Shared
 @using Onlyou.Shared.DTOS.Categorias
 @using Onlyou.Shared.DTOS.Color
 @using Onlyou.Shared.DTOS.Marca
@@ -56,8 +58,23 @@
 
     <InputFile OnChange="SubirImagen" />
 
+
+    <div>
+        <label>Colores:</label>
+        <div>
+            <SelectorMultiple NoSeleccionados="ColoresNoSeleccionados" @bind-Seleccionados="ColoresSeleccionados" ></SelectorMultiple>
+        </div>
+    </div>
+
+    <div>
+        <label>Talles:</label>
+        <div>
+            <SelectorMultiple NoSeleccionados="TallesNoSeleccionados" @bind-Seleccionados="TallesSeleccionados"></SelectorMultiple>
+        </div>
+    </div>
+
     <!-- Colores -->
-    <div class="lista-dinamica">
+@*     <div class="lista-dinamica">
         <label>Colores</label>
         <select multiple @onchange="OnColoresChange">
             @foreach (var color in coloresDisponibles)
@@ -80,7 +97,7 @@
                 </option>
             }
         </select>
-    </div>
+    </div> *@
 
     <button @onclick="GuardarProducto">Guardar</button>
     @if (modoEdicion)
@@ -160,13 +177,37 @@ else
 }
 
 @code {
+
+
+
+
+
     private List<GetProductoDTO> productos = new();
     private List<GetProveedorDTO> proveedores = new();
     private List<GetCategoriasDTO> categorias = new();
     private List<GetTipoProductoDTO> tiposProducto = new();
     private List<GetMarcaDTO> marcas = new();
-    private List<GetColorDTO> coloresDisponibles = new();
-    private List<TallesDTO> tallesDisponibles = new();
+
+    [Parameter]
+    public List<GetColorDTO> coloresDisponibles { get; set; } = new List<GetColorDTO>();
+    [Parameter]
+    public List<TallesDTO> tallesDisponibles { get; set; } = new List<TallesDTO>();
+
+    [Parameter]
+    public List<GetColorDTO> coloresNoDisponibles { get; set; } = new List<GetColorDTO>();
+    [Parameter]
+    public List<TallesDTO> tallesNoDisponibles { get; set; } = new List<TallesDTO>();
+
+
+    private List<SelectorMultipleModel> ColoresSeleccionados { get; set; } = new List<SelectorMultipleModel>();
+    private List<SelectorMultipleModel> ColoresNoSeleccionados { get; set; } = new List<SelectorMultipleModel>();
+
+    private List<SelectorMultipleModel> TallesSeleccionados { get; set; } = new List<SelectorMultipleModel>();
+    private List<SelectorMultipleModel> TallesNoSeleccionados { get; set; } = new List<SelectorMultipleModel>();
+
+
+
+
 
     private int productoEditandoId = 0;
     private bool modoEdicion = false;
@@ -192,7 +233,18 @@ else
     {
         await CargarDatosRelacionados();
         await CargarProductos();
+
+        ColoresSeleccionados.Clear();
+        TallesSeleccionados.Clear();
+
+        ColoresNoSeleccionados = coloresDisponibles.Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre)).ToList();
+        ColoresSeleccionados = coloresNoDisponibles.Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre)).ToList();
+
+        TallesNoSeleccionados = tallesDisponibles.Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre)).ToList();
+        TallesSeleccionados = tallesNoDisponibles.Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre)).ToList();
+
     }
+
 
     private async Task CargarDatosRelacionados()
     {
@@ -211,75 +263,90 @@ else
 
     private async Task GuardarProducto()
     {
-        if (string.IsNullOrWhiteSpace(nombre))
+
+        try
         {
-            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
-            return;
-        }
-
-        if (modoEdicion)
-        {
-            var dto = new PutProductoDTO
+            if (string.IsNullOrWhiteSpace(nombre))
             {
-                Nombre = nombre,
-                Descripcion = descripcion,
-                Stock = stock,
-                Costo = costo,
-                Precio = precio,
-                ProveedorId = proveedorId,
-                CategoriaId = categoriaId,
-                TipoProductoId = tipoProductoId,
-                MarcaId = marcaId,
-                Imagen = imagenBase64,
-                ImagenExtension = imagenExtension,
-                Colores = coloresSeleccionados,
-                Talles = tallesSeleccionados
-            };
-
-            var respuesta = await http.Put<PutProductoDTO, GetProductoDTO>($"Productos/{productoEditandoId}", dto);
-
-            if (respuesta.Error)
-            {
-                await swal.FireAsync("Error", "No se pudo editar el producto", SweetAlertIcon.Error);
+                await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
                 return;
             }
 
-            await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' actualizado correctamente", SweetAlertIcon.Success);
-            modoEdicion = false;
-        }
-        else
-        {
-            var dto = new PostProductoDTO
-            {
-                Nombre = nombre,
-                Codigo = codigo,
-                Descripcion = descripcion,
-                Stock = stock,
-                Costo = costo,
-                Precio = precio,
-                ProveedorId = proveedorId,
-                CategoriaId = categoriaId,
-                TipoProductoId = tipoProductoId,
-                MarcaId = marcaId,
-                Imagen = imagenBase64,
-                ImagenExtension = imagenExtension,
-                Colores = coloresSeleccionados,
-                Talles = tallesSeleccionados
-            };
+            coloresSeleccionados = ColoresSeleccionados.Select(x => int.Parse(x.Llave)).ToList();
+            tallesSeleccionados = TallesSeleccionados.Select(x => int.Parse(x.Llave)).ToList();
 
-            var respuesta = await http.Post<PostProductoDTO, GetProductoDTO>("Productos", dto);
 
-            if (respuesta.Error)
+
+            if (modoEdicion)
             {
-                await swal.FireAsync("Error", "No se pudo crear el producto", SweetAlertIcon.Error);
-                return;
+                var dto = new PutProductoDTO
+                {
+                    Nombre = nombre,
+                    Descripcion = descripcion,
+                    Stock = stock,
+                    Costo = costo,
+                    Precio = precio,
+                    ProveedorId = proveedorId,
+                    CategoriaId = categoriaId,
+                    TipoProductoId = tipoProductoId,
+                    MarcaId = marcaId,
+                    Imagen = imagenBase64,
+                    ImagenExtension = imagenExtension,
+                    Colores = coloresSeleccionados,
+                    Talles = tallesSeleccionados
+                };
+
+                var respuesta = await http.Put<PutProductoDTO, GetProductoDTO>($"Productos/{productoEditandoId}", dto);
+
+                if (respuesta.Error)
+                {
+                    await swal.FireAsync("Error", "No se pudo editar el producto", SweetAlertIcon.Error);
+                    return;
+                }
+
+                await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' actualizado correctamente", SweetAlertIcon.Success);
+                modoEdicion = false;
+            }
+            else
+            {
+                var dto = new PostProductoDTO
+                {
+                    Nombre = nombre,
+                    Codigo = codigo,
+                    Descripcion = descripcion,
+                    Stock = stock,
+                    Costo = costo,
+                    Precio = precio,
+                    ProveedorId = proveedorId,
+                    CategoriaId = categoriaId,
+                    TipoProductoId = tipoProductoId,
+                    MarcaId = marcaId,
+                    Imagen = imagenBase64,
+                    ImagenExtension = imagenExtension,
+                    Colores = coloresSeleccionados,
+                    Talles = tallesSeleccionados
+                };
+
+                var respuesta = await http.Post<PostProductoDTO, GetProductoDTO>("Productos", dto);
+
+                if (respuesta.Error)
+                {
+                    await swal.FireAsync("Error", "No se pudo crear el producto", SweetAlertIcon.Error);
+                    return;
+                }
+
+                await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
             }
 
-            await swal.FireAsync("Éxito", $"Producto '{respuesta.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+            LimpiarFormulario();
+            await CargarProductos();
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error crítico", ex.Message, SweetAlertIcon.Error);
+            productos = new();
         }
 
-        LimpiarFormulario();
-        await CargarProductos();
     }
 
     private void EditarProducto(GetProductoDTO producto)
@@ -296,6 +363,31 @@ else
         marcaId = producto.MarcaId;
         coloresSeleccionados = producto.Colores.ToList();
         tallesSeleccionados = producto.Talles.ToList();
+
+
+        // Mover colores y talles a seleccionados
+        ColoresSeleccionados = coloresDisponibles
+            .Where(c => producto.Colores.Contains(c.Id))
+            .Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre))
+            .ToList();
+
+        ColoresNoSeleccionados = coloresDisponibles
+            .Where(c => !producto.Colores.Contains(c.Id))
+            .Select(c => new SelectorMultipleModel(c.Id.ToString(), c.Nombre))
+            .ToList();
+
+        TallesSeleccionados = tallesDisponibles
+            .Where(t => producto.Talles.Contains(t.Id))
+            .Select(t => new SelectorMultipleModel(t.Id.ToString(), t.Nombre))
+            .ToList();
+
+        TallesNoSeleccionados = tallesDisponibles
+            .Where(t => !producto.Talles.Contains(t.Id))
+            .Select(t => new SelectorMultipleModel(t.Id.ToString(), t.Nombre))
+            .ToList();
+
+
+
         modoEdicion = true;
     }
 
@@ -313,8 +405,9 @@ else
 
         if (confirm.IsConfirmed)
         {
-            await http.Delete($"Productos/{id}");
+            await http.Delete($"Productos/EliminarProducto/{id}");
             await CargarProductos();
+            await swal.FireAsync("Exito", "Producto eliminado de forma satisfactoria", SweetAlertIcon.Success);
         }
     }
 

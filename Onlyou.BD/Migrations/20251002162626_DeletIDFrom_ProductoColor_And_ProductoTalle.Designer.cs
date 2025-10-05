@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20250925144833_INICIO")]
-    partial class INICIO
+    [Migration("20251002162626_DeletIDFrom_ProductoColor_And_ProductoTalle")]
+    partial class DeletIDFrom_ProductoColor_And_ProductoTalle
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -694,9 +694,6 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("ColorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.HasKey("ProductoId", "ColorId");
 
                     b.HasIndex("ColorId");
@@ -715,9 +712,6 @@ namespace Onlyou.BD.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("TalleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Id")
                         .HasColumnType("int");
 
                     b.HasKey("ProductoId", "TalleId");

@@ -1,0 +1,79 @@
+﻿@page "/GestionProducto"
+@using Onlyou.Shared.DTOS.Producto
+@inject IHttpServicios http
+
+<h3>Gestión de Productos</h3>
+
+<button @onclick="NuevoProducto">Nuevo Producto</button>
+
+@if (productos == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in productos)
+            {
+                <tr>
+                    <td>@p.Nombre</td>
+                    <td>@p.Precio</td>
+                    <td>
+                        <button @onclick="() => EditarProducto(p)">Editar</button>
+                        <button @onclick="() => EliminarProducto(p.Id)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (mostrarFormulario)
+{
+    <FormularioProducto Producto="productoEditando"
+                        OnGuardar="OnGuardarProducto"
+                        OnCancelar="() => mostrarFormulario = false" />
+}
+
+@code {
+    private List<GetProductoDTO>? productos;
+    private GetProductoDTO? productoEditando;
+    private bool mostrarFormulario = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta;
+    }
+
+    private void NuevoProducto()
+    {
+        productoEditando = null; // formulario vacío
+        mostrarFormulario = true;
+    }
+
+    private void EditarProducto(GetProductoDTO p)
+    {
+        productoEditando = p;
+        mostrarFormulario = true;
+    }
+
+    private async Task OnGuardarProducto()
+    {
+        mostrarFormulario = false;
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta;
+    }
+
+    private async Task EliminarProducto(int id)
+    {
+        await http.Delete($"Productos/{id}");
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta;
+    }
+}

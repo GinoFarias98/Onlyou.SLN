@@ -73,7 +73,30 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
-        public async Task<Producto?> SelectConRelaciones(int id)
+
+        public async Task<List<Producto>> SelectConRelaciones()
+        {
+            try
+            {
+                var productosCompletos = await context.Productos.Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
+                    .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
+                    .Include(p => p.Marca)
+                    .Include(p => p.Categoria)
+                    .Include(p => p.TipoProducto)
+                    .Include(p => p.Proveedor)
+                    .ToListAsync();
+
+                return productosCompletos;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+
+        }
+
+        public async Task<Producto?> SelectConRelacionesXId(int id)
         {
             try
             {
@@ -111,7 +134,7 @@ namespace Onlyou.Server.Repositorio
         {
             try
             {
-                var productoByProv = await context.Productos.Where(prov => prov.Id == proveedorId).ToListAsync();
+                var productoByProv = await context.Productos.Where(p => p.ProveedorId == proveedorId).ToListAsync();
                 return productoByProv;
             }
             catch (Exception ex)

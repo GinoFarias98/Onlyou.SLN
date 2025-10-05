@@ -73,10 +73,15 @@ namespace Onlyou.Server.Helpers
 
             CreateMap<PutProductoDTO, Producto>()
                 .ForMember(dest => dest.Imagen, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductosColores, opt => opt.MapFrom(src =>
-                    src.Colores.Select(id => new ProductoColor { ColorId = id })))
-                .ForMember(dest => dest.ProductosTalles, opt => opt.MapFrom(src =>
-                    src.Talles.Select(id => new ProductoTalle { TalleId = id })));
+                .ForMember(dest => dest.ProductosColores, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductosTalles, opt => opt.Ignore());
+
+            //CreateMap<PutProductoDTO, Producto>()
+            //    .ForMember(dest => dest.Imagen, opt => opt.Ignore())
+            //    .ForMember(dest => dest.ProductosColores, opt => opt.MapFrom(src =>
+            //        src.Colores.Select(id => new ProductoColor { ColorId = id })))
+            //    .ForMember(dest => dest.ProductosTalles, opt => opt.MapFrom(src =>
+            //        src.Talles.Select(id => new ProductoTalle { TalleId = id })));
         }
     }
 }
