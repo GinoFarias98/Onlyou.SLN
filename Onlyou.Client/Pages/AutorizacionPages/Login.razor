@@ -1,32 +1,37 @@
-﻿@page "/login"
+﻿
 @using Onlyou.Client.Autorizacion
 @using Onlyou.Shared.DTOS.Usuario
 @inject IHttpServicios http
-@inject NavigationManager navigationManager
 @inject IJSRuntime js
 @inject ILoginService loginService
 
+<div class="login-form">
+    <EditForm Model="userInfo" OnValidSubmit="Loguear">
+        <DataAnnotationsValidator />
 
-<h3>Login</h3>
-<EditForm Model="userInfo" OnValidSubmit="Loguear">
-    <DataAnnotationsValidator />
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id="email" class="form-control" @bind-Value="userInfo.Email" />
+            <ValidationMessage For="@(() => userInfo.Email)" />
+        </div>
 
-    <div class="mb-3">
-        <label for="email" class="form-label">Email:</label>
-        <InputText id="email" class="form-control" @bind-Value="userInfo.Email" />
-        <ValidationMessage For="@(() => userInfo.Email)" />
-    </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <InputText id="password" type="password" class="form-control" @bind-Value="userInfo.Password" />
-        <ValidationMessage For="@(() => userInfo.Password)" />
-    </div>
-    <button type="submit" class="btn btn-primary">Loguear</button>
-</EditForm>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="userInfo.Password" />
+            <ValidationMessage For="@(() => userInfo.Password)" />
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-onlyou-secondary" @onclick="CerrarModal">Cancelar</button>
+            <button type="submit" class="btn btn-onlyou">Loguear</button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
     private UserInfoDTO userInfo = new UserInfoDTO();
 
+    [Parameter] public EventCallback OnClose { get; set; }
 
     private async Task Loguear()
     {
@@ -34,7 +39,7 @@
         if (httpRespuesta.Error)
         {
             var msg = await httpRespuesta.ObtenerError();
-            await js.Confirmar(msg);
+            await js.InvokeVoidAsync("alert", msg);
         }
         else
         {
@@ -42,14 +47,17 @@
             if (userToken != null)
             {
                 await loginService.Login(userToken);
-                navigationManager.NavigateTo("/");
+                await OnClose.InvokeAsync();
             }
             else
             {
-                await js.Confirmar("No se pudo obtener el token");
+                await js.InvokeVoidAsync("alert", "No se pudo obtener el token");
             }
         }
     }
 
+    private async Task CerrarModal()
+    {
+        await OnClose.InvokeAsync();
+    }
 }
-    

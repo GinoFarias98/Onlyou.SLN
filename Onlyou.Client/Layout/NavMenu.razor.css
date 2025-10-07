@@ -1,25 +1,137 @@
+/* ===== ESTILOS MODERNOS PARA NAVMENU ONLYOU ===== */
+/* Variables de color */
+:root {
+    --primary: #8a4c76;
+    --primary-dark: #6b3c5b;
+    --primary-light: #b07ca0;
+    --bg-dark: #1a1a2e;
+    --bg-card: #2d2d44;
+    --text-light: #e2e2e2;
+    --accent: #c44569;
+}
+
 .navmenu-onlyou {
     display: flex;
     flex-direction: column;
     padding: 1rem;
     gap: 1rem;
+    background-color: var(--bg-dark);
+    height: 100vh;
 }
 
 .nav-link {
-    color: white;
+    color: var(--text-light);
     font-weight: 600;
     font-size: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     text-decoration: none;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
 }
 
-    .nav-link:hover,
-    .nav-link.active {
-        background-color: #720026;
-        color: #ffd6e8;
+    .nav-link:hover {
+        background-color: var(--primary-dark);
+        color: white;
+        border-color: var(--primary-light);
+        transform: translateX(5px);
     }
+
+    .nav-link.active {
+        background-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 12px rgba(138, 76, 118, 0.3);
+    }
+
+/* Submenú */
+.submenu {
+    display: flex;
+    flex-direction: column;
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    gap: 0.25rem;
+}
+
+.submenu-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.6rem 0.8rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid var(--primary);
+    border-radius: 4px;
+}
+
+    .submenu-link:hover,
+    .submenu-link.active {
+        background-color: rgba(138, 76, 118, 0.2);
+        border-left-color: var(--accent);
+    }
+
+/* Botón hamburguesa */
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+    .hamburger-btn:hover {
+        background-color: var(--primary-dark);
+        transform: scale(1.05);
+    }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hamburger-btn {
+        display: block;
+    }
+
+    .navmenu-onlyou {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        height: 100vh;
+        width: 280px;
+        background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 100%);
+        z-index: 999;
+        padding-top: 4rem;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .navmenu-onlyou.mobile-open {
+            left: 0;
+        }
+}
+
+/* Toggle del catálogo */
+.catalog-toggle {
+    position: relative;
+}
+
+.toggle-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.toggle-arrow {
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    color: var(--primary-light);
+}

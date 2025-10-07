@@ -1,69 +1,63 @@
-﻿@page "/registrar"
+﻿@using Onlyou.Client.Autorizacion
+@using Onlyou.Shared.DTOS.Usuario
 @inject IHttpServicios http
-@inject NavigationManager navigationManager
 @inject IJSRuntime js
 @inject ILoginService loginService
-@using Onlyou.Client.Autorizacion
-@using Onlyou.Shared.DTOS.Usuario
 
-<EditForm Model="userInfoDTO" OnValidSubmit="CrearUsuario">
-	<DataAnnotationsValidator/>
+<div class="registro-form">
+    <EditForm Model="userInfo" OnValidSubmit="Registro">
+        <DataAnnotationsValidator />
 
-	<div class="mb-3">
-		<label for="email" class="form-label">Email</label>
-		<InputText id="email" class="form-control" @bind-Value="userInfoDTO.Email"/>
-		<ValidationMessage For="@(() => userInfoDTO.Email)"/>
-	</div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id="email" class="form-control" @bind-Value="userInfo.Email" />
+            <ValidationMessage For="@(() => userInfo.Email)" />
+        </div>
 
-	<div class="mb-3">
-		<label for="password" class="form-label">Password</label>
-		<div class="input-group">
-			<InputText id="password" type="@passwordInputType" class="form-control" @bind-Value="userInfoDTO.Password" />
-			<button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword">
-				<i class="bi @(passwordInputType == "password" ? "bi-eye" : "bi-eye-slash")"></i>
-			</button>
-		</div>
-		<ValidationMessage For="@(() => userInfoDTO.Password)" />
-	</div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="userInfo.Password" />
+            <ValidationMessage For="@(() => userInfo.Password)" />
+        </div>
 
-	<button type="submit" class="btn btn-primary">Registrar</button>
-
-</EditForm>
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-onlyou-secondary" @onclick="CerrarModal">Cancelar</button>
+            <button type="submit" class="btn btn-onlyou">Registrarse</button>
+        </div>
+    </EditForm>
+</div>
 
 @code {
-	private UserInfoDTO userInfoDTO = new UserInfoDTO();
+    private UserInfoDTO userInfo = new UserInfoDTO();
 
-	private string passwordInputType = "password";
+    [Parameter] public EventCallback OnClose { get; set; }
 
-	private void TogglePassword()
-	{
-		passwordInputType = passwordInputType == "password" ? "text" : "password";
-	}
+    private async Task Registro()
+    {
+        var httpRespuesta = await http.Post<UserInfoDTO, UserTokenDTO>("usuarios/registrar", userInfo);
 
-	private async Task CrearUsuario()
-	{
-		var httpRespuesta = await http.Post<UserInfoDTO, UserTokenDTO>("usuarios/registrar", userInfoDTO);
+        if (httpRespuesta.Error)
+        {
+            var msg = await httpRespuesta.ObtenerError();
+            await js.InvokeVoidAsync("alert", msg);
+        }
+        else
+        {
+            var userToken = httpRespuesta.Respuesta as UserTokenDTO;
+            if (userToken != null)
+            {
+                await loginService.Login(userToken);
+                await OnClose.InvokeAsync();
+            }
+            else
+            {
+                await js.InvokeVoidAsync("alert", "No se pudo obtener el token");
+            }
+        }
+    }
 
-		if (httpRespuesta.Error)
-		{
-			var msg = await httpRespuesta.ObtenerError();
-			await js.Confirmar(msg);
-		}
-		else
-		{
-			var userToken = httpRespuesta.Respuesta as UserTokenDTO;
-			if (userToken != null)
-			{
-				await loginService.Login(userToken);
-				navigationManager.NavigateTo("/");
-			}
-			else
-			{
-				await js.Confirmar("no se puede obtner el token");
-			}
-
-		}
-
-	}
-
+    private async Task CerrarModal()
+    {
+        await OnClose.InvokeAsync();
+    }
 }

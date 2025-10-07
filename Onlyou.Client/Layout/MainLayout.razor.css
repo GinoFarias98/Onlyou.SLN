@@ -44,12 +44,12 @@ html, body {
     overflow: hidden;
 }
 
-.sidebar {
-    width: 250px;
-    background-color: #f72585;
-    padding-top: 1rem;
+/*.sidebar {
+    width: 250px;*/
+/*    background-color: #f72585;
+*/    /*padding-top: 1rem;
     transition: transform 0.3s ease-in-out;
-}
+}*/
 
     .sidebar.hide {
         display: none;
@@ -75,6 +75,7 @@ html, body {
         height: calc(100% - 70px);
         z-index: 1000;
         box-shadow: 4px 0 8px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease-in-out;
     }
 }
 

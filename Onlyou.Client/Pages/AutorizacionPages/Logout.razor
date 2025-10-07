@@ -1,15 +1,29 @@
 ﻿@page "/logout"
 @using Onlyou.Client.Autorizacion
-
+@using Onlyou.Client.Autorizacion
 @inject ILoginService loginService
-@inject NavigationManager navigationManager
-<h3>Logout</h3>
+@inject IJSRuntime js
+
+<div class="text-center">
+    <p>¿Estás seguro de que deseas cerrar sesión?</p>
+
+    <div class="d-flex justify-content-center gap-3">
+        <button class="btn btn-onlyou-secondary" @onclick="CerrarModal">Cancelar</button>
+        <button class="btn btn-onlyou-danger" @onclick="CerrarSesion">Cerrar Sesión</button>
+    </div>
+</div>
 
 @code {
+    [Parameter] public EventCallback OnClose { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private async Task CerrarSesion()
     {
         await loginService.Logout();
-        navigationManager.NavigateTo("/");
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task CerrarModal()
+    {
+        await OnClose.InvokeAsync();
     }
 }

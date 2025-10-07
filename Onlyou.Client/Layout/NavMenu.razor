@@ -1,48 +1,92 @@
-﻿<nav class="navmenu-onlyou">
-    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+﻿@using System.Security.Claims
+@inject NavigationManager Navigation
+
+<div class="navmenu-onlyou">
+    <!-- Siempre visible -->
+    <a class="nav-link" href="/" Match="NavLinkMatch.All">
         <i class="bi bi-house-door-fill"></i> Inicio
-    </NavLink>
-    <NavLink class="nav-link" href="categorias">
-        <i class="bi bi-tags-fill"></i> Categorías
-    </NavLink>
+    </a>
 
-    <NavLink class="nav-link" href="colores">
-        <i class="bi bi-palette-fill"></i> Colores
-    </NavLink>
+    <!-- Menú condicional -->
+    <AuthorizeView>
+        <Authorized Context="authContext">
+            <!-- Administrar Catálogo con submenú -->
+            <div class="nav-item">
+                <div class="nav-link catalog-toggle"
+                     @onclick="ToggleCatalogMenu">
+                    <div class="toggle-content">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Administrar Catálogo</span>
+                        <i class="bi bi-chevron-@(showCatalogMenu ? "up" : "down") toggle-arrow"></i>
+                    </div>
+                </div>
 
-    <NavLink class="nav-link" href="tipo-productos">
-        <i class="bi bi-box-seam"></i> Tipo Productos
-    </NavLink>
+                @if (showCatalogMenu)
+                {
+                    <div class="submenu">
+                        <a class="nav-link submenu-link" href="categorias" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-tags-fill"></i> Categorías
+                        </a>
+                        <a class="nav-link submenu-link" href="colores" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-palette-fill"></i> Colores
+                        </a>
+                        <a class="nav-link submenu-link" href="tipo-productos" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-box-seam"></i> Tipo Productos
+                        </a>
+                        <a class="nav-link submenu-link" href="talles" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-rulers"></i> Talles
+                        </a>
+                        <a class="nav-link submenu-link" href="marcas" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-star-fill"></i> Marcas
+                        </a>
+                        <a class="nav-link submenu-link" href="proveedores" @onclick="CloseCatalogMenu">
+                            <i class="bi bi-people"></i> Proveedores
+                        </a>
+                    </div>
+                }
+            </div>
 
-    <NavLink class="nav-link" href="talles">
-        <i class="bi bi-box-seam"></i> Talles
-    </NavLink>
+            <!-- Centro de Pedidos -->
+            <a class="nav-link" href="pedidos">
+                <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
+            </a>
 
-
-
-    <NavLink class="nav-link" href="Marcas">
-        <i class="bi bi-grid"></i> Marcas
-    </NavLink>
-
-    <NavLink class="nav-link" href="Proveedores">
-        <i class="bi bi-people"></i> Proveedores
-    </NavLink>
-
-
-    <NavLink class="nav-link" href="Productos">
-        <i class="bi bi-box-seam"></i> Productos
-    </NavLink>
-
-    <AuthorizeView Roles="admin">
-        <Authorized>
-            <NavLink class="nav-link" href="counter">
-                <i class="bi bi-people"></i> counter
-            </NavLink>
+            <!-- Reportes -->
+            <a class="nav-link" href="reportes">
+                <i class="bi bi-graph-up"></i> Reportes
+            </a>
         </Authorized>
+
+        <NotAuthorized>
+            <!-- Puedes dejar vacío o agregar login si necesitas -->
+        </NotAuthorized>
     </AuthorizeView>
 
+    <!-- Siempre visible -->
     <a class="nav-link" href="https://localhost:7144/swagger" target="_blank">
         <i class="bi bi-tools"></i> Swagger
     </a>
-</nav>
+</div>
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+@code {
+    private bool showCatalogMenu = false;
+
+    private void ToggleCatalogMenu()
+    {
+        showCatalogMenu = !showCatalogMenu;
+        StateHasChanged();
+    }
+
+    private void CloseCatalogMenu()
+    {
+        showCatalogMenu = false;
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += (sender, args) => CloseCatalogMenu();
+    }
+}

@@ -1,11 +1,31 @@
-﻿
-<AuthorizeView>
-	<Authorized>
-		<span>Hola, @context.User.Identity.Name</span>
-		<a href="logout" class="nav-link btn btn-link">Logout</a>
-	</Authorized>
-	<NotAuthorized>
-		<a href="registrar" class="nav-link btn btn-link">Registrar</a>
-		<a href="login" class="nav-link btn btn-link">Login</a>
-	</NotAuthorized>
+﻿<AuthorizeView Context="authContext">
+    <Authorized>
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-semibold text-white user-welcome">
+                <i class="bi bi-person-circle me-1"></i> Hola, @authContext.User.Identity?.Name
+            </span>
+            <button class="btn btn-logout" @onclick="AbrirLogout" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </Authorized>
+
+    <NotAuthorized>
+        <div class="d-flex gap-2 control-autorizacion">
+            <button class="btn btn-auth" @onclick="AbrirRegistrar">
+                <i class="bi bi-person-plus"></i> Registrar
+            </button>
+            <button class="btn btn-auth" @onclick="AbrirLogin">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+        </div>
+    </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    [Parameter] public EventCallback<string> AbrirModal { get; set; }
+
+    private async Task AbrirLogin() => await AbrirModal.InvokeAsync("login");
+    private async Task AbrirRegistrar() => await AbrirModal.InvokeAsync("registrar");
+    private async Task AbrirLogout() => await AbrirModal.InvokeAsync("logout");
+}

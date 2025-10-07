@@ -48,8 +48,32 @@ namespace Onlyou.Client.Autorizacion
         {
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var tokenDeserializado = jwtSecurityTokenHandler.ReadJwtToken(token);
-            return tokenDeserializado.Claims;
+
+            var claims = new List<Claim>();
+
+            // Copiamos todos los claims que no sean roles
+            claims.AddRange(tokenDeserializado.Claims.Where(c => c.Type != "role" && c.Type != "roles"));
+
+            // Agregamos roles correctamente como ClaimTypes.Role
+            var roleClaims = tokenDeserializado.Claims.Where(c => c.Type == "role" || c.Type == "roles");
+            foreach (var rc in roleClaims)
+            {
+                if (rc.Value.Contains(","))
+                {
+                    foreach (var r in rc.Value.Split(","))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, r.Trim()));
+                    }
+                }
+                else
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, rc.Value));
+                }
+            }
+
+            return claims;
         }
+
 
         public async Task Login(UserTokenDTO userTokenDTO)
         {

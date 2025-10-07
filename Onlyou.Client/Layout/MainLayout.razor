@@ -1,45 +1,115 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Rendering
+@using Microsoft.Win32
+@using Onlyou.Client.Pages.AutorizacionPages
+@inherits LayoutComponentBase
 
 <div class="main-layout">
-	<header class="main-header">
+    <header class="main-header">
+        <button class="menu-toggle" @onclick="ToggleNavMenu">
+            <i class="bi bi-list"></i>
+        </button>
+        <h1 class="titulo">Panel Administrativo.</h1>
+        <div class="logo-contenedor">
+            <ControlAutorizacion AbrirModal="AbrirModal" />
+            <img src="img/logo-onlyou.png" alt="Onlyou Logo Grande" class="logo-central" />
+        </div>
+    </header>
 
-		<button class="menu-toggle" @onclick="ToggleNavMenu">
-			<i class="bi bi-list"></i>
-		</button>
-		<h1 class="titulo">Admin.</h1>
-		<div class="logo-contenedor">
-			<ControlAutorizacion></ControlAutorizacion>
-			<img src="img/logo-onlyou.png" alt="Onlyou Logo Grande" class="logo-central" />
-		</div>
-
-	</header>
-
-	<div class="main-body">
-
-
-		<div class="@SidebarCssClass">
-			<NavMenu />
-		</div>
-
-		<main class="content">
-
-			@* <div class="top-row px-4" style="background-color:#06163c;border: none; color: white; padding: 10px;">
-				<ControlAutorizacion></ControlAutorizacion>
-			</div> *@
-
-			@Body
-
-		</main>
-	</div>
+    <div class="main-body">
+        <div class="@SidebarCssClass">
+            <NavMenu />
+        </div>
+        <main class="content">
+            @Body
+        </main>
+    </div>
 </div>
 
+<!-- Modal Container -->
+@if (mostrarModal)
+{
+    <div class="modal-backdrop show"></div>
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@tituloModal</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @contenidoModal
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-	private bool menuVisible = true;
+    private bool menuVisible = true;
+    private string SidebarCssClass => menuVisible ? "sidebar show" : "sidebar hide";
 
-	private string SidebarCssClass => menuVisible ? "sidebar show" : "sidebar hide";
+    private bool mostrarModal = false;
+    private string tituloModal = "";
+    private RenderFragment? contenidoModal;
 
-	private void ToggleNavMenu()
-	{
-		menuVisible = !menuVisible;
-	}
+    private void ToggleNavMenu() => menuVisible = !menuVisible;
+
+    private void AbrirModal(string tipoModal)
+    {
+        mostrarModal = true;
+
+        switch (tipoModal.ToLower())
+        {
+            case "login":
+                tituloModal = "Iniciar Sesión - Onlyou";
+                contenidoModal = RenderLogin;
+                break;
+            case "registrar":
+                tituloModal = "Registrarse - Onlyou";
+                contenidoModal = RenderRegistro;
+                break;
+            case "logout":
+                tituloModal = "Cerrar Sesión";
+                contenidoModal = RenderLogout;
+                break;
+        }
+
+        StateHasChanged();
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        StateHasChanged();
+    }
+
+    private void RenderLogin(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<Login>(0);
+        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+        builder.CloseComponent();
+    }
+
+    private void RenderRegistro(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<Registrar>(0);
+        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+        builder.CloseComponent();
+    }
+
+    private void RenderLogout(RenderTreeBuilder builder)
+    {
+        builder.OpenComponent<Logout>(0);
+        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+        builder.CloseComponent();
+    }
+
+    //del nav menu es esto
+    // Agrega este método en el @code del MainLayout
+    public void AbrirModalDesdeNavMenu(string tipoModal)
+    {
+        AbrirModal(tipoModal);
+    }
+
+
 }
