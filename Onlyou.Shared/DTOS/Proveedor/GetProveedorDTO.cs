@@ -12,7 +12,6 @@ namespace Onlyou.Shared.DTOS.Proveedor
 
         public int Id { get; set; }
 
-        public required string Codigo { get; set; }
 
         public bool Estado { get; set; } = true;
 

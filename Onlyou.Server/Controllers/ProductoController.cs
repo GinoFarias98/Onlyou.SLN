@@ -54,28 +54,34 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-
         [HttpGet("Codigo/{codigo}")]
-        public async Task<ActionResult<GetProductoDTO>> GetByCodigo(string codigo)
+        public async Task<ActionResult<GetProductoDTO?>> GetByCod(string codigo)
         {
             try
             {
-                var producto = await repositorioProducto.SelectByCod(codigo);
 
-                if (producto == null)
+                if (string.IsNullOrWhiteSpace(codigo))
                 {
-                    return BadRequest($"No se encontro un Producto con el CODIGO '{codigo}' que mostrar");
+                    return BadRequest($"Debe introducir un Codigo, favor verificar ingreso de datos");
+
                 }
-                var productoDTO = mapper.Map<GetProductoDTO>(producto);
+
+                var productoXCodigo = await repositorioProducto.SelecByCod(codigo);
+                if (productoXCodigo == null)
+                {
+                    return NotFound($"No existe un producto con Codigo '{codigo}'. Verificar");
+                }
+
+                var productoDTO = mapper.Map<GetProductoDTO>(productoXCodigo);
                 return Ok(productoDTO);
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método GetByCodigo: {ex.Message}");
+                Console.WriteLine($"Error en el método GetById: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
         }
-
 
         [HttpGet("Id/{id}")]
         public async Task<ActionResult<GetProductoDTO>> GetById(int id)
@@ -210,7 +216,7 @@ namespace Onlyou.Server.Controllers
             if (putProductoDTO == null)
                 return BadRequest("Datos inválidos.");
 
-            var productoDB = await context.Productos
+            var productoDB = await context.Productos  // generar metodo en irepositorioProducto para evitar llamar al context asi
                 .Include(p => p.ProductosColores)
                 .Include(p => p.ProductosTalles)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -279,6 +285,23 @@ namespace Onlyou.Server.Controllers
             {
                 Console.WriteLine($"Error en PUT de Producto: {ex.Message}");
                 return StatusCode(500, "Error interno al actualizar el producto.");
+            }
+        }
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repositorioProducto.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
             }
         }
 

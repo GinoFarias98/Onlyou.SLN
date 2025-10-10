@@ -45,7 +45,7 @@ else
             @foreach (var color in colores)
             {
                 <tr>
-                    <td>@color.Codigo</td>
+                    
                     <td>@color.Nombre</td>
                     <td>@color.Hexadecimal</td>
                     <td>
@@ -101,7 +101,6 @@ private async Task GuardarColor()
             Nombre = nombre,
             Hexadecimal = hexadecimal,
             Estado = estado,
-            Codigo = codigo
         };
 
         var respuesta = await http.Put<PutColorDTO,GetColorDTO>($"api/ManageColor/ModificarColorId/{colorEditandoId}", dto);
@@ -126,7 +125,6 @@ private async Task GuardarColor()
         {
             Nombre = nombre,
             Hexadecimal = hexadecimal,
-            Codigo = codigo
         };
 
         var respuesta = await http.Post<PostColorDTO, GetColorDTO>("api/ManageColor", dto);
@@ -155,7 +153,6 @@ private async Task GuardarColor()
         nombre = color.Nombre;
         hexadecimal = color.Hexadecimal;
         estado = color.Estado;
-        codigo = color.Codigo;
         modoEdicion = true;
     }
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Onlyou.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class DeletIDFrom_ProductoColor_And_ProductoTalle : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -60,7 +60,6 @@ namespace Onlyou.BD.Migrations
                     FechaFin = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     EstadoCaja = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -75,7 +74,7 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Imagen = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -91,7 +90,6 @@ namespace Onlyou.BD.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Hexadecimal = table.Column<string>(type: "nvarchar(7)", maxLength: 7, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -106,7 +104,6 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -121,7 +118,6 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -141,7 +137,6 @@ namespace Onlyou.BD.Migrations
                     CUIT = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -156,7 +151,6 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -172,7 +166,6 @@ namespace Onlyou.BD.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     EsIngreso = table.Column<bool>(type: "bit", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -187,7 +180,6 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -320,7 +312,6 @@ namespace Onlyou.BD.Migrations
                     EstadoPago = table.Column<int>(type: "int", nullable: false),
                     MontoPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     EstadoPedidoId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -340,6 +331,7 @@ namespace Onlyou.BD.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Codigo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
@@ -351,7 +343,6 @@ namespace Onlyou.BD.Migrations
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
                     TipoProductoId = table.Column<int>(type: "int", nullable: false),
                     MarcaId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -397,7 +388,6 @@ namespace Onlyou.BD.Migrations
                     TipoMovimientoId = table.Column<int>(type: "int", nullable: false),
                     ProveedorId = table.Column<int>(type: "int", nullable: true),
                     PedidoId = table.Column<int>(type: "int", nullable: true),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -437,7 +427,6 @@ namespace Onlyou.BD.Migrations
                     PrecioUnitarioVenta = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PedidoId = table.Column<int>(type: "int", nullable: false),
                     ProductoId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -518,7 +507,6 @@ namespace Onlyou.BD.Migrations
                     MetodoDePago = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     EsPagoCliente = table.Column<bool>(type: "bit", nullable: false),
                     MovimientoId = table.Column<int>(type: "int", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -682,12 +670,6 @@ namespace Onlyou.BD.Migrations
                 column: "ProductoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Pedidos_Codigo",
-                table: "Pedidos",
-                column: "Codigo",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Pedidos_EstadoPedidoId",
                 table: "Pedidos",
                 column: "EstadoPedidoId");
@@ -717,6 +699,11 @@ namespace Onlyou.BD.Migrations
                 name: "IX_Productos_CategoriaId",
                 table: "Productos",
                 column: "CategoriaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Productos_Codigo",
+                table: "Productos",
+                column: "Codigo");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_MarcaId_TipoProductoId",

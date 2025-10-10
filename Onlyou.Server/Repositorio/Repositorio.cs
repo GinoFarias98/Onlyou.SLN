@@ -27,21 +27,16 @@ namespace Onlyou.Server.Repositorio
 
         public async Task<bool> Existe(int id)
         {
-            var existe = await context.Set<E>().AnyAsync(e => e.Id == id);
-            return existe;
-        }
-
-        public async Task<bool> ExisteByCodigo(string codigo)
-        {
-            var existeByCodigo = await context.Set<E>().AnyAsync(e => e.Codigo == codigo);
-            return existeByCodigo;
+            return await context.Set<E>().AnyAsync(x => x.Estado && x.Id == id);
         }
 
         public async Task<List<E>> Select()
         {
             try
             {
-                return await context.Set<E>().ToListAsync();
+                //solo traemos los que tengan estado activo
+                return await context.Set<E>().Where(x => x.Estado == true).ToListAsync();
+                               
             }
             catch (Exception ex)
             {
@@ -49,29 +44,6 @@ namespace Onlyou.Server.Repositorio
                 //Descomentar al Publicar el proyecto en IIS
                 //Logger.LogError(ex);
                 throw; // lanzamos excepcion hascia una capa superior para manejarlo
-            }
-        }
-
-        public async Task<E?> SelectByCod(string codigo)
-        {
-            try
-            {
-                if (!await ExisteByCodigo(codigo))
-                {
-                    Console.WriteLine($"El codigo {codigo} No existe");
-                    return null;
-                }
-
-                return await context.Set<E>().FirstOrDefaultAsync(e => e.Codigo == codigo); ;
-
-
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                //Descomentar al Publicar el proyecto en IIS
-                //Logger.LogError(ex);
-                throw;
             }
         }
 
@@ -85,7 +57,7 @@ namespace Onlyou.Server.Repositorio
                     return null;
                 }
 
-                return await context.Set<E>().FirstOrDefaultAsync(e => e.Id == id);
+                return await context.Set<E>().Where(x => x.Estado == true).FirstOrDefaultAsync(e => e.Id == id);
 
 
             }
@@ -106,24 +78,6 @@ namespace Onlyou.Server.Repositorio
                 await context.SaveChangesAsync();
                 return entidad.Id;
             }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                //Descomentar al Publicar el proyecto en IIS
-                //Logger.LogError(ex);
-                throw;
-            }
-        }
-
-        public async Task<string?> InsertDevuelveCodigo(E entidad)
-        {
-            try
-            {
-                await context.Set<E>().AddAsync(entidad);
-                await context.SaveChangesAsync();
-                return entidad.Codigo;
-            }
-
             catch (Exception ex)
             {
                 ImprimirError(ex);
@@ -193,41 +147,31 @@ namespace Onlyou.Server.Repositorio
 
         }
 
-        public async Task<bool> UpdateEstado(int id, E entidad)
+        public async Task<bool> UpdateEstado(int id)
         {
-
             try
             {
                 var entidadSelect = await SelectById(id);
                 if (entidadSelect == null)
-                {
                     return false;
-                }
 
                 var propiedad = typeof(E).GetProperty("Estado");
-
                 if (propiedad == null || propiedad.PropertyType != typeof(bool))
-                {
-                    throw new InvalidOperationException("La entidad No contiende una propiedad 'Estado'");
-                }
+                    throw new InvalidOperationException("La entidad no contiene una propiedad 'Estado'.");
 
-                bool estadoActual = (bool)propiedad.GetValue(entidad)!;
-                propiedad.SetValue(entidad, !estadoActual);
+                bool estadoActual = (bool)propiedad.GetValue(entidadSelect)!;
+                propiedad.SetValue(entidadSelect, !estadoActual);
 
-                context.Update(entidad);
                 await context.SaveChangesAsync();
-
                 return true;
             }
             catch (Exception ex)
             {
                 ImprimirError(ex);
-                //Descomentar al Publicar el proyecto en IIS
-                //Logger.LogError(ex);
                 throw;
             }
-
         }
+
 
 
         public async Task<bool> Delete(int id)

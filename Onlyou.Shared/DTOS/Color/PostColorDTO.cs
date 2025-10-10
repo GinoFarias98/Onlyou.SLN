@@ -18,9 +18,6 @@ namespace Onlyou.Shared.DTOS.Color
         [StringLength(7, ErrorMessage = "Máximo {1} caracteres.")]
         public string Hexadecimal { get; set; } = null!;
 
-        [Required(ErrorMessage = "El Código es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo número de caracteres {1}.")]
-        public required string Codigo { get; set; }
 
     }
 }

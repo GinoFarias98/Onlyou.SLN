@@ -16,6 +16,14 @@ namespace Onlyou.BD.Data.Entidades
                  Description = "Nombre único de la categoría.")]
         public string Nombre { get; set; } = null!;
 
+        // Imagen -------------------------------------------------------------------
+
+        [Required(ErrorMessage = "La imagen es obligatoria.")]
+        [StringLength(255, ErrorMessage = "La ruta de la imagen no puede superar los 255 caracteres.")]
+        [Display(Name = "Imagen",
+                 Description = "Ruta o URL de la imagen del producto.")]
+        public string Imagen { get; set; } = null!;
+
         // Productos relacionados ---------------------------------------------------
 
         [Display(Name = "Productos",

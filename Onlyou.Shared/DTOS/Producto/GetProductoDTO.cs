@@ -11,8 +11,10 @@ namespace Onlyou.Shared.DTOS.Producto
         public class GetProductoDTO
         {
             public int Id { get; set; }
+
             public string Codigo { get; set; } = null!;
-            public string Nombre { get; set; } = null!;
+
+        public string Nombre { get; set; } = null!;
             public int Stock { get; set; }
             public string? Descripcion { get; set; }
             public string Imagen { get; set; } = null!;

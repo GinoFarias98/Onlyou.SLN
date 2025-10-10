@@ -14,10 +14,6 @@ namespace Onlyou.BD.Data
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El Código es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo número de caracteres {1}.")]
-        public required string Codigo { get; set; }
-
         public bool Estado { get; set; } = true;
     }
 }

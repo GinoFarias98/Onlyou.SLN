@@ -23,9 +23,7 @@ namespace Onlyou.Shared.DTOS.Color
         // Opcional: incluir estado si permitís activar/desactivar
         public bool Estado { get; set; } = true;
 
-        // Opcional: incluir código si querés que sea editable
-        [StringLength(50, ErrorMessage = "Máximo {1} caracteres.")]
-        public string? Codigo { get; set; }
+
 
     }
 }

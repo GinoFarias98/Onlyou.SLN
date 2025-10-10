@@ -9,10 +9,6 @@ namespace Onlyou.Shared.DTOS.Proveedor
 {
     public class PutProveedorDTO
     {
-
-        [Required(ErrorMessage = "El Código es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo número de caracteres {1}.")]
-        public required string Codigo { get; set; }
         public bool Estado { get; set; } = true;
 
 

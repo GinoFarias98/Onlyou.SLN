@@ -6,10 +6,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    [Index(nameof(Nombre))] // Índice para búsquedas rápidas por nombre
-    [Index(nameof(MarcaId), nameof(TipoProductoId))] // Índice compuesto para filtros por marca y tipo
+    [Index(nameof(Nombre))] // Índice para búsquedas rápidas por Nombre
+    [Index(nameof(Codigo))] // Índice para búsquedas rápidas por Codigo
+    [Index(nameof(MarcaId), nameof(TipoProductoId))] // Índice compuesto para filtros por Marca y Tipo
     public class Producto : EntidadBase
     {
+
+        [Required(ErrorMessage = "El Codigo del producto es obligatorio.")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El Codigo debe tener entre 3 y 100 caracteres.")]
+        [Display(Name = "Codigo",
+         Description = "Codigo del producto.")]
+        public string Codigo { get; set; } = null!;
+
         // Nombre -------------------------------------------------------------------
 
         [Required(ErrorMessage = "El nombre del producto es obligatorio.")]

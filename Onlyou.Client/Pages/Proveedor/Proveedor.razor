@@ -52,7 +52,6 @@ else
             @foreach (var tipo in provDto)
             {
                 <tr>
-                    <td>@tipo.Codigo</td>
                     <td>@tipo.Nombre</td>
                     <td>@tipo.RazonSocial</td>
                     <td>@tipo.Telefono</td>
@@ -113,7 +112,6 @@ else
             {
                 Nombre = nombre,
                 Estado = estado,
-                Codigo = codigo,
                 Direccion = direccion,
                 RazonSocial = razonSocial,
                 CUIT = cuit,
@@ -142,7 +140,6 @@ else
             {
                 Nombre = nombre,
                 Estado = estado,
-                Codigo = codigo,
                 Direccion = direccion,
                 RazonSocial = razonSocial,
                 CUIT = cuit,
@@ -173,7 +170,6 @@ else
         provEditandoId = tipo.Id;
         nombre = tipo.Nombre;
         estado = tipo.Estado;
-        codigo = tipo.Codigo;
         direccion = tipo.Direccion;
         razonSocial = tipo.RazonSocial;
         cuit = tipo.CUIT;

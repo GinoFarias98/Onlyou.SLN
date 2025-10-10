@@ -18,10 +18,6 @@ namespace Onlyou.Shared.DTOS.Marca
         public string Nombre { get; set; } = null!;
 
 
-        [Required(ErrorMessage = "El Código es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo número de caracteres {1}.")]
-        public required string Codigo { get; set; }
-
         public bool Estado { get; set; } = true;
     }
 }

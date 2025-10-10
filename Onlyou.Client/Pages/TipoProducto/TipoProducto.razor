@@ -7,7 +7,6 @@
 
 <div class="tipoproducto-tabla">
     <input @bind="nombre" placeholder="Nombre del tipo de producto" />
-    <input @bind="codigo" placeholder="Código (opcional)" />
     <label>
         <input type="checkbox" @bind="estado" /> Activo
     </label>
@@ -32,7 +31,6 @@ else
     <table class="tipoproducto-tabla">
         <thead>
             <tr>
-                <th>Código</th>
                 <th>Nombre</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -42,7 +40,6 @@ else
             @foreach (var tipo in tiposProductos)
             {
                 <tr>
-                    <td>@tipo.Codigo</td>
                     <td>@tipo.Nombre</td>
                     <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
                     <td>
@@ -58,7 +55,6 @@ else
 @code {
     private List<GetTipoProductoDTO> tiposProductos = new();
     private string nombre = string.Empty;
-    private string? codigo;
     private bool estado = true;
     private int tipoEditandoId = 0;
     private bool modoEdicion = false;
@@ -91,7 +87,6 @@ else
             {
                 Nombre = nombre,
                 Estado = estado,
-                Codigo = codigo
             };
 
             var respuesta = await http.Put<PutTipoProductoDTO, GetTipoProductoDTO>($"api/TipoProducto/ModificarTipoProducto/{tipoEditandoId}", dto);
@@ -114,7 +109,6 @@ else
             var dto = new PostTipoProductoDTO
             {
                 Nombre = nombre,
-                Codigo = codigo
             };
 
             var respuesta = await http.Post<PostTipoProductoDTO, GetTipoProductoDTO>("api/TipoProducto", dto);
@@ -140,7 +134,6 @@ else
         tipoEditandoId = tipo.Id;
         nombre = tipo.Nombre;
         estado = tipo.Estado;
-        codigo = tipo.Codigo;
         modoEdicion = true;
     }
 
@@ -168,7 +161,6 @@ else
     private void LimpiarFormulario()
     {
         nombre = string.Empty;
-        codigo = null;
         estado = true;
         tipoEditandoId = 0;
         modoEdicion = false;

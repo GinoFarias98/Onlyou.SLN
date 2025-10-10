@@ -66,29 +66,7 @@ namespace Onlyou.Server.Controllers
                 Console.WriteLine($"Error en el método GetHexa: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
-        }
-
-
-        [HttpGet("Codigo/{codigo}")]
-        public async Task<ActionResult<GetColorDTO>> GetByCodigo(string codigo)
-        {
-            try
-            {
-                var color = await repoColor.SelectByCod(codigo);
-
-                if (color == null)
-                {
-                    return BadRequest($"No se encontro un color con el CODIGO '{codigo}' que mostrar");
-                }
-                var colorDto = mapper.Map<GetColorDTO>(color);
-                return Ok(colorDto);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error en el método GetByCodigo: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-            }
-        }
+        }     
 
         // POST ---------------------------------------------------------------------------------------------------------------
 
@@ -143,6 +121,24 @@ namespace Onlyou.Server.Controllers
             {
                 Console.WriteLine($"Error en PUT Color: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repoColor.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
             }
         }
 

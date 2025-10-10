@@ -18,7 +18,8 @@ namespace Onlyou.Server.Helpers
 
             CreateMap<Categoria, CrearCategoriasDTO>().ReverseMap();
             CreateMap<Categoria, GetCategoriasDTO>().ReverseMap();
-            CreateMap<Categoria, EditarCategoriasDTO>().ReverseMap();
+            CreateMap<EditarCategoriasDTO, Categoria>()
+                .ForMember(dest => dest.Imagen, opt => opt.Ignore());
 
             // Color ===================================================
 

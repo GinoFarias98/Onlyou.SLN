@@ -8,7 +8,6 @@ namespace Onlyou.BD.Data.Entidades
 {
     [Index(nameof(FechaGenerado))]
     [Index(nameof(EstadoPedidoId))]
-    [Index(nameof(Codigo), IsUnique = true)]
     public class Pedido : EntidadBase
     {
         // === Datos generales ===

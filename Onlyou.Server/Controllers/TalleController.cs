@@ -56,19 +56,6 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-
-        // GET: api/talles/codigo/ABC123
-        [HttpGet("codigo/{codigo}")]
-        public async Task<ActionResult<TallesDTO>> GetByCodigo(string codigo)
-        {
-            var talle = await repositorio.SelectByCod(codigo);
-            if (talle == null)
-                return NotFound();
-
-            var talleDTO = mapper.Map<TallesDTO>(talle);
-            return Ok(talleDTO);
-        }
-
         // GET: api/talles/producto/3
         [HttpGet("producto/{productoId:int}")]
         public async Task<ActionResult<IEnumerable<TallesDTO>>> GetByProducto(int productoId)
@@ -111,17 +98,35 @@ namespace Onlyou.Server.Controllers
             return NoContent();
         }
 
-        // PATCH: api/talles/estado/5
-        [HttpPatch("estado/{id:int}")]
-        public async Task<IActionResult> ToggleEstado(int id, [FromBody] TallesDTO talleDTO)
-        {
-            var talle = mapper.Map<Talle>(talleDTO);
-            var updated = await repositorio.UpdateEstado(id, talle);
-            if (!updated)
-                return NotFound();
+        //// PATCH: api/talles/estado/5
+        //[HttpPatch("estado/{id:int}")]
+        //public async Task<IActionResult> ToggleEstado(int id, [FromBody] TallesDTO talleDTO)
+        //{
+        //    var talle = mapper.Map<Talle>(talleDTO);
+        //    var updated = await repositorio.UpdateEstado(id, talle);
+        //    if (!updated)
+        //        return NotFound();
 
-            return NoContent();
+        //    return NoContent();
+        //}
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repositorio.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
+            }
         }
+
 
         // DELETE: api/talles/5
         [HttpDelete("{id:int}")]

@@ -42,7 +42,6 @@ else
             @foreach (var tipo in marcasDto)
             {
                 <tr>
-                    <td>@tipo.Codigo</td>
                     <td>@tipo.Nombre</td>
                     <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
                     <td>
@@ -115,7 +114,6 @@ else
             var dto = new PostMarcaDTO
             {
                 Nombre = nombre,
-                Codigo = codigo
             };
 
             var respuesta = await http.Post<PostMarcaDTO, GetMarcaDTO>("api/Marca", dto);
@@ -141,7 +139,6 @@ else
         marcaEditandoId = tipo.Id;
         nombre = tipo.Nombre;
         estado = tipo.Estado;
-        codigo = tipo.Codigo;
         modoEdicion = true;
     }
 

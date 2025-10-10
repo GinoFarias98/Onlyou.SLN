@@ -54,34 +54,70 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Resto de tus servicios...
+// Servicios
+
 builder.Services.AddScoped<IImagenValidator, ImagenValidator>();
 builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
 builder.Services.AddHttpContextAccessor();
+
+//AUTOMAPPER
+
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Tus repositorios...
+// REPOSITORIOS
+
 builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 builder.Services.AddScoped<IRepositorioProveedor, RepositorioProveedor>();
-// ... el resto de tus repositorios
+builder.Services.AddScoped<IRepositorioProducto, RepositorioProducto>();
+builder.Services.AddScoped<IRepositorioMarca, RepositorioMarca>();
+builder.Services.AddScoped<IRepositorioColor, RepositorioColor>();
+builder.Services.AddScoped<IRepositorioTalle, RepositorioTalle>();
+builder.Services.AddScoped<IRepositorioEstadoPedido, RepositorioEstadoPedido>();
+builder.Services.AddScoped<IRepositorioTipoProducto, RepositorioTipoProducto>();
+builder.Services.AddScoped<IRepositorioCategoria, RepositorioCategoria>();
+
+builder.Services.AddScoped<IRepositorioMovimiento, RepositorioMovimiento>();
+builder.Services.AddScoped<IRepositorioTipoMovimiento, RepositorioTipoMovimiento>();
+builder.Services.AddScoped<IRepositorioPago, RepositorioPago>();
+builder.Services.AddScoped<IRepositorioPedido, RepositorioPedido>();
+builder.Services.AddScoped<IRepositorioPedidoItem, RepositorioPedidoItem>();
+builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
+
+
+
+
+// =====================================================================================================================================
+
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Redirección HTTPS
+//app.UseHttpsRedirection();
+
+// Archivos estáticos y Blazor
 app.UseStaticFiles();
 app.UseBlazorFrameworkFiles();
+
+// Routing
 app.UseRouting();
+
+// Identity / Autenticación
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Output Cache
 app.UseOutputCache();
-app.MapControllers();
-app.MapRazorPages();
-app.MapFallbackToFile("index.html");
+
+// Mapeo de endpoints
+app.MapControllers();        // ? Tus endpoints api/... deben ir antes del fallback
+app.MapRazorPages();         // Razor pages
+app.MapFallbackToFile("index.html"); // Blazor SPA fallback
 
 app.Run();

@@ -41,6 +41,26 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
+        // puede devolver nulo, se maneja desde controller
+        public async Task<Producto?> SelecByCod(string codigo)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codigo))
+                {
+                    return null;
+                }
+                var productoXCodigo = await context.Productos.Where(p => p.Codigo == codigo).FirstOrDefaultAsync();
+                return productoXCodigo;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
+
         // metodo que busca por nombre paracial y devuelve similares a lo que se escribe
         public async Task<List<Producto>> SelectBySimilName(string similName)
         {

@@ -4,6 +4,7 @@ namespace Onlyou.Server.Repositorio
 {
     public interface IRepositorioProducto : IRepositorio<Producto>
     {
+        Task<Producto?> SelecByCod(string codigo);
         Task<List<Producto>> SelectBySimilName(string similName);
         Task<List<Producto>> SelectByTipoProducto(int tipoProductoId);
         Task<List<Producto>> SelectConRelaciones();

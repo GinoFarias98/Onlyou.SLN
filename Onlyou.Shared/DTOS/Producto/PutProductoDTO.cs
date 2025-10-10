@@ -9,6 +9,13 @@ namespace Onlyou.Shared.DTOS.Producto
 {
     public class PutProductoDTO
     {
+        [Required(ErrorMessage = "El Codigo del producto es obligatorio.")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El Codigo debe tener entre 3 y 100 caracteres.")]
+        [Display(Name = "Codigo",
+        Description = "Codigo del producto.")]
+        public string Codigo { get; set; } = null!;
+
+
         // Nombre ------------------------------------------------------
         [Required(ErrorMessage = "El nombre es obligatorio.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres.")]

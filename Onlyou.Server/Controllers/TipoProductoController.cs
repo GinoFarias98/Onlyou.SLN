@@ -13,7 +13,7 @@ namespace Onlyou.Server.Controllers
         private readonly IRepositorioTipoProducto repoTipoProducto;
         private readonly IMapper mapper;
 
-        public TipoProductoController(IRepositorioTipoProducto repoTipoProducto, 
+        public TipoProductoController(IRepositorioTipoProducto repoTipoProducto,
                                       IMapper mapper)
         {
             this.repoTipoProducto = repoTipoProducto;
@@ -53,7 +53,7 @@ namespace Onlyou.Server.Controllers
                 }
                 var tipoProducoDTO = mapper.Map<GetTipoProductoDTO>(tipoProducto);
                 return Ok(tipoProducoDTO);
-            } 
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en el método GetById: {ex.Message}");
@@ -83,26 +83,6 @@ namespace Onlyou.Server.Controllers
 
         }
 
-        [HttpGet("Codigo/{codigo}")]
-        public async Task<ActionResult<GetTipoProductoDTO>> GetByCod(string codigo)
-        {
-            try
-            {
-                var tipoProducto = await repoTipoProducto.SelectByCod(codigo);
-                if (tipoProducto == null)
-                {
-                    return BadRequest($"No se encontro un Tipo de Producto con el CODIGO: '{codigo}' que mostrar");
-                }
-                var tipoProducoDTO = mapper.Map<GetTipoProductoDTO>(tipoProducto);
-                return Ok(tipoProducoDTO);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error en el método GetByCod: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-            }
-        }
-
         [HttpPost]
         public async Task<ActionResult<GetTipoProductoDTO>> Post(PostTipoProductoDTO postTipoProductoDTO)
         {
@@ -114,7 +94,7 @@ namespace Onlyou.Server.Controllers
 
                 }
 
-                var tipoProducto = mapper.Map<TipoProducto>(postTipoProductoDTO) ;
+                var tipoProducto = mapper.Map<TipoProducto>(postTipoProductoDTO);
                 var dto = await repoTipoProducto.InsertDevuelveDTO<GetTipoProductoDTO>(tipoProducto);
 
                 return Ok(dto);
@@ -146,10 +126,28 @@ namespace Onlyou.Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en Put Color: {ex.Message}");
+                Console.WriteLine($"Error en Put Tipo Producto: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
         }
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repoTipoProducto.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
+            }
+        }
+
 
         [HttpDelete("EliminarTipoProducto/{id}")]
         public async Task<ActionResult> Delete(int id)

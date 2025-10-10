@@ -1,9 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Client.Pages.Productos;
+using Onlyou.Server.Helpers;
 using Onlyou.Server.Repositorio;
+using Onlyou.Server.Services;
 using Onlyou.Shared.DTOS.Categorias;
+using Onlyou.Shared.DTOS.Producto;
+using Onlyou.Shared.DTOS.TipoProducto;
+using System.ComponentModel.DataAnnotations;
 
 namespace Onlyou.Server.Controllers
 {
@@ -13,18 +20,59 @@ namespace Onlyou.Server.Controllers
     {
         private readonly IRepositorio<Categoria> repositorio;
         private readonly IMapper mapper;
+        private readonly IAlmacenadorArchivos almacenadorArchivos;
         private readonly IOutputCacheStore outputCacheStore;
         private const string cacheKey = "Categorias";
+        private readonly string contenedor = "categorias";
 
-        public CategoriasController(
-            IRepositorio<Categoria> repositorio,
-            IMapper mapper,
-            IOutputCacheStore outputCacheStore)
+
+        public CategoriasController(IRepositorio<Categoria> repositorio, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos, IOutputCacheStore outputCacheStore)
         {
             this.repositorio = repositorio;
             this.mapper = mapper;
+            this.almacenadorArchivos = almacenadorArchivos;
             this.outputCacheStore = outputCacheStore;
         }
+
+
+        /// <summary>
+        /// Actualiza la imagen de una categoría si se envía una nueva.
+        /// Devuelve la ruta final de la imagen en el almacenamiento.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<string> ActualizarImagenCategoria(
+            string imagenBase64,
+            string imagenExtension,
+            string imagenActual,
+            string contenedor,
+            [FromServices] IImagenValidator validator)
+        {
+            if (string.IsNullOrWhiteSpace(imagenBase64))
+            {
+                return imagenActual; // no hay cambio, devolvemos imagen existente
+            }
+
+            // validacion
+            if (!validator.ValidarBase64Extencion(imagenBase64, imagenExtension))
+            {
+                throw new InvalidOperationException("El contenido de la imagen no coincide con la extencion indicada");
+            }
+
+            var archivoBytes = Convert.FromBase64String(imagenBase64);
+
+            // si la imagen ya existe borramos
+            if (!string.IsNullOrEmpty(imagenActual))
+            {
+                await almacenadorArchivos.EliminarArchivo(imagenActual, contenedor);
+            }
+
+            //guardamos img nueva
+
+            var rutaimg = await almacenadorArchivos.GuardarArchivo(archivoBytes, imagenExtension, contenedor);
+            return rutaimg;
+        }
+
+
 
         // GET: api/categorias
         [HttpGet]
@@ -72,22 +120,41 @@ namespace Onlyou.Server.Controllers
 
         // POST: api/categorias
         [HttpPost]
-        public async Task<ActionResult<int>> Post(CrearCategoriasDTO dto)
+        public async Task<ActionResult<int>> Post(CrearCategoriasDTO dto, [FromServices] IImagenValidator validator)
         {
             try
             {
-                var entidad = mapper.Map<Categoria>(dto);
-
-                // 🔥 Si Codigo viene null o vacío, lo asignamos
-                if (string.IsNullOrWhiteSpace(entidad.Codigo))
+                if (dto == null)
                 {
-                    entidad.Codigo = Guid.NewGuid().ToString().Substring(0, 8); // o ""
+                    return BadRequest("Favor de verificar, valor ingresado nulo.");
                 }
 
-                var id = await repositorio.Insert(entidad);
+                if (!string.IsNullOrWhiteSpace(dto.Imagen) && !string.IsNullOrWhiteSpace(dto.ImagenExtension))
+                {
+                    if (!validator.ValidarBase64Extencion(dto.Imagen, dto.ImagenExtension))
+                    {
+                        return BadRequest("El contenido de la imagen no coincide con la extensión indicada.");
+
+                    }
+
+                    var imgCategoria = Convert.FromBase64String(dto.Imagen);
+
+                    dto.Imagen = await almacenadorArchivos.GuardarArchivo(
+                        imgCategoria,
+                        dto.ImagenExtension,
+                        contenedor
+                    );
+                }
+
+                // mapeo
+
+                var categoria = mapper.Map<Categoria>(dto);
+                var categoriadto = await repositorio.InsertDevuelveDTO<GetCategoriasDTO>(categoria);
+
                 await outputCacheStore.EvictByTagAsync(cacheKey, default);
 
-                return Ok(id);
+                return Ok(categoriadto);
+
             }
             catch (Exception ex)
             {
@@ -102,30 +169,62 @@ namespace Onlyou.Server.Controllers
 
         // PUT: api/categorias/5
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, EditarCategoriasDTO dto)
+        public async Task<ActionResult> Put(int id, [FromBody] EditarCategoriasDTO editarCategoriasDTO, [FromServices] IImagenValidator validator)
         {
             try
             {
-                if (id != dto.Id)
-                    return BadRequest("IDs no coinciden");
+                if (editarCategoriasDTO == null)
+                {
+                    return BadRequest("Datos nulos, Favor verificar ingreso de datos.");
+                }
+                var categoria = await repositorio.SelectById(id);
+                if (categoria == null)
+                {
+                    return NotFound($"No existe la Categoria buscada");
+                }
 
-                var existente = await repositorio.SelectById(id);
-                if (existente == null)
-                    return NotFound("No existe la categoría");
 
-                if (string.IsNullOrWhiteSpace(dto.Nombre))
-                    return BadRequest("El nombre es obligatorio");
 
-                mapper.Map(dto, existente);
-                var ok = await repositorio.UpdateEntidad(id, existente);
+                // 🖼️ 1️⃣ Manejo de imagen
+                categoria.Imagen = await ActualizarImagenCategoria(
+                    editarCategoriasDTO.Imagen,
+                    editarCategoriasDTO.ImagenExtension,
+                    categoria.Imagen,
+                    contenedor,
+                    validator);
+
+                // 🔄 2️⃣ Aplicamos AutoMapper a los campos simples
+                var catModificada = mapper.Map(editarCategoriasDTO, categoria);
+
+                await repositorio.UpdateEntidad(catModificada.Id, catModificada);
+                var categoriaActualizada = await repositorio.SelectById(catModificada.Id);
+                var categoriaDTO = mapper.Map<GetCategoriasDTO>(categoriaActualizada);
+
 
                 await outputCacheStore.EvictByTagAsync(cacheKey, default);
-                return ok ? Ok() : BadRequest();
+                return Ok(categoriaDTO);
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error en Put: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno al actualizar Categoria: {ex.Message}");
+            }
+        }
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repositorio.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
             }
         }
 

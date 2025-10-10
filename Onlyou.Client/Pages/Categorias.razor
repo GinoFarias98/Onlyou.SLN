@@ -17,6 +17,9 @@
 	{
 		<button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
 	}
+
+	<InputFile OnChange="SubirImagen" />
+
 </div>
 
 @if (categorias == null)
@@ -32,6 +35,7 @@ else
 	<table class="categoria-tabla">
 		<thead>
 			<tr>
+				<th>Imagen</th>
 				<th>Nombre</th>
 				<th>Estado</th>
 				<th>Acciones</th>
@@ -41,6 +45,7 @@ else
 			@foreach (var cat in categorias)
 			{
 				<tr>
+					<td><img src="@cat.Imagen" alt="@cat.Nombre" width="50" /></td>
 					<td>@cat.Nombre</td>
 					<td>@(cat.Estado ? "Activa" : "Inactiva")</td>
 					<td>
@@ -59,6 +64,10 @@ else
 	private bool estado = true;
 	private int categoriaEditandoId = 0;
 	private bool modoEdicion = false;
+
+	private string? imagenBase64;
+	private string? imagenExtension;
+
 
 
 	protected override async Task OnInitializedAsync()
@@ -103,7 +112,9 @@ else
 			{
 				Id = categoriaEditandoId,
 				Nombre = nombre,
-				Estado = estado
+				Estado = estado,
+				Imagen = imagenBase64,
+				ImagenExtension = imagenExtension,
 			};
 
 			var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
@@ -134,7 +145,9 @@ else
 			var dto = new CrearCategoriasDTO
 			{
 				Nombre = nombre,
-				Estado = estado
+				Estado = estado,
+				Imagen = imagenBase64,
+				ImagenExtension = imagenExtension,
 			};
 
 			var respuesta = await http.Post("api/Categorias", dto);
@@ -214,4 +227,15 @@ else
 		estado = true;
 		modoEdicion = false;
 	}
+
+
+	private async Task SubirImagen(InputFileChangeEventArgs e)
+	{
+		var file = e.File;
+		var buffer = new byte[file.Size];
+		await file.OpenReadStream().ReadAsync(buffer);
+		imagenBase64 = Convert.ToBase64String(buffer);
+		imagenExtension = Path.GetExtension(file.Name);
+	}
+
 }

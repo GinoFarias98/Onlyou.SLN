@@ -45,27 +45,6 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpGet("Codigo/{codigo}")]
-        public async Task<ActionResult<GetProveedorDTO>> GetByCodigo(string codigo)
-        {
-            try
-            {
-                var prov = await repoProveedor.SelectByCod(codigo);
-
-                if (prov == null)
-                {
-                    return BadRequest($"No se encontro un Proveedor con el CODIGO '{codigo}' que mostrar");
-                }
-                var provDto = mapper.Map<GetProveedorDTO>(prov);
-                return Ok(provDto);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error en el método GetByCodigo: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-            }
-        }
-
         [HttpGet("Id/{id}")]
         public async Task<ActionResult<GetProveedorDTO>> GetById(int id)
         {
@@ -146,6 +125,24 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
         }
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repoProveedor.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
+            }
+        }
+
 
         [HttpDelete("EliminarCodigo/{id}")]
         public async Task<ActionResult> Delete(int id)

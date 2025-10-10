@@ -43,27 +43,7 @@ namespace Onlyou.Server.Controllers
             }
 
         }
-
-        [HttpGet("Codigo/{codigo}")]
-        public async Task<ActionResult<GetMarcaDTO>> GetByCodigo(string codigo)
-        {
-            try
-            {
-                var marca = await repoMarca.SelectByCod(codigo);
-
-                if (marca == null)
-                {
-                    return BadRequest($"No se encontro una Marca con el CODIGO '{codigo}' que mostrar");
-                }
-                var marcaDto = mapper.Map<GetMarcaDTO>(marca);
-                return Ok(marcaDto);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error en el método GetByCodigo: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-            }
-        }
+       
 
         [HttpGet("Id/{id}")]
         public async Task<ActionResult<GetMarcaDTO>> GetById(int id)
@@ -146,6 +126,24 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
         }
+
+
+        [HttpPut("Archivar/{id}")]
+        public async Task<ActionResult<bool>> BajaLogica(int id)
+        {
+            try
+            {
+                var resultado = await repoMarca.UpdateEstado(id);
+                return resultado ? Ok(true) : NotFound(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Put Archivar: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+
+            }
+        }
+
 
         [HttpDelete("EliminarCodigo/{id}")]
         public async Task<ActionResult> Delete(int id)

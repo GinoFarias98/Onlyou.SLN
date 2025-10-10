@@ -13,9 +13,13 @@ namespace Onlyou.Shared.DTOS.Producto
         [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres.")]
         public string Nombre { get; set; } = null!;
 
-        [Required(ErrorMessage = "El Código es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo número de caracteres {1}.")]
-        public required string Codigo { get; set; }
+
+        [Required(ErrorMessage = "El Codigo del producto es obligatorio.")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "El Codigo debe tener entre 3 y 100 caracteres.")]
+        [Display(Name = "Codigo",
+         Description = "Codigo del producto.")]
+        public string Codigo { get; set; } = null!;
+
 
         [Range(0, int.MaxValue, ErrorMessage = "El stock debe ser un número entero positivo o cero.")]
         public int Stock { get; set; }
