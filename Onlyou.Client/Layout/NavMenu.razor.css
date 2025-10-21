@@ -135,3 +135,15 @@
     transition: transform 0.3s ease;
     color: var(--primary-light);
 }
+
+
+/* Footer fijo abajo */
+
+.navmenu-footer .nav-link {
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+    .navmenu-footer .nav-link:hover {
+        background-color: rgba(255, 107, 107, 0.15);
+    }

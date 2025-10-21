@@ -1,12 +1,13 @@
-﻿namespace Onlyou.Client.Servicios
+﻿using System.Net;
+using System.Text.Json;
+
+namespace Onlyou.Client.Servicios
 {
     public class HttpRespuesta<T>
     {
         public T? Respuesta { get; }
-
         public bool Error { get; }
-
-        public HttpResponseMessage HttpResponseMessage { get; set; }
+        public HttpResponseMessage HttpResponseMessage { get; }
 
         public HttpRespuesta(T? respuesta, bool error, HttpResponseMessage httpResponseMessage)
         {
@@ -15,28 +16,55 @@
             HttpResponseMessage = httpResponseMessage;
         }
 
-        public async Task<string> ObtenerError()
+        public async Task<string> ObtenerErrorAsync()
         {
-            if (!Error)
+            if (!Error || HttpResponseMessage == null)
+                return string.Empty;
+
+            try
             {
-                return "";
+                var statusCode = HttpResponseMessage.StatusCode;
+                var contenido = await HttpResponseMessage.Content.ReadAsStringAsync();
+
+                // Intentamos parsear si el backend devuelve JSON { "mensaje": "..." }
+                string? mensaje = null;
+                if (!string.IsNullOrWhiteSpace(contenido))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(contenido);
+                        if (doc.RootElement.TryGetProperty("mensaje", out var prop))
+                        {
+                            mensaje = prop.GetString();
+                        }
+                        else
+                        {
+                            // Si no hay campo "mensaje", devolvemos el texto crudo
+                            mensaje = contenido;
+                        }
+                    }
+                    catch
+                    {
+                        // No era JSON, devolvemos texto plano
+                        mensaje = contenido;
+                    }
+                }
+
+                // Devolvemos mensajes más amigables según código HTTP
+                return statusCode switch
+                {
+                    HttpStatusCode.BadRequest => mensaje ?? "Solicitud inválida.",
+                    HttpStatusCode.Unauthorized => "No está autenticado.",
+                    HttpStatusCode.Forbidden => "No tiene permisos para ejecutar esta acción.",
+                    HttpStatusCode.NotFound => "Recurso no encontrado.",
+                    HttpStatusCode.Conflict => mensaje ?? "El recurso ya existe o hay un conflicto.",
+                    HttpStatusCode.InternalServerError => "Error interno del servidor.",
+                    _ => mensaje ?? $"Error desconocido ({statusCode})."
+                };
             }
-
-            var statuscode = HttpResponseMessage.StatusCode;
-
-            switch (statuscode)
+            catch (Exception ex)
             {
-                case System.Net.HttpStatusCode.BadRequest:
-                    return HttpResponseMessage.Content.ReadAsStringAsync().ToString()!;
-                //                    return "Error, no se puede procesar la información";
-                case System.Net.HttpStatusCode.Unauthorized:
-                    return "Error, no está logueado";
-                case System.Net.HttpStatusCode.Forbidden:
-                    return "Error, no tiene autorización a ejecutar este proceso";
-                case System.Net.HttpStatusCode.NotFound:
-                    return "Error, dirección no encontrado";
-                default:
-                    return HttpResponseMessage.Content.ReadAsStringAsync().Result;
+                return $"Error al procesar la respuesta del servidor: {ex.Message}";
             }
         }
     }

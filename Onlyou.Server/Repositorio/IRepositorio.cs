@@ -9,6 +9,7 @@ namespace Onlyou.Server.Repositorio
         Task<int> Insert(E entidad);
         Task<TDTO> InsertDevuelveDTO<TDTO>(E entidad);
         Task<List<E>> Select();
+        Task<List<E>> SelectArchivados();
         Task<E?> SelectById(int id);
         Task<bool> UpdateEntidad(int id, E entidad);
         Task<bool> UpdateEstado(int id);

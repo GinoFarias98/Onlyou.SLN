@@ -1,0 +1,55 @@
+﻿@page "/colores-archivados"
+@using Onlyou.Client.Shared
+@using Onlyou.Shared.DTOS.Color
+@inject IHttpServicios http
+@inject NavigationManager nav
+@inject SweetAlertService swal
+
+<h3>Talles Archivados</h3>
+
+<TablaArchivados TDTO="GetColorDTO"
+				 Items="colorArchivados"
+				 Columnas="columnas"
+				 OnRestaurar="RestaurarProducto"
+				 OnEliminar="EliminarProducto" />
+
+@code {
+	private List<GetColorDTO> colorArchivados = new();
+	private List<string> columnas = new() { "Nombre" };
+
+	protected override async Task OnInitializedAsync()
+	{
+		// consume endpoint del server y devuelve los archivados
+		colorArchivados = (await http.Get<List<GetColorDTO>>("api/ManageColor/Archivados")).Respuesta ?? new();
+	}
+
+	private async Task RestaurarProducto(GetColorDTO productoDTO)
+	{
+		await http.Put<object>($"api/ManageColor/Archivados/{productoDTO.Id}", null);
+		await swal.FireAsync("Exito", "Talle Restaurado exitosamente", SweetAlertIcon.Success);
+		colorArchivados.Remove(productoDTO);
+		StateHasChanged();
+	}
+
+	private async Task EliminarProducto(GetColorDTO productoDTO)
+	{
+
+		var confirm = await swal.FireAsync(new SweetAlertOptions
+		{
+			Title = "Confirmar",
+			Text = $"¿Seguro que deseas Eliminar el Talle {productoDTO.Nombre}?",
+			Icon = SweetAlertIcon.Question,
+			ShowCancelButton = true,
+			ConfirmButtonText = "Sí",
+			CancelButtonText = "Cancelar"
+		});
+
+		if (confirm.IsConfirmed)
+		{
+			await http.Delete($"api/ManageColor/EliminarCodigo/{productoDTO.Id}");
+			colorArchivados.Remove(productoDTO);
+			StateHasChanged();
+		}
+
+	}
+}

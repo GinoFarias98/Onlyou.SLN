@@ -50,7 +50,7 @@ else
 					<td>@(cat.Estado ? "Activa" : "Inactiva")</td>
 					<td>
 						<button class="boton-accion" @onclick="() => EditarCategoria(cat)">Editar</button>
-						<button class="boton-accion" @onclick="() => EliminarCategoria(cat.Id, cat.Nombre)">Eliminar</button>
+						<button class="boton-accion" @onclick="() => ArchivarCategoria(cat.Id, cat.Nombre)">Archivar</button>
 					</td>
 				</tr>
 			}
@@ -80,8 +80,8 @@ else
 		var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
 		if (!resultado.Error)
 		{
-
 			categorias = resultado.Respuesta;
+			StateHasChanged();
 		}
 	}
 
@@ -192,7 +192,7 @@ else
 		var result = await swal.FireAsync(new SweetAlertOptions
 		{
 			Title = "Atencion",
-			Text = $"Estas a punto de eliminar la Categoria {nombre.ToUpper()} de forma PERMANENTE. Deseas continuar?",
+			Text = $"Estas a punto de Archivar la Categoria {nombre.ToUpper()}. Deseas continuar?",
 			Icon = SweetAlertIcon.Question,
 			ShowCancelButton = true,
 			ConfirmButtonText = "Sí",
@@ -211,13 +211,15 @@ else
 	}
 
 
-	private async Task EliminarCategoria(int id, string nombre)
+	private async Task ArchivarCategoria(int id, string nombre)
 	{
 		var confirmado = await Confirmar(nombre);
 		if (confirmado)
 		{
-			await http.Delete($"api/Categorias/{id}");
+			await http.Put<object>($"api/Categorias/Archivados/{id}",null);
 			await CargarCategorias();
+			await swal.FireAsync("Exito", "Producto Archivado de forma satisfactoria", SweetAlertIcon.Success);
+
 		}
 	}
 

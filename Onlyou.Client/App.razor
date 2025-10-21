@@ -1,20 +1,30 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" >
-            <Authorizing>
-                <LayoutView>
+﻿<!-- Injecto contexto de autenticacion para evitar que blazor no sepa quien esta logeado.a
 
-                    <p role="alert"> Autorizando... </p>
-                </LayoutView>
-            </Authorizing>
-        </AuthorizeRouteView>
-        
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+Si no hacemos esto, al caer en 'NotFound' no sabemos quien esta logueado y obtenemos un:<a href="#"></a>
+
+    'crit: Microsoft.AspNetCore.Components.WebAssembly.Rendering.WebAssemblyRenderer[100]'
+
+-->
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <Authorizing>
+                    <LayoutView>
+                        <p role="alert">Autorizando...</p>
+                    </LayoutView>
+                </Authorizing>
+            </AuthorizeRouteView>
+
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+
+        <NotFound>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

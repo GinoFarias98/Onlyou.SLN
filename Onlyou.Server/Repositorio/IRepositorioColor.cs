@@ -6,7 +6,7 @@ namespace Onlyou.Server.Repositorio
 {
     public interface IRepositorioColor : IRepositorio<Color>
     {
-        Task<GetColorDTO> InsertDevuelveDTO(Color color);
+        new Task<TDTO> InsertDevuelveDTO<TDTO>(Color entidad);
         Task<string?> ObtenerHexa(int id);
     }
 }

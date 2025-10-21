@@ -5,22 +5,18 @@
 
 <h3 class="titulo-seccion">Gestión de Proveedores</h3>
 
-<div class="proveedor-tabla">
-    <input @bind="codigo" placeholder="Código" />
-    <input @bind="nombre" placeholder="Nombre del Proveedor" />
-    <input @bind="direccion" placeholder="Direccion" />
-    <input @bind="razonSocial" placeholder="Razon Social" />
-    <input @bind="cuit" placeholder="CUIT" />
-    <input @bind="telefono" placeholder="Telefono" />
-    <input @bind="email" placeholder="Email" />
-    <label>
-        <input type="checkbox" @bind="estado" /> Activo
-    </label>
+<div class="formulario-proveedor">
+    <input class="input-texto" @bind="nombre" placeholder="Nombre del Proveedor" />
+    <input class="input-texto" @bind="direccion" placeholder="Dirección" />
+    <input class="input-texto" @bind="razonSocial" placeholder="Razón Social" />
+    <input class="input-texto" @bind="cuit" placeholder="CUIT" />
+    <input class="input-texto" @bind="telefono" placeholder="Teléfono" />
+    <input class="input-texto" @bind="email" placeholder="Email" />
 
-    <button class="boton-accion" @onclick="GuardarProveedores">Guardar</button>
+    <button class="boton-accion" @onclick="GuardarProveedores">@((modoEdicion ? "Actualizar" : "Guardar"))</button>
     @if (modoEdicion)
     {
-        <button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
+        <button class="boton-accion-cancelar" @onclick="CancelarEdicion">Cancelar</button>
     }
 </div>
 
@@ -30,39 +26,35 @@
 }
 else if (!provDto.Any())
 {
-    <p>No hay tipos de productos para mostrar.</p>
+    <p>No hay proveedores para mostrar.</p>
 }
 else
 {
-    <table class="proveedor-tabla">
+    <table class="tabla-general">
         <thead>
             <tr>
-                <th>Código</th>
                 <th>Nombre</th>
-                <th>Estado</th>
-                <th>Razon Social</th>
-                <th>Telefono</th>
-                <th>Direccion</th>
+                <th>Razón Social</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
                 <th>Email</th>
                 <th>CUIT</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var tipo in provDto)
+            @foreach (var proveedor in provDto)
             {
                 <tr>
-                    <td>@tipo.Nombre</td>
-                    <td>@tipo.RazonSocial</td>
-                    <td>@tipo.Telefono</td>
-                    <td>@tipo.Direccion</td>
-                    <td>@tipo.Email</td>
-                    <td>@tipo.CUIT</td>
-
-                    <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
+                    <td>@proveedor.Nombre</td>
+                    <td>@proveedor.RazonSocial</td>
+                    <td>@proveedor.Telefono</td>
+                    <td>@proveedor.Direccion</td>
+                    <td>@proveedor.Email</td>
+                    <td>@proveedor.CUIT</td>
                     <td>
-                        <button class="boton-accion" @onclick="() => EditarProveedor(tipo)">Editar</button>
-                        <button class="boton-accion" @onclick="() => EliminarProveedor(tipo.Id, tipo.Nombre)">Eliminar</button>
+                        <button class="boton-accion" @onclick="() => EditarProveedor(proveedor)">Editar</button>
+                        <button class="boton-accion-eliminar" @onclick="() => ArchivarProveedor(proveedor.Id, proveedor.Nombre)">Archivar</button>
                     </td>
                 </tr>
             }
@@ -70,11 +62,9 @@ else
     </table>
 }
 
-
 @code {
     private List<GetProveedorDTO> provDto = new();
     private string nombre = string.Empty;
-    private string? codigo;
     private bool estado = true;
     private int provEditandoId = 0;
     private bool modoEdicion = false;
@@ -84,10 +74,7 @@ else
     private string telefono = string.Empty;
     private string email = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarProveedores();
-    }
+    protected override async Task OnInitializedAsync() => await CargarProveedores();
 
     private async Task CargarProveedores()
     {
@@ -100,90 +87,99 @@ else
 
     private async Task GuardarProveedores()
     {
+        // Validaciones front
         if (string.IsNullOrWhiteSpace(nombre))
         {
             await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
             return;
         }
 
-        if (modoEdicion)
+        if (string.IsNullOrWhiteSpace(cuit))
         {
-            var dto = new PutProveedorDTO
-            {
-                Nombre = nombre,
-                Estado = estado,
-                Direccion = direccion,
-                RazonSocial = razonSocial,
-                CUIT = cuit,
-                Telefono = telefono,
-                Email = email
-            };
-
-            var respuesta = await http.Put<PutProveedorDTO, GetProveedorDTO>($"api/Proveedores/ModificarProveedorId/{provEditandoId}", dto);
-
-            if (respuesta.Error)
-            {
-                await swal.FireAsync("Error", "No se pudo editar el Proveedor", SweetAlertIcon.Error);
-                return;
-            }
-
-            var proveedorActualizado = respuesta.Respuesta!;
-            await swal.FireAsync("Éxito",
-                $"Marca '{proveedorActualizado.Nombre}, Razon Social '{proveedorActualizado.RazonSocial}' actualizado correctamente",
-                SweetAlertIcon.Success);
-
-            modoEdicion = false;
-        }
-        else
-        {
-            var dto = new PostProveedorDTO
-            {
-                Nombre = nombre,
-                Estado = estado,
-                Direccion = direccion,
-                RazonSocial = razonSocial,
-                CUIT = cuit,
-                Telefono = telefono,
-                Email = email
-            };
-
-            var respuesta = await http.Post<PostProveedorDTO, GetProveedorDTO>("api/Proveedores", dto);
-
-            if (respuesta.Error)
-            {
-                await swal.FireAsync("Error", "No se pudo guardar el Proveedor", SweetAlertIcon.Error);
-                return;
-            }
-
-            var prvoNuevo = respuesta.Respuesta!;
-            await swal.FireAsync("Éxito",
-                $"Proveedor '{prvoNuevo.Nombre}' creado correctamente",
-                SweetAlertIcon.Success);
+            await swal.FireAsync("Atención", "El CUIT es obligatorio", SweetAlertIcon.Warning);
+            return;
         }
 
-        LimpiarFormulario();
-        await CargarProveedores();
+        try
+        {
+            if (modoEdicion)
+            {
+                var dto = new PutProveedorDTO
+                {
+                    Nombre = nombre,
+                    Estado = estado,
+                    Direccion = direccion,
+                    RazonSocial = razonSocial,
+                    CUIT = cuit,
+                    Telefono = telefono,
+                    Email = email
+                };
+
+                var respuesta = await http.Put<PutProveedorDTO, GetProveedorDTO>($"api/Proveedores/ModificarProveedorId/{provEditandoId}", dto);
+
+                if (respuesta.Error)
+                {
+                    var mensaje = await respuesta.ObtenerErrorAsync();
+                    await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
+                    return; // ⚠️ Detener si hay error
+                }
+
+                await swal.FireAsync("Éxito", $"Proveedor '{respuesta.Respuesta!.Nombre}' actualizado correctamente", SweetAlertIcon.Success);
+                modoEdicion = false;
+            }
+            else
+            {
+                var dto = new PostProveedorDTO
+                {
+                    Nombre = nombre,
+                    Estado = estado,
+                    Direccion = direccion,
+                    RazonSocial = razonSocial,
+                    CUIT = cuit,
+                    Telefono = telefono,
+                    Email = email
+                };
+
+                var respuesta = await http.Post<PostProveedorDTO, GetProveedorDTO>("api/Proveedores", dto);
+
+                if (respuesta.Error)
+                {
+                    var mensaje = await respuesta.ObtenerErrorAsync();
+                    await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
+                    return; // ⚠️ Detener si hay error
+                }
+
+                await swal.FireAsync("Éxito", $"Proveedor '{respuesta.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+            }
+
+            LimpiarFormulario();
+            await CargarProveedores();
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error inesperado", ex.Message, SweetAlertIcon.Error);
+        }
     }
 
-    private void EditarProveedor(GetProveedorDTO tipo)
+    private void EditarProveedor(GetProveedorDTO proveedor)
     {
-        provEditandoId = tipo.Id;
-        nombre = tipo.Nombre;
-        estado = tipo.Estado;
-        direccion = tipo.Direccion;
-        razonSocial = tipo.RazonSocial;
-        cuit = tipo.CUIT;
-        telefono = tipo.Telefono;
-        email = tipo.Email;
+        provEditandoId = proveedor.Id;
+        nombre = proveedor.Nombre;
+        estado = proveedor.Estado;
+        direccion = proveedor.Direccion;
+        razonSocial = proveedor.RazonSocial;
+        cuit = proveedor.CUIT;
+        telefono = proveedor.Telefono;
+        email = proveedor.Email;
         modoEdicion = true;
     }
 
-    private async Task EliminarProveedor(int id, string nombre)
+    private async Task ArchivarProveedor(int id, string nombre)
     {
         var confirm = await swal.FireAsync(new SweetAlertOptions
         {
             Title = "Confirmar",
-            Text = $"¿Seguro que deseas eliminar el Proveedor {nombre}?",
+            Text = $"¿Seguro que deseas eliminar el proveedor {nombre}?",
             Icon = SweetAlertIcon.Question,
             ShowCancelButton = true,
             ConfirmButtonText = "Sí",
@@ -192,7 +188,14 @@ else
 
         if (confirm.IsConfirmed)
         {
-            await http.Delete($"api/Proveedores/EliminarCodigo/{id}");
+            var respuesta = await http.Put<object>($"api/Proveedores/EliminarCodigo/{id}", null);
+            if (respuesta.Error)
+            {
+                var mensaje = await respuesta.ObtenerErrorAsync();
+                await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
+                return; // ⚠️ Detener si hay error
+            }
+
             await CargarProveedores();
         }
     }
@@ -202,7 +205,6 @@ else
     private void LimpiarFormulario()
     {
         nombre = string.Empty;
-        codigo = null;
         estado = true;
         direccion = string.Empty;
         razonSocial = string.Empty;

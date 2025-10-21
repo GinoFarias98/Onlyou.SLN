@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
 using Onlyou.Shared.DTOS.Color;
-using System.Drawing;
 using Color = Onlyou.BD.Data.Entidades.Color;
 
 namespace Onlyou.Server.Controllers
@@ -66,7 +64,29 @@ namespace Onlyou.Server.Controllers
                 Console.WriteLine($"Error en el método GetHexa: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
-        }     
+        }
+
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetColorDTO>>> GetArchivados()
+        {
+            try
+            {
+                var color = await repoColor.SelectArchivados();
+                if (color == null || !color.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var colorarchivadosDTO = mapper.Map<List<GetColorDTO>>(color);
+                return Ok(colorarchivadosDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
 
         // POST ---------------------------------------------------------------------------------------------------------------
 
@@ -81,10 +101,15 @@ namespace Onlyou.Server.Controllers
                 }
 
                 var color = mapper.Map<Color>(postColorDTO);
-                var dto = await repoColor.InsertDevuelveDTO(color);
+                var dto = await repoColor.InsertDevuelveDTO<GetColorDTO>(color);
 
                 return Ok(dto);
 
+            }
+            catch (InvalidOperationException ex)
+            {
+                // ⚠️ Duplicado controlado
+                return Conflict(new { mensaje = ex.Message });
             }
             catch (Exception ex)
             {
@@ -93,7 +118,6 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-        // PUT ---------------------------------------------------------------------------------------------------------------
         // PUT ---------------------------------------------------------------------------------------------------------------
         [HttpPut("ModificarColorId/{id}")]
         public async Task<ActionResult<GetColorDTO>> Put(int id, [FromBody] PutColorDTO putColorDTO)
@@ -126,7 +150,7 @@ namespace Onlyou.Server.Controllers
 
 
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("Archivados/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try

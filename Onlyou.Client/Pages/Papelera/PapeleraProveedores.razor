@@ -1,0 +1,55 @@
+﻿@page "/proveedores-archivados"
+@using Onlyou.Client.Shared
+@using Onlyou.Shared.DTOS.Proveedor
+@inject IHttpServicios http
+@inject NavigationManager nav
+@inject SweetAlertService swal
+
+<h3>Proveedores Archivados</h3>
+
+<TablaArchivados TDTO="GetProveedorDTO"
+				 Items="proveedorArchivados"
+				 Columnas="columnas"
+				 OnRestaurar="RestaurarProducto"
+				 OnEliminar="EliminarProducto" />
+
+@code {
+	private List<GetProveedorDTO> proveedorArchivados = new();
+	private List<string> columnas = new() { "Nombre" };
+
+	protected override async Task OnInitializedAsync()
+	{
+		// consume endpoint del server y devuelve los archivados
+		proveedorArchivados = (await http.Get<List<GetProveedorDTO>>("api/Proveedores/Archivados")).Respuesta ?? new();
+	}
+
+	private async Task RestaurarProducto(GetProveedorDTO productoDTO)
+	{
+		await http.Put<object>($"api/Proveedores/Archivados/{productoDTO.Id}", null);
+		await swal.FireAsync("Exito", "Proveedor Restaurado exitosamente", SweetAlertIcon.Success);
+		proveedorArchivados.Remove(productoDTO);
+		StateHasChanged();
+	}
+
+	private async Task EliminarProducto(GetProveedorDTO productoDTO)
+	{
+
+		var confirm = await swal.FireAsync(new SweetAlertOptions
+		{
+			Title = "Confirmar",
+			Text = $"¿Seguro que deseas Eliminar el Proveedor {productoDTO.Nombre}?",
+			Icon = SweetAlertIcon.Question,
+			ShowCancelButton = true,
+			ConfirmButtonText = "Sí",
+			CancelButtonText = "Cancelar"
+		});
+
+		if (confirm.IsConfirmed)
+		{
+			await http.Delete($"api/Proveedores/EliminarCategoria/{productoDTO.Id}");
+			proveedorArchivados.Remove(productoDTO);
+			StateHasChanged();
+		}
+
+	}
+}

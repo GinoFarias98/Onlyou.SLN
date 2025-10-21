@@ -46,10 +46,18 @@ namespace Onlyou.BD.Data
                                                        && fk.DeleteBehavior == DeleteBehavior.Casca­de);
 
 
-            base.OnModelCreating(modelBuilder);
+            foreach (var fk in cascadeFKs)
+            {
+                fk.DeleteBehavior = DeleteBehavior.Restr­ict;
+            }
+
 
             modelBuilder.Entity<ProductoColor>().HasKey(x => new { x.ProductoId, x.ColorId });
             modelBuilder.Entity<ProductoTalle>().HasKey(x => new { x.ProductoId, x.TalleId });
+
+
+            base.OnModelCreating(modelBuilder);
+
 
         }
 

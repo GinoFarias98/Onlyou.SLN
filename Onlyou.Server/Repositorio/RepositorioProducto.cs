@@ -104,6 +104,7 @@ namespace Onlyou.Server.Repositorio
                     .Include(p => p.Categoria)
                     .Include(p => p.TipoProducto)
                     .Include(p => p.Proveedor)
+                    .Where(p => p.Estado == true)
                     .ToListAsync();
 
                 return productosCompletos;
@@ -135,6 +136,20 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
 
+        }
+
+
+        public async Task<List<Producto>> SelectArchivadosConRelaciones()
+        {
+            return await context.Productos
+                .Where(p => !p.Estado)
+                .Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
+                .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
+                .Include(p => p.Marca)
+                .Include(p => p.Categoria)
+                .Include(p => p.TipoProducto)
+                .Include(p => p.Proveedor)
+                .ToListAsync();
         }
 
         // para paginacion

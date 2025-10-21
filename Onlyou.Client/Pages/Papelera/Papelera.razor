@@ -1,0 +1,120 @@
+﻿@page "/Papelera"
+@using Onlyou.Shared.DTOS.Categorias
+@using Onlyou.Shared.DTOS.Color
+@using Onlyou.Shared.DTOS.Producto
+@using Onlyou.Shared.DTOS.Proveedor
+@using Onlyou.Shared.DTOS.Talle
+@using Onlyou.Shared.DTOS.TipoProducto
+@inject IHttpServicios http
+@inject NavigationManager nav
+
+<h3>Papelera</h3>
+
+@if (entidadesArchivadas.Any())
+{
+    <div class="d-flex flex-column gap-2">
+        @foreach (var entidad in entidadesArchivadas)
+        {
+            <button class="btn btn-primary"
+                    @onclick="() => nav.NavigateTo(entidad.Ruta)">
+                @entidad.Nombre
+            </button>
+        }
+    </div>
+}
+else
+{
+    <p>No hay entidades archivadas.</p>
+}
+
+@code {
+    // Clase para manejar cada botón de entidad
+    private class EntidadArchivada
+    {
+        public string Nombre { get; set; } = string.Empty; // Texto del botón
+        public string Ruta { get; set; } = string.Empty;   // Ruta a navegar
+    }
+
+    private List<EntidadArchivada> entidadesArchivadas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Chequear cada endpoint para ver si hay entidades archivadas
+        // Por ejemplo: Productos, Clientes, etc.
+
+        // Productos
+        var productos = await http.Get<List<GetProductoDTO>>("Productos/Archivados");
+        if (productos.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Productos Archivados",
+                Ruta = "/productos-archivados"
+            });
+        }
+
+        // Aquí podés agregar más entidades
+        // Ejemplo:
+        // var clientes = await http.Get<List<GetClienteDTO>>("Clientes/Archivados");
+        // if (clientes.Respuesta?.Any() == true)
+        // {
+        //     entidadesArchivadas.Add(new EntidadArchivada
+        //     {
+        //         Nombre = "Clientes Archivados",
+        //         Ruta = "/clientes-archivados"
+        //     });
+        // }
+
+
+        var categorias = await http.Get<List<GetCategoriasDTO>>("api/Categorias/Archivados");
+        if(categorias.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Categorias Archivadaas",
+                Ruta = "/categorias-archivadas"
+            });
+        }
+
+        var talles = await http.Get<List<TallesDTO>>("api/Talle/Archivados");
+        if (talles.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Talles Archivadaas",
+                Ruta = "/talles-archivados"
+            });
+        }
+
+        var colores = await http.Get<List<GetColorDTO>>("api/ManageColor/Archivados");
+        if (colores.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Colores Archivadaas",
+                Ruta = "/colores-archivados"
+            });
+        }
+
+        var proveedores = await http.Get<List<GetProveedorDTO>>("api/Proveedores/Archivados");
+        if (proveedores.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Proveedores Archivadaas",
+                Ruta = "/proveedores-archivados"
+            });
+        }
+
+        var Tproductos = await http.Get<List<GetTipoProductoDTO>>("api/TipoProducto/Archivados");
+        if (Tproductos.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Tipo Productos Archivadaas",
+                Ruta = "/tipo-productos-archivados"
+            });
+        }
+
+    }
+}

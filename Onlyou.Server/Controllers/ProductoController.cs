@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
-using Onlyou.Client.Pages.Marca;
 using Onlyou.Server.Helpers;
 using Onlyou.Server.Repositorio;
 using Onlyou.Server.Services;
-using Onlyou.Shared.DTOS.Marca;
+
 using Onlyou.Shared.DTOS.Producto;
 
 namespace Onlyou.Server.Controllers
@@ -111,6 +110,27 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
         }
+
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetProductoDTO>>> GetArchivados()
+        {
+            try
+            {
+                var productos = await repositorioProducto.SelectArchivadosConRelaciones();
+                if (productos == null || !productos.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var productosArchivadosDTO = mapper.Map<List<GetProductoDTO>>(productos);
+                return Ok(productosArchivadosDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
 
         [HttpPost]
         public async Task<ActionResult<GetProductoDTO>> Post(PostProductoDTO postProductoDTO, [FromServices] IImagenValidator validator)
@@ -289,7 +309,7 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("UpdateEstado/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try

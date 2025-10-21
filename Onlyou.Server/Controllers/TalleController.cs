@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
 using Onlyou.Shared.DTOS.Talle;
-using Onlyou.Shared.DTOS.TipoProducto;
 
 
 
@@ -68,6 +67,28 @@ namespace Onlyou.Server.Controllers
             return Ok(tallesDTO);
         }
 
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<TallesDTO>>> GetArchivados()
+        {
+            try
+            {
+                var talles = await repositorio.SelectArchivados();
+                if (talles == null || !talles.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var tallesArchivadasDTO = mapper.Map<List<TallesDTO>>(talles);
+                return Ok(tallesArchivadasDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
+
         // POST: api/talles
         [HttpPost]
         public async Task<ActionResult<TallesDTO>> Create([FromBody] TallesDTO talleDTO)
@@ -75,13 +96,27 @@ namespace Onlyou.Server.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var talle = mapper.Map<Talle>(talleDTO);
-            var id = await repositorio.Insert(talle);
+            try
+            {
+                // 🔹 Llamamos al método genérico ya sobrescrito en el repo de Talle
+                var creadoDTO = await repositorio.InsertDevuelveDTO<TallesDTO>(
+                    mapper.Map<Talle>(talleDTO)
+                );
 
-            // Devolvemos el DTO creado
-            var creadoDTO = mapper.Map<TallesDTO>(talle);
-            return CreatedAtAction(nameof(GetById), new { id = id }, creadoDTO);
+                return CreatedAtAction(nameof(GetById), new { id = creadoDTO.Id }, creadoDTO);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // ⚠️ Duplicado controlado
+                return Conflict(new { mensaje = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Create: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
         }
+
 
         // PUT: api/talles/5
         [HttpPut("{id:int}")]
@@ -111,7 +146,7 @@ namespace Onlyou.Server.Controllers
         //}
 
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("Archivados/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try

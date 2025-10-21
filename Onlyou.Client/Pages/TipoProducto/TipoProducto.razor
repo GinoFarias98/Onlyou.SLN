@@ -7,9 +7,7 @@
 
 <div class="tipoproducto-tabla">
     <input @bind="nombre" placeholder="Nombre del tipo de producto" />
-    <label>
-        <input type="checkbox" @bind="estado" /> Activo
-    </label>
+
 
     <button class="boton-accion" @onclick="GuardarTipoProducto">Guardar</button>
     @if (modoEdicion)
@@ -32,7 +30,6 @@ else
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -41,10 +38,9 @@ else
             {
                 <tr>
                     <td>@tipo.Nombre</td>
-                    <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
                     <td>
                         <button class="boton-accion" @onclick="() => EditarTipoProducto(tipo)">Editar</button>
-                        <button class="boton-accion" @onclick="() => EliminarTipoProducto(tipo.Id, tipo.Nombre)">Eliminar</button>
+                        <button class="boton-accion" @onclick="() => ArchivaripoProducto(tipo.Id, tipo.Nombre)">Archivar</button>
                     </td>
                 </tr>
             }
@@ -137,7 +133,7 @@ else
         modoEdicion = true;
     }
 
-    private async Task EliminarTipoProducto(int id, string nombre)
+    private async Task ArchivaripoProducto(int id, string nombre)
     {
         var confirm = await swal.FireAsync(new SweetAlertOptions
         {
@@ -151,7 +147,7 @@ else
 
         if (confirm.IsConfirmed)
         {
-            await http.Delete($"api/TipoProducto/EliminarTipoProducto/{id}");
+            await http.Put<object>($"api/TipoProducto/Archivados/{id}", null);
             await CargarTipoProductos();
         }
     }

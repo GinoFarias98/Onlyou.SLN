@@ -38,7 +38,7 @@
         var httpRespuesta = await http.Post<UserInfoDTO, UserTokenDTO>("usuarios/login", userInfo);
         if (httpRespuesta.Error)
         {
-            var msg = await httpRespuesta.ObtenerError();
+            var msg = await httpRespuesta.ObtenerErrorAsync();
             await js.InvokeVoidAsync("alert", msg);
         }
         else

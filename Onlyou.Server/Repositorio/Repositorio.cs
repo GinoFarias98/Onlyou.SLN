@@ -27,7 +27,7 @@ namespace Onlyou.Server.Repositorio
 
         public async Task<bool> Existe(int id)
         {
-            return await context.Set<E>().AnyAsync(x => x.Estado && x.Id == id);
+            return await context.Set<E>().AnyAsync(x => x.Id == id);
         }
 
         public async Task<List<E>> Select()
@@ -57,7 +57,7 @@ namespace Onlyou.Server.Repositorio
                     return null;
                 }
 
-                return await context.Set<E>().Where(x => x.Estado == true).FirstOrDefaultAsync(e => e.Id == id);
+                return await context.Set<E>().FirstOrDefaultAsync(e => e.Id == id);
 
 
             }
@@ -69,6 +69,21 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
+
+
+        public async Task<List<E>> SelectArchivados()
+        {
+            try
+            {
+                return await context.Set<E>().Where(x => x.Estado == false).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
 
         public async Task<int> Insert(E entidad)
         {
@@ -87,7 +102,7 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
-        public async Task<TDTO> InsertDevuelveDTO<TDTO>(E entidad)
+        public virtual async Task<TDTO> InsertDevuelveDTO<TDTO>(E entidad)
         {
             if (entidad == null)
             {
@@ -151,7 +166,7 @@ namespace Onlyou.Server.Repositorio
         {
             try
             {
-                var entidadSelect = await SelectById(id);
+                var entidadSelect = await context.Set<E>().FirstOrDefaultAsync(e => e.Id == id);
                 if (entidadSelect == null)
                     return false;
 

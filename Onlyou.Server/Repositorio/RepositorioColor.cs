@@ -18,6 +18,37 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
+
+        public override async Task<TDTO> InsertDevuelveDTO<TDTO>(Color entidad)
+        {
+            if (entidad == null)
+            {
+                throw new ArgumentNullException(nameof(entidad), "La entidad no puede ser nula");
+            }
+
+            try
+            {
+                // verificamos que no este duplicado
+                bool existe = await context.Colores.AnyAsync(t => t.Nombre.ToLower() == entidad.Nombre.ToLower());
+                if (existe)
+                {
+                    throw new InvalidOperationException($"El Color '{entidad.Nombre}' ya existe en el sistema");
+                }
+
+                await context.Colores.AddAsync(entidad);
+                await context.SaveChangesAsync();
+
+                var dto = mapper.Map<TDTO>(entidad);
+                return dto;
+
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
         public async Task<string?> ObtenerHexa(int id)
         {
             try
@@ -33,26 +64,26 @@ namespace Onlyou.Server.Repositorio
 
         }
 
-        public async Task<GetColorDTO> InsertDevuelveDTO(Color color)
-        {
-            try
-            {
+        //public async Task<GetColorDTO> InsertDevuelveDTO(Color color)
+        //{
+        //    try
+        //    {
 
-                await context.AddAsync(color);
-                await context.SaveChangesAsync();
+        //        await context.AddAsync(color);
+        //        await context.SaveChangesAsync();
 
-                var colorDTODevuelto = mapper.Map<GetColorDTO>(color);
+        //        var colorDTODevuelto = mapper.Map<GetColorDTO>(color);
 
-                return colorDTODevuelto;
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                //Descomentar al Publicar el proyecto en IIS
-                //Logger.LogError(ex);
-                throw;
-            }
-        }
+        //        return colorDTODevuelto;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ImprimirError(ex);
+        //        //Descomentar al Publicar el proyecto en IIS
+        //        //Logger.LogError(ex);
+        //        throw;
+        //    }
+        //}
     }
    
 }

@@ -1,0 +1,43 @@
+﻿@typeparam TDTO
+
+<table class="table">
+	<thead>
+		<tr>
+			@foreach (var col in Columnas)
+			{
+				<th>
+					@col
+				</th>
+			}
+			<th>Acciones</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Items)
+		{
+			<tr>
+				@foreach (var ccol in Columnas)
+				{
+					<td>@GetPropValue(item, ccol)</td>
+				}
+				<td>
+					<button class="btn btn-success" @onclick="@(() => OnRestaurar.InvokeAsync(item))">Restaurar</button>
+					<button class="btn btn-danger" @onclick="@(() => OnEliminar.InvokeAsync(item))">Eliminar</button>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+
+@code {
+	[Parameter] public List<TDTO> Items { get; set; } = new();
+	[Parameter] public EventCallback<TDTO> OnRestaurar { get; set; }
+	[Parameter] public EventCallback<TDTO> OnEliminar { get; set; }
+	[Parameter] public List<string> Columnas { get; set; } = new();
+
+	private object? GetPropValue(TDTO item, string propName)
+	{
+		return item.GetType().GetProperty(propName)?.GetValue(item);
+	}
+}

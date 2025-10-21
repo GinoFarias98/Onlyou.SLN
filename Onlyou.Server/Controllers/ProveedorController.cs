@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
-using Onlyou.Shared.DTOS.Color;
 using Onlyou.Shared.DTOS.Marca;
 using Onlyou.Shared.DTOS.Proveedor;
 
@@ -75,6 +74,27 @@ namespace Onlyou.Server.Controllers
 
         }
 
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetProveedorDTO>>> GetArchivados()
+        {
+            try
+            {
+                var proveedors = await repoProveedor.SelectArchivados();
+                if (proveedors == null || !proveedors.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var proveedoresArchivadosDTO = mapper.Map<List<GetProveedorDTO>>(proveedors);
+                return Ok(proveedoresArchivadosDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
+
         [HttpPost]
         public async Task<ActionResult<GetProveedorDTO>> Post(PostProveedorDTO postMarcaDTO)
         {
@@ -127,7 +147,7 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("Archivados/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try

@@ -1,0 +1,55 @@
+﻿@page "/productos-archivados"
+@using Onlyou.Client.Shared
+@using Onlyou.Shared.DTOS.Producto
+@inject IHttpServicios http
+@inject NavigationManager nav
+@inject SweetAlertService swal
+
+<h3>Productos Archivados</h3>
+
+<TablaArchivados TDTO="GetProductoDTO" 
+	Items="productosArchivados"
+	Columnas="columnas"
+	OnRestaurar="RestaurarProducto"
+	OnEliminar="EliminarProducto"/>
+
+@code {
+	private List<GetProductoDTO> productosArchivados = new();
+	private List<string> columnas = new() { "Nombre", "Codigo", "Categoria", "Marca" };
+
+	protected override async Task OnInitializedAsync()
+	{
+		// consume endpoint del server y devuelve los archivados
+		productosArchivados = (await http.Get<List<GetProductoDTO>>("Productos/Archivados")).Respuesta ?? new();
+	}
+
+	private async Task RestaurarProducto(GetProductoDTO productoDTO)
+	{
+		await http.Put<object>($"Productos/UpdateEstado/{productoDTO.Id}", null);
+
+		productosArchivados.Remove(productoDTO);
+		StateHasChanged();
+	}
+
+	private async Task EliminarProducto(GetProductoDTO productoDTO)
+	{
+		
+			var confirm = await swal.FireAsync(new SweetAlertOptions
+			{
+				Title = "Confirmar",
+				Text = $"¿Seguro que deseas Eliminar el producto {productoDTO.Nombre}?",
+				Icon = SweetAlertIcon.Question,
+				ShowCancelButton = true,
+				ConfirmButtonText = "Sí",
+				CancelButtonText = "Cancelar"
+			});
+
+			if (confirm.IsConfirmed)
+			{
+				await http.Delete($"Productos/EliminarProducto/{productoDTO.Id}");
+				productosArchivados.Remove(productoDTO);
+				StateHasChanged();
+			}
+
+	}
+}

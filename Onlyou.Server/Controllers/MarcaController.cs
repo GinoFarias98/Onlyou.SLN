@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
-using Onlyou.Shared.DTOS.Color;
 using Onlyou.Shared.DTOS.Marca;
 
 namespace Onlyou.Server.Controllers
@@ -74,6 +73,28 @@ namespace Onlyou.Server.Controllers
             }
 
         }
+
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetMarcaDTO>>> GetArchivados()
+        {
+            try
+            {
+                var marcas = await repoMarca.SelectArchivados();
+                if (marcas == null || !marcas.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var marcasArchivadasDTO = mapper.Map<List<GetMarcaDTO>>(marcas);
+                return Ok(marcasArchivadasDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
 
         [HttpPost]
         public async Task<ActionResult<GetMarcaDTO>> Post(PostMarcaDTO postMarcaDTO)

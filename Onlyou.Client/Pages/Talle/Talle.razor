@@ -43,7 +43,7 @@
                     <td>@talle.Nombre</td>
                     <td>
                         <button class="btn btn-warning btn-sm" @onclick="() => EditarTalle(talle)">Editar</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => EliminarTalle(talle)">Eliminar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => ArchivarTalle(talle)">Archivar</button>
                     </td>
                 </tr>
             }
@@ -57,7 +57,7 @@
     private bool modoEdicion = false;
     private int talleEditandoId = 0;
     private string codigo = string.Empty;
-    private bool estado = false;
+    private bool estado = true;
 
 
     protected override async Task OnInitializedAsync()
@@ -122,12 +122,12 @@
         modoEdicion = false;
     }
 
-    private async Task EliminarTalle(TallesDTO talle)
+    private async Task ArchivarTalle(TallesDTO talle)
     {
         var confirmar = await swal.FireAsync(new SweetAlertOptions
         {
             Title = "Atención",
-            Text = $"¿Seguro que deseas eliminar el talle {talle.Nombre}?",
+            Text = $"¿Seguro que deseas Archivar el talle {talle.Nombre}?",
             Icon = SweetAlertIcon.Question,
             ShowCancelButton = true,
             ConfirmButtonText = "Sí",
@@ -139,7 +139,7 @@
             var respuesta = await http.Delete($"api/Talle/{talle.Id}");
             if (!respuesta.Error)
             {
-                await swal.FireAsync("Éxito", "Talle eliminado", SweetAlertIcon.Success);
+                await swal.FireAsync("Éxito", "Talle Archivado", SweetAlertIcon.Success);
                 await CargarTalles();
             }
             else

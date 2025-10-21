@@ -27,6 +27,37 @@ namespace Onlyou.Server.Repositorio
         //        .ToListAsync();
         //}
 
+
+        public override async Task<TDTO> InsertDevuelveDTO<TDTO>(Talle entidad)
+        {
+            if (entidad == null)
+            {
+                throw new ArgumentNullException(nameof(entidad), "La entidad no puede ser nula");
+            }
+
+            try
+            {
+                // verificamos que no este duplicado
+                bool existe = await context.Talles.AnyAsync(t => t.Nombre.ToLower() == entidad.Nombre.ToLower());
+                if (existe) 
+                {
+                    throw new InvalidOperationException($"El Talle '{entidad.Nombre}' ya existe en el sistema");
+                }
+
+                await context.Talles.AddAsync(entidad);
+                await context.SaveChangesAsync();
+                
+                var dto = mapper.Map<TDTO>(entidad);
+                return dto;
+
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
         public async Task<List<Talle>> SelectTallePorProducto(int productoId)
         {
             try

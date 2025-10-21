@@ -168,7 +168,7 @@ else
                     </td>
                     <td>
                         <button @onclick="() => EditarProducto(prod)">Editar</button>
-                        <button @onclick="() => EliminarProducto(prod.Id, prod.Nombre)">Eliminar</button>
+                        <button @onclick="() => ArchivarProducto(prod.Id, prod.Nombre)">Archivar</button>
                     </td>
                 </tr>
             }
@@ -259,6 +259,7 @@ else
     private async Task CargarProductos()
     {
         productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta ?? new();
+        StateHasChanged();
     }
 
     private async Task GuardarProducto()
@@ -391,12 +392,12 @@ else
         modoEdicion = true;
     }
 
-    private async Task EliminarProducto(int id, string nombre)
+    private async Task ArchivarProducto(int id, string nombre)
     {
         var confirm = await swal.FireAsync(new SweetAlertOptions
         {
             Title = "Confirmar",
-            Text = $"¿Seguro que deseas eliminar el producto {nombre}?",
+            Text = $"¿Seguro que deseas Archivar el producto {nombre}?",
             Icon = SweetAlertIcon.Question,
             ShowCancelButton = true,
             ConfirmButtonText = "Sí",
@@ -405,9 +406,9 @@ else
 
         if (confirm.IsConfirmed)
         {
-            await http.Delete($"Productos/EliminarProducto/{id}");
+            await http.Put<object>($"Productos/UpdateEstado/{id}",null);
             await CargarProductos();
-            await swal.FireAsync("Exito", "Producto eliminado de forma satisfactoria", SweetAlertIcon.Success);
+            await swal.FireAsync("Exito", "Producto Archivado de forma satisfactoria", SweetAlertIcon.Success);
         }
     }
 

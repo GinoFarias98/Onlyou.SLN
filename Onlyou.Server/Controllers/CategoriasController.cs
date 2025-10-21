@@ -1,16 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
-using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
-using Onlyou.Client.Pages.Productos;
 using Onlyou.Server.Helpers;
 using Onlyou.Server.Repositorio;
 using Onlyou.Server.Services;
 using Onlyou.Shared.DTOS.Categorias;
-using Onlyou.Shared.DTOS.Producto;
-using Onlyou.Shared.DTOS.TipoProducto;
-using System.ComponentModel.DataAnnotations;
 
 namespace Onlyou.Server.Controllers
 {
@@ -118,6 +113,27 @@ namespace Onlyou.Server.Controllers
             }
         }
 
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetCategoriasDTO>>> GetArchivados()
+        {
+            try
+            {
+                var categorias = await repositorio.SelectArchivados();
+                if (categorias == null || !categorias.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var categoriasArchivadasDTO = mapper.Map<List<GetCategoriasDTO>>(categorias);
+                return Ok(categoriasArchivadasDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
         // POST: api/categorias
         [HttpPost]
         public async Task<ActionResult<int>> Post(CrearCategoriasDTO dto, [FromServices] IImagenValidator validator)
@@ -212,7 +228,7 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("Archivados/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try
@@ -229,7 +245,7 @@ namespace Onlyou.Server.Controllers
         }
 
         // DELETE: api/categorias/5
-        [HttpDelete("{id:int}")]
+        [HttpDelete("EliminarCategoria/{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
             try

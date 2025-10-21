@@ -83,6 +83,27 @@ namespace Onlyou.Server.Controllers
 
         }
 
+
+        [HttpGet("Archivados")]
+        public async Task<ActionResult<List<GetTipoProductoDTO>>> GetArchivados()
+        {
+            try
+            {
+                var tipoProducto = await repoTipoProducto.SelectArchivados();
+                if (tipoProducto == null || !tipoProducto.Any())
+                    return NotFound("No hay productos archivados.");
+
+                var TPArchivadasDTO = mapper.Map<List<GetTipoProductoDTO>>(tipoProducto);
+                return Ok(TPArchivadasDTO);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en GetArchivados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+        }
+
+
         [HttpPost]
         public async Task<ActionResult<GetTipoProductoDTO>> Post(PostTipoProductoDTO postTipoProductoDTO)
         {
@@ -132,7 +153,7 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpPut("Archivar/{id}")]
+        [HttpPut("Archivados/{id}")]
         public async Task<ActionResult<bool>> BajaLogica(int id)
         {
             try
