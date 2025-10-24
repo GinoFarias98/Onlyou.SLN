@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251008153650_init")]
-    partial class init
+    [Migration("20251024191016_inicio")]
+    partial class inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -868,7 +868,7 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Caja", "Caja")
                         .WithMany("Movimientos")
                         .HasForeignKey("CajaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Pedido", "Pedido")
@@ -882,7 +882,7 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.TipoMovimiento", "TipoMovimiento")
                         .WithMany("Movimientos")
                         .HasForeignKey("TipoMovimientoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Caja");
@@ -899,7 +899,7 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Movimiento", "Movimiento")
                         .WithMany("Pagos")
                         .HasForeignKey("MovimientoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Movimiento");
@@ -910,7 +910,7 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.EstadoPedido", "EstadoPedido")
                         .WithMany("Pedidos")
                         .HasForeignKey("EstadoPedidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("EstadoPedido");
@@ -921,13 +921,13 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Pedido", "Pedido")
                         .WithMany("PedidoItems")
                         .HasForeignKey("PedidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Producto", "Producto")
                         .WithMany("PedidoItems")
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Pedido");
@@ -940,25 +940,25 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Categoria", "Categoria")
                         .WithMany("Productos")
                         .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Marca", "Marca")
                         .WithMany("Productos")
                         .HasForeignKey("MarcaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Proveedor", "Proveedor")
                         .WithMany("Productos")
                         .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.TipoProducto", "TipoProducto")
                         .WithMany("Productos")
                         .HasForeignKey("TipoProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Categoria");
@@ -975,13 +975,13 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Color", "Color")
                         .WithMany("ProductosColores")
                         .HasForeignKey("ColorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Producto", "Producto")
                         .WithMany("ProductosColores")
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Color");
@@ -994,13 +994,13 @@ namespace Onlyou.BD.Migrations
                     b.HasOne("Onlyou.BD.Data.Entidades.Producto", "Producto")
                         .WithMany("ProductosTalles")
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Onlyou.BD.Data.Entidades.Talle", "Talle")
                         .WithMany("ProductosTalles")
                         .HasForeignKey("TalleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Producto");

@@ -234,6 +234,15 @@ code {
             box-shadow: 0 4px 12px rgba(138, 76, 118, 0.3);
         }
 
+.navmenu-footer .nav-link {
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+    .navmenu-footer .nav-link:hover {
+        background-color: rgba(255, 107, 107, 0.15);
+    }
+
 /* Submenús */
 .submenu {
     display: flex;
@@ -745,3 +754,17 @@ code {
         font-size: 0.85rem;
     }
 }
+
+.boton-accion {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+    .boton-accion:hover {
+        background-color: #0056b3;
+    }
