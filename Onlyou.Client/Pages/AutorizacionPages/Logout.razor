@@ -5,6 +5,9 @@
 @inject IJSRuntime js
 
 <div class="text-center">
+    <AuthorizeView Context="authContext">
+    <p>Hola, @authContext.User.Identity?.Name</p>
+    </AuthorizeView>
     <p>¿Estás seguro de que deseas cerrar sesión?</p>
 
     <div class="d-flex justify-content-center gap-3">

@@ -1,4 +1,4 @@
-html, body {
+/*html, body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -42,28 +42,28 @@ html, body {
     display: flex;
     flex: 1;
     overflow: hidden;
-}
+}*/
 
 /*.sidebar {
     width: 250px;*/
 /*    background-color: #f72585;
-*/    /*padding-top: 1rem;
+*/ /*padding-top: 1rem;
     transition: transform 0.3s ease-in-out;
 }*/
 
-    .sidebar.hide {
-        display: none;
-    }
+/*.sidebar.hide {
+    display: none;
+}
 
 .content {
     flex: 1;
     padding: 2rem;
     background-color: #ffffff;
     overflow-y: auto;
-}
+}*/
 
 /* Responsive solo para mobile */
-@media (max-width: 768px) {
+/*@media (max-width: 768px) {
     .menu-toggle {
         display: block;
     }
@@ -80,25 +80,25 @@ html, body {
 }
 
 .top-row {
-    background-color: #f7f7f7; /* color de fondo claro */
-    border-bottom: 1px solid #d6d5d5;
+    background-color: #f7f7f7;*/ /* color de fondo claro */
+    /*border-bottom: 1px solid #d6d5d5;
     height: 3.5rem;
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* coloca los links a la derecha */
-    padding: 0 1.5rem;
-    gap: 1.5rem; /* espacio entre elementos */
-}
+    justify-content: flex-end;*/ /* coloca los links a la derecha */
+    /*padding: 0 1.5rem;
+    gap: 1.5rem;*/ /* espacio entre elementos */
+/*}
 
     .top-row a,
     .top-row .btn-link,
     .top-row span {
         text-decoration: none;
         white-space: nowrap;
-        color: #333; /* color de texto */
-    }
+        color: #333;*/ /* color de texto */
+    /*}
 
         .top-row a:hover,
         .top-row .btn-link:hover {
             text-decoration: underline;
-        }
+        }*/

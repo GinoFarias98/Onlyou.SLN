@@ -1,5 +1,4 @@
 ﻿@using Microsoft.AspNetCore.Components.Rendering
-@using Microsoft.Win32
 @using Onlyou.Client.Pages.AutorizacionPages
 @inherits LayoutComponentBase
 
@@ -8,15 +7,21 @@
         <button class="menu-toggle" @onclick="ToggleNavMenu">
             <i class="bi bi-list"></i>
         </button>
-        <h1 class="titulo">Panel Administrativo.</h1>
+        <h1 class="titulo">Panel Administrativo</h1>
         <div class="logo-contenedor">
             <ControlAutorizacion AbrirModal="AbrirModal" />
-            <img src="img/logo-onlyou.png" alt="Onlyou Logo Grande" class="logo-central" />
+            <img src="img/logo-onlyou.png" alt="Onlyou Logo" class="logo-central" />
         </div>
     </header>
 
     <div class="main-body">
-        <div class="@SidebarCssClass">
+        <!-- Overlay para móvil -->
+        @if (menuVisible && IsMobile())
+        {
+            <div class="sidebar-overlay mobile-open" @onclick="ToggleNavMenu"></div>
+        }
+
+        <div class="sidebar @SidebarCssClass">
             <NavMenu />
         </div>
         <main class="content">
@@ -28,7 +33,7 @@
 <!-- Modal Container -->
 @if (mostrarModal)
 {
-    <div class="modal-backdrop show"></div>
+    <div class="modal-backdrop show" @onclick="CerrarModal"></div>
     <div class="modal show d-block" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -46,13 +51,24 @@
 
 @code {
     private bool menuVisible = true;
-    private string SidebarCssClass => menuVisible ? "sidebar show" : "sidebar hide";
+    private string SidebarCssClass => menuVisible ? "show" : "hide";
 
     private bool mostrarModal = false;
     private string tituloModal = "";
     private RenderFragment? contenidoModal;
 
-    private void ToggleNavMenu() => menuVisible = !menuVisible;
+    private void ToggleNavMenu()
+    {
+        menuVisible = !menuVisible;
+        StateHasChanged();
+    }
+
+    private bool IsMobile()
+    {
+        // Esta es una solución simple - en producción podrías usar JavaScript interop
+        // para detectar el tamaño de pantalla real
+        return true; // Asumimos móvil en responsive
+    }
 
     private void AbrirModal(string tipoModal)
     {
@@ -103,13 +119,4 @@
         builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
         builder.CloseComponent();
     }
-
-    //del nav menu es esto
-    // Agrega este método en el @code del MainLayout
-    public void AbrirModalDesdeNavMenu(string tipoModal)
-    {
-        AbrirModal(tipoModal);
-    }
-
-
 }

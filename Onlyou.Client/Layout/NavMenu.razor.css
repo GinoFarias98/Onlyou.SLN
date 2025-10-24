@@ -1,53 +1,41 @@
-/* ===== ESTILOS MODERNOS PARA NAVMENU ONLYOU ===== */
-/* Variables de color */
-:root {
-    --primary: #8a4c76;
-    --primary-dark: #6b3c5b;
-    --primary-light: #b07ca0;
-    --bg-dark: #1a1a2e;
-    --bg-card: #2d2d44;
-    --text-light: #e2e2e2;
-    --accent: #c44569;
-}
+/* ===== ESTILOS ESPECÍFICOS DEL COMPONENTE NAVMENU ===== */
 
-.navmenu-onlyou {
+/* NavMenu principal */
+/*.navmenu-onlyou {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    background-color: var(--bg-dark);
-    height: 100vh;
-}
+    gap: 8px;
+    padding: 0 15px;
+}*/
 
-.nav-link {
-    color: var(--text-light);
-    font-weight: 600;
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
+/* Enlaces de navegación */
+/*.navmenu-onlyou .nav-link {
+    color: var(--text-white);
+    padding: 12px 16px;
     border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
+    border: 1px solid transparent;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
+    gap: 12px;
 }
 
-    .nav-link:hover {
-        background-color: var(--primary-dark);
-        color: white;
-        border-color: var(--primary-light);
-        transform: translateX(5px);
-    }
+.navmenu-onlyou .nav-link:hover {
+    background: rgba(138, 76, 118, 0.3);
+    border-color: var(--primary-light);
+    transform: translateX(5px);
+}
 
-    .nav-link.active {
-        background-color: var(--primary-color);
-        color: white;
-        box-shadow: 0 4px 12px rgba(138, 76, 118, 0.3);
-    }
+.navmenu-onlyou .nav-link.active {
+    background: var(--primary-color);
+    color: var(--text-white);
+    box-shadow: 0 4px 12px rgba(138, 76, 118, 0.3);
+}*/
 
-/* Submenú */
-.submenu {
+/* Submenús */
+/*.submenu {
     display: flex;
     flex-direction: column;
     margin-left: 1rem;
@@ -60,18 +48,21 @@
     font-weight: 500;
     padding: 0.6rem 0.8rem;
     background-color: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid var(--primary);
+    border-left: 3px solid var(--primary-color);
     border-radius: 4px;
+    color: var(--text-white);
+    text-decoration: none;
+    transition: all 0.3s ease;
 }
 
-    .submenu-link:hover,
-    .submenu-link.active {
-        background-color: rgba(138, 76, 118, 0.2);
-        border-left-color: var(--accent);
-    }
+.submenu-link:hover,
+.submenu-link.active {
+    background-color: rgba(138, 76, 118, 0.2);
+    border-left-color: var(--primary-light);
+}*/
 
-/* Botón hamburguesa */
-.hamburger-btn {
+/* Botón hamburguesa para móvil */
+/*.hamburger-btn {
     display: none;
     position: fixed;
     top: 1rem;
@@ -85,65 +76,32 @@
     cursor: pointer;
     font-size: 1.25rem;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
+}*/
 
-    .hamburger-btn:hover {
-        background-color: var(--primary-dark);
-        transform: scale(1.05);
-    }
+/*.hamburger-btn:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.05);
+}*/
 
-/* Responsive */
-@media (max-width: 768px) {
-    .hamburger-btn {
-        display: block;
-    }
-
-    .navmenu-onlyou {
-        position: fixed;
-        top: 0;
-        left: -100%;
-        height: 100vh;
-        width: 280px;
-        background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 100%);
-        z-index: 999;
-        padding-top: 4rem;
-        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-        .navmenu-onlyou.mobile-open {
-            left: 0;
-        }
-}
-
-/* Toggle del catálogo */
-.catalog-toggle {
-    position: relative;
-}
-
-.toggle-content {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-}
-
-.toggle-arrow {
+/* Flechas para menús desplegables */
+/*.toggle-arrow {
     font-size: 0.8rem;
     margin-left: auto;
     transition: transform 0.3s ease;
     color: var(--primary-light);
 }
 
+.toggle-arrow.rotated {
+    transform: rotate(90deg);
+}*/
 
-/* Footer fijo abajo */
-
-.navmenu-footer .nav-link {
-    color: #ff6b6b;
-    font-weight: 600;
-}
-
-    .navmenu-footer .nav-link:hover {
-        background-color: rgba(255, 107, 107, 0.15);
+/* Responsive específico del navmenu */
+/*@media (max-width: 768px) {*/
+   /* .hamburger-btn {
+        display: block;
+    }*/
+    
+    /*.navmenu-onlyou {
+        padding-top: 1rem;
     }
+}*/

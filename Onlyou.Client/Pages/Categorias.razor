@@ -6,7 +6,7 @@
 
 <h3 class="titulo-seccion">Gestión de Categorías</h3>
 
-<div class="categoria-form">
+<div class="form-control">
 	<input @bind="nombre" placeholder="Nombre de la categoría" />
 	<label>
 		<input type="checkbox" @bind="estado" />
@@ -32,7 +32,7 @@ else if (!categorias.Any())
 }
 else
 {
-	<table class="categoria-tabla">
+	<table class="table">
 		<thead>
 			<tr>
 				<th>Imagen</th>

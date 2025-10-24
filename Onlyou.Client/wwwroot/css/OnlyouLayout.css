@@ -1,4 +1,4 @@
-﻿:root {
+﻿/*:root {
     --fuccia: #d4006a;
     --terracota: #e2725b;
     --rosa-claro: #fcd6e1;
@@ -8,10 +8,10 @@
 
 body {
     font-family: 'Segoe UI', sans-serif;
-}
+}*/
 
 /* HEADER */
-.main-header {
+/*.main-header {
     background-color: var(--fuccia);
     color: white;
     display: flex;
@@ -37,10 +37,10 @@ body {
 .titulo {
     font-size: 1.5rem;
     font-weight: bold;
-}
+}*/
 
 /* SIDEBAR */
-.sidebar {
+/*.sidebar {
     background-color: var(--rosa-viejo);
     width: 220px;
     padding: 15px;
@@ -51,10 +51,10 @@ body {
         width: 0;
         overflow: hidden;
         padding: 0;
-    }
+    }*/
 
 /* NAV MENU */
-.navmenu-onlyou {
+/*.navmenu-onlyou {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -70,18 +70,18 @@ body {
 
         .navmenu-onlyou .nav-link:hover {
             background-color: var(--terracota);
-        }
+        }*/
 
 /* MAIN CONTENT */
-.content {
+/*.content {
     flex: 1;
     padding: 20px;
     background-color: var(--rosa-claro);
-}
+}*/
 
             /*LOGO GRANDE HOME*/
 
-            .home-logo {
+            /*.home-logo {
                 display: flex;
                 justify-content: center;
                 padding: 50px 0;
@@ -90,15 +90,15 @@ body {
                 .home-logo img {
                     max-width: 300px;
                     height: auto;
-                }
+                }*/
 
 
 
 /* TOGGLE BUTTON */
-.menu-toggle {
+/*.menu-toggle {
     background: none;
     border: none;
     font-size: 1.5rem;
     color: white;
     cursor: pointer;
-}
+}*/

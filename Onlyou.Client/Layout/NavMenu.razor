@@ -17,32 +17,29 @@
                     <div class="toggle-content">
                         <i class="bi bi-grid-1x2-fill"></i>
                         <span>Administrar Catálogo</span>
-                        <i class="bi bi-chevron-@(showCatalogMenu ? "up" : "down") toggle-arrow"></i>
+                        <i class="bi bi-chevron-@(showCatalogMenu ? "down" : "right") toggle-arrow @(showCatalogMenu ? "rotated" : "")"></i>
                     </div>
                 </div>
 
                 @if (showCatalogMenu)
                 {
                     <div class="submenu">
-                        <a class="nav-link submenu-link" href="productos" @onclick="CloseCatalogMenu">
-                            <i class="bi bi-box-fill"></i> Productos
-                        </a>
-                        <a class="nav-link submenu-link" href="categorias" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="categorias" @onclick="CloseCatalogMenu">
                             <i class="bi bi-tags-fill"></i> Categorías
                         </a>
-                        <a class="nav-link submenu-link" href="colores" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="colores" @onclick="CloseCatalogMenu">
                             <i class="bi bi-palette-fill"></i> Colores
                         </a>
-                        <a class="nav-link submenu-link" href="tipo-productos" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="tipo-productos" @onclick="CloseCatalogMenu">
                             <i class="bi bi-box-seam"></i> Tipo Productos
                         </a>
-                        <a class="nav-link submenu-link" href="talles" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="talles" @onclick="CloseCatalogMenu">
                             <i class="bi bi-rulers"></i> Talles
                         </a>
-                        <a class="nav-link submenu-link" href="marcas" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="marcas" @onclick="CloseCatalogMenu">
                             <i class="bi bi-star-fill"></i> Marcas
                         </a>
-                        <a class="nav-link submenu-link" href="proveedores" @onclick="CloseCatalogMenu">
+                        <a class="submenu-link" href="proveedores" @onclick="CloseCatalogMenu">
                             <i class="bi bi-people"></i> Proveedores
                         </a>
                     </div>
@@ -58,20 +55,6 @@
             <a class="nav-link" href="reportes">
                 <i class="bi bi-graph-up"></i> Reportes
             </a>
-
-
-            <!-- Siempre visible -->
-            <a class="nav-link" href="https://localhost:7144/swagger" target="_blank">
-                <i class="bi bi-tools"></i> Swagger
-            </a>
-
-            <!-- === FOOTER === -->
-            <div class="navmenu-footer">
-                <a class="nav-link" href="Papelera">
-                    <i class="bi bi-trash-fill"></i> Papelera
-                </a>
-            </div>
-
 
         </Authorized>
 

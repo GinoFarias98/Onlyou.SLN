@@ -2,7 +2,7 @@
     <Authorized>
         <div class="d-flex align-items-center gap-2">
             <span class="fw-semibold text-white user-welcome">
-                <i class="bi bi-person-circle me-1"></i> Hola, @authContext.User.Identity?.Name
+                <i class="bi bi-person-circle me-1"></i> @* Hola, @authContext.User.Identity?.Name *@
             </span>
             <button class="btn btn-logout" @onclick="AbrirLogout" title="Cerrar sesión">
                 <i class="bi bi-box-arrow-right"></i>
