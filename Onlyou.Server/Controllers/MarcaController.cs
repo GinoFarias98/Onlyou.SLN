@@ -166,31 +166,23 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpDelete("EliminarCodigo/{id}")]
+        [HttpDelete("EliminarMarca/{id}")]
         public async Task<ActionResult> Delete(int id)
         {
 
             try
             {
-                var entidad = await repoMarca.SelectById(id);
-
-                if (entidad == null)
-                {
-                    return NotFound($"No se encontró un Color con Id {id}. Favor verificar");
-                }
-
-                var eliminado = await repoMarca.Delete(entidad.Id);
-
-                if (eliminado)
-                {
-                    return Ok($"La Marca con Id {id} fue eliminado");
-                }
-
-                return BadRequest("No se pudo llevar a cabo la acción");
+                await repoMarca.EliminarMarcaAsync(id);
+                return Ok("Marca Eliminada Correctamente");
+            }
+            catch (InvalidOperationException ex)
+            {
+                //si hay productos asociados se lanza esta ex
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método Delete: {ex.Message}");
+                Console.WriteLine($"Error en Delete: {ex.Message}");
                 return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
             }
 

@@ -1,0 +1,64 @@
+﻿@page "/marcas-archivados"
+@using Onlyou.Client.Shared
+@using Onlyou.Shared.DTOS.Marca
+@inject IHttpServicios http
+@inject NavigationManager nav
+@inject SweetAlertService swal
+
+<h3>Productos Archivados</h3>
+
+<TablaArchivados TDTO="GetMarcaDTO"
+                 Items="marcaArchivados"
+                 Columnas="columnas"
+                 OnRestaurar="RestaurarMarca"
+                 OnEliminar="EliminarMarca" />
+
+@code {
+    private List<GetMarcaDTO> marcaArchivados = new();
+    private List<string> columnas = new() { "Nombre" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // consume endpoint del server y devuelve los archivados
+        marcaArchivados = (await http.Get<List<GetMarcaDTO>>("api/Marca/Archivados")).Respuesta ?? new();
+    }
+
+    private async Task RestaurarMarca(GetMarcaDTO marcaDTO)
+    {
+        await http.Put<object>($"api/Marca/Archivados/{marcaDTO.Id}", null);
+        await swal.FireAsync("Exito", "Marca Restaurada exitosamente", SweetAlertIcon.Success);
+        marcaArchivados.Remove(marcaDTO);
+        StateHasChanged();
+    }
+
+    private async Task EliminarMarca(GetMarcaDTO marcaDTO)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas eliminar la Marca {marcaDTO.Nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (!confirm.IsConfirmed)
+            return;
+
+        var respuesta = await http.Delete($"api/Marca/EliminarMarca/{marcaDTO.Id}");
+
+        if (respuesta.Error)
+        {
+            var mensajeError = await respuesta.ObtenerErrorAsync();
+            await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+        }
+        else
+        {
+            marcaArchivados.Remove(marcaDTO);
+            await swal.FireAsync("Éxito", "Marca eliminada correctamente.", SweetAlertIcon.Success);
+            StateHasChanged();
+        }
+    }
+
+}

@@ -116,5 +116,15 @@ else
             });
         }
 
+        var marcas = await http.Get<List<GetTipoProductoDTO>>("api/Marca/Archivados");
+        if (marcas.Respuesta?.Any() == true)
+        {
+            entidadesArchivadas.Add(new EntidadArchivada
+            {
+                Nombre = "Marcas Archivadaas",
+                Ruta = "/marcas-archivados"
+            });
+        }
+
     }
 }

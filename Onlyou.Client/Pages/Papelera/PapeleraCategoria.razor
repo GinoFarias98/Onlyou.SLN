@@ -31,25 +31,34 @@
 		StateHasChanged();
 	}
 
-	private async Task EliminarProducto(GetCategoriasDTO productoDTO)
-	{
+    private async Task EliminarProducto(GetCategoriasDTO categoriaDTO)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas eliminar la categoría {categoriaDTO.Nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
 
-		var confirm = await swal.FireAsync(new SweetAlertOptions
-		{
-			Title = "Confirmar",
-			Text = $"¿Seguro que deseas Eliminar la Categoria {productoDTO.Nombre}?",
-			Icon = SweetAlertIcon.Question,
-			ShowCancelButton = true,
-			ConfirmButtonText = "Sí",
-			CancelButtonText = "Cancelar"
-		});
+        if (!confirm.IsConfirmed)
+            return;
 
-		if (confirm.IsConfirmed)
-		{
-			await http.Delete($"api/categorias/EliminarCategoria/{productoDTO.Id}");
-			categoriaArchivados.Remove(productoDTO);
-			StateHasChanged();
-		}
+        var respuesta = await http.Delete($"api/categorias/EliminarCategoria/{categoriaDTO.Id}");
 
-	}
+        if (respuesta.Error)
+        {
+            var mensajeError = await respuesta.ObtenerErrorAsync();
+            await swal.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+        }
+        else
+        {
+            categoriaArchivados.Remove(categoriaDTO);
+            await swal.FireAsync("Éxito", "Categoría eliminada correctamente.", SweetAlertIcon.Success);
+            StateHasChanged();
+        }
+    }
+
 }

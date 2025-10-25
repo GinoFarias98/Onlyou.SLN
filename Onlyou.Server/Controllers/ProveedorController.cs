@@ -164,27 +164,18 @@ namespace Onlyou.Server.Controllers
         }
 
 
-        [HttpDelete("EliminarCodigo/{id}")]
+        [HttpDelete("EliminarProveedor/{id}")]
         public async Task<ActionResult> Delete(int id)
         {
 
             try
             {
-                var entidad = await repoProveedor.SelectById(id);
-
-                if (entidad == null)
-                {
-                    return NotFound($"No se encontró un Color con Id {id}. Favor verificar");
-                }
-
-                var eliminado = await repoProveedor.Delete(entidad.Id);
-
-                if (eliminado)
-                {
-                    return Ok($"El Proveedor con Id {id} fue eliminado");
-                }
-
-                return BadRequest("No se pudo llevar a cabo la acción");
+                await repoProveedor.EliminarProveedorAsync(id);
+                return Ok(new { mensaje = "Proveedor eliminado correctamente." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {

@@ -13,7 +13,7 @@ namespace Onlyou.Server.Controllers
     [Route("api/[controller]")]
     public class CategoriasController : ControllerBase
     {
-        private readonly IRepositorio<Categoria> repositorio;
+        private readonly IRepositorioCategoria repositorio;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
         private readonly IOutputCacheStore outputCacheStore;
@@ -21,7 +21,7 @@ namespace Onlyou.Server.Controllers
         private readonly string contenedor = "categorias";
 
 
-        public CategoriasController(IRepositorio<Categoria> repositorio, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos, IOutputCacheStore outputCacheStore)
+        public CategoriasController(IRepositorioCategoria repositorio, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos, IOutputCacheStore outputCacheStore)
         {
             this.repositorio = repositorio;
             this.mapper = mapper;
@@ -250,18 +250,13 @@ namespace Onlyou.Server.Controllers
         {
             try
             {
-                var entidad = await repositorio.SelectById(id);
-                if (entidad == null)
-                    return NotFound($"No existe la categoría con Id {id}");
-
-                var ok = await repositorio.Delete(entidad.Id);
-                if (ok)
-                {
-                    await outputCacheStore.EvictByTagAsync(cacheKey, default);
-                    return Ok($"Categoría {id} eliminada");
-                }
-
-                return BadRequest("No se pudo eliminar");
+                await repositorio.EliminarCategoriaAsync(id);
+                return Ok("Catgoria Eliminada Correctamente");
+            }
+            catch (InvalidOperationException ex)
+            {
+                //si hay productos asociados se lanza esta ex
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {

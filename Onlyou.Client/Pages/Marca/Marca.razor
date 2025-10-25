@@ -46,7 +46,7 @@ else
                     <td>@(tipo.Estado ? "Activo" : "Inactivo")</td>
                     <td>
                         <button class="boton-accion" @onclick="() => EditarMarca(tipo)">Editar</button>
-                        <button class="boton-accion" @onclick="() => EliminarMarca(tipo.Id, tipo.Nombre)">Eliminar</button>
+                        <button class="boton-accion" @onclick="() => ArchivarMarca(tipo.Id, tipo.Nombre)">Eliminar</button>
                     </td>
                 </tr>
             }
@@ -142,12 +142,12 @@ else
         modoEdicion = true;
     }
 
-    private async Task EliminarMarca(int id, string nombre)
+    private async Task ArchivarMarca(int id, string nombre)
     {
         var confirm = await swal.FireAsync(new SweetAlertOptions
         {
             Title = "Confirmar",
-            Text = $"¿Seguro que deseas eliminar la Marca {nombre}?",
+            Text = $"¿Seguro que deseas Archivar la Marca {nombre}?",
             Icon = SweetAlertIcon.Question,
             ShowCancelButton = true,
             ConfirmButtonText = "Sí",
@@ -156,8 +156,9 @@ else
 
         if (confirm.IsConfirmed)
         {
-            await http.Delete($"api/Marca/EliminarCodigo/{id}");
+            await http.Put<object>($"api/Marca/Archivar/{id}", null);
             await CargarMarcas();
+            await swal.FireAsync("Exito", "Marca Archivada de forma satisfactoria", SweetAlertIcon.Success);
         }
     }
 

@@ -104,5 +104,24 @@ namespace Onlyou.Server.Repositorio
 
         }
 
+
+        // metodo principal para eliminar proveedores con validación
+        public async Task EliminarProveedorAsync(int id)
+        {
+            var proveedor = await context.Proveedores
+                                         .Include(p => p.Productos)
+                                         .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (proveedor == null)
+                throw new Exception("Proveedor no encontrado.");
+
+            // Validación de negocio
+            if (proveedor.Productos != null && proveedor.Productos.Any())
+                throw new InvalidOperationException("No se puede eliminar un proveedor con productos asociados.");
+
+            context.Proveedores.Remove(proveedor);
+            await context.SaveChangesAsync();
+        }
+
     }
 }

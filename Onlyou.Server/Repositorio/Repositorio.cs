@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.Server.Utils;
+using System.Linq.Expressions;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -29,6 +30,20 @@ namespace Onlyou.Server.Repositorio
         {
             return await context.Set<E>().AnyAsync(x => x.Id == id);
         }
+
+        public async Task<bool> ExistePorCondicion(Expression<Func<E, bool>> predicado)
+        {
+            try
+            {
+                return await context.Set<E>().AnyAsync(predicado);
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
 
         public async Task<List<E>> Select()
         {
@@ -70,6 +85,36 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
+
+        public async Task<List<E>> SelectPorCondicion(Expression<Func<E, bool>> predicado, bool soloActivos = true)
+        {
+            try
+            {
+                IQueryable<E> query = context.Set<E>();
+
+                // si la entidad tiene prop "Estado" y se puidio solo activos, filtra
+                if (soloActivos)
+                {
+                    var propiedad = typeof(E).GetProperty("Estado");
+                    if (propiedad != null && propiedad.PropertyType == typeof(bool))
+                    {
+                        query = query.Where(e => EF.Property<bool>(e, "Estado") == true);
+                    }
+                }
+
+                // aplicamos la cond adicional
+
+                query = query.Where(predicado);
+
+                return await query.ToListAsync();
+
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
 
         public async Task<List<E>> SelectArchivados()
         {

@@ -10,8 +10,8 @@
 <TablaArchivados TDTO="GetProveedorDTO"
 				 Items="proveedorArchivados"
 				 Columnas="columnas"
-				 OnRestaurar="RestaurarProducto"
-				 OnEliminar="EliminarProducto" />
+				 OnRestaurar="RestaurarProveedor"
+				 OnEliminar="EliminarProveedor" />
 
 @code {
 	private List<GetProveedorDTO> proveedorArchivados = new();
@@ -23,33 +23,40 @@
 		proveedorArchivados = (await http.Get<List<GetProveedorDTO>>("api/Proveedores/Archivados")).Respuesta ?? new();
 	}
 
-	private async Task RestaurarProducto(GetProveedorDTO productoDTO)
+	private async Task RestaurarProveedor(GetProveedorDTO proveedorDTO)
 	{
-		await http.Put<object>($"api/Proveedores/Archivados/{productoDTO.Id}", null);
+		await http.Put<object>($"api/Proveedores/Archivados/{proveedorDTO.Id}", null);
 		await swal.FireAsync("Exito", "Proveedor Restaurado exitosamente", SweetAlertIcon.Success);
-		proveedorArchivados.Remove(productoDTO);
+		proveedorArchivados.Remove(proveedorDTO);
 		StateHasChanged();
 	}
 
-	private async Task EliminarProducto(GetProveedorDTO productoDTO)
+	private async Task EliminarProveedor(GetProveedorDTO proveedorDTO)
 	{
 
 		var confirm = await swal.FireAsync(new SweetAlertOptions
 		{
 			Title = "Confirmar",
-			Text = $"¿Seguro que deseas Eliminar el Proveedor {productoDTO.Nombre}?",
+			Text = $"¿Seguro que deseas Eliminar el Proveedor {proveedorDTO.Nombre}?",
 			Icon = SweetAlertIcon.Question,
 			ShowCancelButton = true,
 			ConfirmButtonText = "Sí",
 			CancelButtonText = "Cancelar"
 		});
 
-		if (confirm.IsConfirmed)
+		if (!confirm.IsConfirmed)
 		{
-			await http.Delete($"api/Proveedores/EliminarCategoria/{productoDTO.Id}");
-			proveedorArchivados.Remove(productoDTO);
-			StateHasChanged();
+			return;
 		}
+
+		var respuesta = await http.Delete($"api/Proveedores/EliminarProveedor/{proveedorDTO.Id}");
+		if (respuesta.Error)
+		{
+			var mensaje = await respuesta.ObtenerErrorAsync();
+			await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
+			return;
+		}
+		await swal.FireAsync("Éxito", "Proveedor eliminado correctamente.", SweetAlertIcon.Success);
 
 	}
 }

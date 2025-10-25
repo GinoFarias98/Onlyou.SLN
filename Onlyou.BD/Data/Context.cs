@@ -40,15 +40,13 @@ namespace Onlyou.BD.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
-            var cascadeFKs = modelBuilder.Model.G­etEntityTypes()
-                                          .SelectMany(t => t.GetForeignKeys())
-                                          .Where(fk => !fk.IsOwnership
-                                                       && fk.DeleteBehavior == DeleteBehavior.Casca­de);
-
+            var cascadeFKs = modelBuilder.Model.GetEntityTypes()
+                .SelectMany(t => t.GetForeignKeys())
+                .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
 
             foreach (var fk in cascadeFKs)
             {
-                fk.DeleteBehavior = DeleteBehavior.Restr­ict;
+                fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
 

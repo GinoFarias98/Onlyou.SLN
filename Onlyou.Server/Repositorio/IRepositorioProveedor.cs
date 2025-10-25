@@ -4,6 +4,7 @@ namespace Onlyou.Server.Repositorio
 {
     public interface IRepositorioProveedor : IRepositorio<Proveedor>
     {
+        Task EliminarProveedorAsync(int id);
         Task<bool> ExisteProv(string cuit, string email);
         Task<Proveedor?> SelectByCUIT(string cuit);
         Task<Proveedor?> SelectByCuit(string cuit);

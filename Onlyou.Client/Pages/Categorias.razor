@@ -218,7 +218,7 @@ else
 		{
 			await http.Put<object>($"api/Categorias/Archivados/{id}",null);
 			await CargarCategorias();
-			await swal.FireAsync("Exito", "Producto Archivado de forma satisfactoria", SweetAlertIcon.Success);
+			await swal.FireAsync("Exito", "Categoria Archivada de forma satisfactoria", SweetAlertIcon.Success);
 
 		}
 	}

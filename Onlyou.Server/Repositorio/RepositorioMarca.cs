@@ -59,5 +59,23 @@ namespace Onlyou.Server.Repositorio
             }
 
         }
+
+
+        public async Task EliminarMarcaAsync(int id)
+        {
+            var marca = await context.Marcas
+                                         .Include(c => c.Productos)
+                                         .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (marca == null)
+                throw new Exception("Marca no encontrada.");
+
+            if (marca.Productos != null && marca.Productos.Any())
+                throw new InvalidOperationException("No se puede eliminar una Marca con productos asociados.");
+
+            context.Marcas.Remove(marca);
+            await context.SaveChangesAsync();
+        }
+
     }
 }

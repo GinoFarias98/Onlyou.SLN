@@ -45,5 +45,23 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
+
+        public async Task EliminarCategoriaAsync(int id)
+        {
+            var categoria = await context.Categorias
+                                         .Include(c => c.Productos)
+                                         .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (categoria == null)
+                throw new Exception("Categoría no encontrada.");
+
+            if (categoria.Productos != null && categoria.Productos.Any())
+                throw new InvalidOperationException("No se puede eliminar una categoría con productos asociados.");
+
+            context.Categorias.Remove(categoria);
+            await context.SaveChangesAsync();
+        }
+
+
     }
 }
