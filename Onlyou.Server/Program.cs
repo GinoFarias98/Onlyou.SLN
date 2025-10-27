@@ -108,6 +108,13 @@ app.UseBlazorFrameworkFiles();
 // Routing
 app.UseRouting();
 
+//corso front visualcode
+app.UseCors(policy => policy
+    .WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials());
+
 // Identity / Autenticación
 app.UseAuthentication();
 app.UseAuthorization();
