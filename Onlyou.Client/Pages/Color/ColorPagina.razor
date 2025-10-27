@@ -7,8 +7,14 @@
 
 <div class="mb-3">
     <input type="text" @bind="nombre" placeholder="Nombre del color" class="form-control" />
-    <input type="text" @bind="hexadecimal" placeholder="#FFFFFF" maxlength="7" class="form-control" />
+
+    <div class="color-picker-container">
+        <input type="color" @bind="hexadecimal" class="color-picker" />
+        <input type="text" @bind="hexadecimal" class="form-control color-hex" maxlength="7" />
+        <div class="color-preview" style="background-color:@hexadecimal;"></div>
+    </div>
 </div>
+
 
 <div class="mb-3">
     <button class="btn-onlyou" @onclick="GuardarColor">

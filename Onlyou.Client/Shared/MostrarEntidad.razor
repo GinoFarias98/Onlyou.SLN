@@ -1,0 +1,50 @@
+﻿@if (Mostrar)
+{
+    <div class="modal-fondo">
+        <div class="modal-contenido">
+            <h3>@Titulo</h3>
+
+            @foreach (var campo in Campos)
+            {
+                <div class="mb-2">
+                    <label>@campo.Label</label>
+                    <input class="form-control" @bind="campo.Valor" placeholder="@campo.Placeholder" />
+                </div>
+            }
+
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-success" @onclick="Guardar">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cerrar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    public class CampoModal
+    {
+        public string Label { get; set; } = "";
+        public string Placeholder { get; set; } = "";
+        public string Valor { get; set; } = "";
+    }
+
+    [Parameter] public bool Mostrar { get; set; }
+    [Parameter] public EventCallback<bool> MostrarChanged { get; set; }
+    [Parameter] public string Titulo { get; set; } = "Nueva entidad";
+    [Parameter] public List<CampoModal> Campos { get; set; } = new List<CampoModal>();
+    [Parameter] public EventCallback<Dictionary<string, string>> EntidadCreada { get; set; }
+
+    private async Task Guardar()
+    {
+        var datos = Campos.ToDictionary(c => c.Label, c => c.Valor);
+        await EntidadCreada.InvokeAsync(datos);
+        await Cerrar();
+    }
+
+    private async Task Cerrar()
+    {
+        Mostrar = false;
+        await MostrarChanged.InvokeAsync(Mostrar);
+        Campos.ForEach(c => c.Valor = "");
+    }
+}

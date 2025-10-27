@@ -4,6 +4,10 @@
 		@foreach (var item in NoSeleccionados)
 		{
 			<li @onclick=@(() => Seleccionar(item))>
+				@if (!string.IsNullOrEmpty(item.Hexadecimal))
+				{
+					<span class="color-box" style="background-color:@item.Hexadecimal"></span>
+				}
 				@item.Valor
 			</li>
 		}
@@ -17,6 +21,10 @@
 		@foreach (var item in Seleccionados)
 		{
 			<li @onclick=@(() => Deseleccionar(item))>
+				@if (!string.IsNullOrEmpty(item.Hexadecimal))
+				{
+					<span class="color-box" style="background-color:@item.Hexadecimal"></span>
+				}
 				@item.Valor
 			</li>
 		}

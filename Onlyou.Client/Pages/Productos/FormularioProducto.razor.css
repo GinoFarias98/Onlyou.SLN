@@ -1,0 +1,73 @@
+﻿/* ===== FORMULARIO DE PRODUCTOS V2 ===== */
+
+/*.producto-formulario {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    max-width: 900px;
+    margin: 2rem auto;
+    animation: fadeIn 0.4s ease;
+}
+
+    .producto-formulario h3 {
+        color: var(--primary-color);
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary-soft);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .producto-formulario label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-top: 0.5rem;
+    }
+
+    .producto-formulario .form-control,
+    .producto-formulario .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+        padding: 10px 12px;
+    }
+
+        .producto-formulario .form-control:focus,
+        .producto-formulario .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(138, 76, 118, 0.25);
+        }
+
+    .producto-formulario textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+.selector-seccion {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+}
+
+.botones-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-success {
+    background-color: var(--primary-color);
+    border: none;
+}
+
+    .btn-success:hover {
+        background-color: var(--primary-hover);
+    }
+
+.btn-secondary {
+    background-color: #6c757d;
+}*/

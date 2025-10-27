@@ -768,3 +768,293 @@ code {
     .boton-accion:hover {
         background-color: #0056b3;
     }
+
+.cursor-pointer {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .cursor-pointer:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+.selector-multiple {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background-color: var(--bg-card);
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.selectable-ul {
+    width: 220px;
+    height: 220px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+    .selectable-ul li {
+        padding: 8px 10px;
+        border-bottom: 1px solid #f1f1f1;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+    }
+
+        .selectable-ul li:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+/*Selector multiple model*/
+
+.selector-multiple-botones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+    .selector-multiple-botones button {
+        border: none;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+        .selector-multiple-botones button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .selector-multiple-botones button:active {
+            transform: translateY(0);
+        }
+
+.selectable-ul::-webkit-scrollbar {
+    width: 6px;
+}
+
+.selectable-ul::-webkit-scrollbar-thumb {
+    background-color: var(--primary-soft);
+    border-radius: 3px;
+}
+
+.color-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 4px;
+}
+
+
+/*Page  Color*/
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.color-picker {
+    width: 60px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .color-picker:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    }
+
+.color-hex {
+    width: 100px;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 6px 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .color-hex:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(138, 76, 118, 0.25);
+        outline: none;
+    }
+
+.color-preview {
+    width: 80px;
+    height: 40px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.1);
+    transition: background-color 0.2s ease;
+}
+
+/*Producto*/
+
+/* ===== FORMULARIO DE PRODUCTOS V2 ===== */
+
+.producto-formulario {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    max-width: 900px;
+    margin: 2rem auto;
+    animation: fadeIn 0.4s ease;
+}
+
+    .producto-formulario h3 {
+        color: var(--primary-color);
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary-soft);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .producto-formulario label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-top: 0.5rem;
+    }
+
+    .producto-formulario .form-control,
+    .producto-formulario .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+        padding: 10px 12px;
+    }
+
+        .producto-formulario .form-control:focus,
+        .producto-formulario .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(138, 76, 118, 0.25);
+        }
+
+    .producto-formulario textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+.selector-seccion {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ccc;
+}
+
+.botones-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-success {
+    background-color: var(--primary-color); /* fondo púrpura */
+    color: white; /* texto blanco por defecto */
+    border: none;
+    transition: all 0.2s ease;
+}
+
+    .btn-success:hover {
+        background-color: transparent; /* fondo transparente */
+        color: var(--primary-color); /* texto púrpura */
+        border: 2px solid var(--primary-color); /* borde púrpura */
+        transform: translateY(-1px);
+    }
+
+    .btn-success:active {
+        transform: translateY(0);
+    }
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+/*modal agregar entidades desde producto*/
+
+/* Fondo del modal */
+.modal-fondo {
+    position: fixed; /* Fija el modal en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo negro semitransparente */
+    display: flex; /* Para centrar el contenido */
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Por encima de otros elementos */
+}
+
+/* Contenido del modal */
+.modal-contenido {
+    background-color: #fff; /* Fondo blanco */
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+    /* Opcional: título centrado */
+    .modal-contenido h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    /* Inputs y botones */
+    .modal-contenido input.form-control {
+        width: 100%;
+    }
+
+    /* Botones */
+    .modal-contenido .btn {
+        min-width: 80px;
+    }
+
+/* Animación opcional */
+.modal-fondo.fade-in {
+    animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
