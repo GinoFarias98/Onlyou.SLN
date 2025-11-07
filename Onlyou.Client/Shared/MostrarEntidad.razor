@@ -8,7 +8,21 @@
             {
                 <div class="mb-2">
                     <label>@campo.Label</label>
-                    <input class="form-control" @bind="campo.Valor" placeholder="@campo.Placeholder" />
+
+                    @if (campo.EsImagen)
+                    {
+                        <InputFile OnChange="(e) => SubirImagen(e, campo)" class="form-control" />
+                        @if (!string.IsNullOrEmpty(campo.Valor))
+                        {
+                            <div class="mt-2">
+                                <img src="@($"data:image/{campo.Extension};base64,{campo.Valor}")" width="80" />
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <input class="form-control" @bind="campo.Valor" placeholder="@campo.Placeholder" />
+                    }
                 </div>
             }
 
@@ -26,25 +40,51 @@
         public string Label { get; set; } = "";
         public string Placeholder { get; set; } = "";
         public string Valor { get; set; } = "";
+        public bool EsImagen { get; set; } = false;
+        public string? Extension { get; set; }
     }
 
     [Parameter] public bool Mostrar { get; set; }
     [Parameter] public EventCallback<bool> MostrarChanged { get; set; }
     [Parameter] public string Titulo { get; set; } = "Nueva entidad";
-    [Parameter] public List<CampoModal> Campos { get; set; } = new List<CampoModal>();
+    [Parameter] public List<CampoModal> Campos { get; set; } = new();
     [Parameter] public EventCallback<Dictionary<string, string>> EntidadCreada { get; set; }
 
     private async Task Guardar()
     {
-        var datos = Campos.ToDictionary(c => c.Label, c => c.Valor);
+        var datos = new Dictionary<string, string>();
+
+        foreach (var campo in Campos)
+        {
+            if (campo.EsImagen && !string.IsNullOrEmpty(campo.Valor))
+            {
+                datos["ImagenBase64"] = campo.Valor;
+                datos["ImagenExtension"] = campo.Extension!;
+            }
+            else
+            {
+                datos[campo.Label] = campo.Valor;
+            }
+        }
+
         await EntidadCreada.InvokeAsync(datos);
         await Cerrar();
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e, CampoModal campo)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+
+        campo.Valor = Convert.ToBase64String(buffer);
+        campo.Extension = Path.GetExtension(file.Name);
     }
 
     private async Task Cerrar()
     {
         Mostrar = false;
         await MostrarChanged.InvokeAsync(Mostrar);
-        Campos.ForEach(c => c.Valor = "");
+        Campos.ForEach(c => { c.Valor = ""; c.Extension = null; });
     }
 }

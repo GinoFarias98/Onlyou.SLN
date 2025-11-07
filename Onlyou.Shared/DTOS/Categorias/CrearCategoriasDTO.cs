@@ -9,7 +9,6 @@ namespace Onlyou.Shared.DTOS.Categorias
 {
     public class CrearCategoriasDTO
     {
-            public int Id { get; set; }
         public string? Nombre { get; set; }
 
 
@@ -19,6 +18,6 @@ namespace Onlyou.Shared.DTOS.Categorias
         [Required(ErrorMessage = "Debe indicar la extensión de la imagen.")]
         [RegularExpression(@"^\.(jpg|jpeg|png|gif)$", ErrorMessage = "El formato de imagen debe ser .jpg, .jpeg, .png o .gif.")]
         public string ImagenExtension { get; set; } = null!;
-        public bool Estado { get; set; }
+        public bool Estado { get; set; } = true;
     }
 }

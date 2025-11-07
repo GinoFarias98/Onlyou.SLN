@@ -136,7 +136,7 @@ namespace Onlyou.Server.Controllers
 
         // POST: api/categorias
         [HttpPost]
-        public async Task<ActionResult<int>> Post(CrearCategoriasDTO dto, [FromServices] IImagenValidator validator)
+        public async Task<ActionResult<GetCategoriasDTO>> Post(CrearCategoriasDTO dto, [FromServices] IImagenValidator validator)
         {
             try
             {
