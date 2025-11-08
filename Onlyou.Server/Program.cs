@@ -109,8 +109,12 @@ app.UseBlazorFrameworkFiles();
 app.UseRouting();
 
 //corso front visualcode
+// CORS actualizado para incluir todos los puertos que uses
 app.UseCors(policy => policy
-    .WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+    .WithOrigins("http://127.0.0.1:5500",
+                 "http://localhost:5500",
+                 "http://localhost:5258",     // ? Tu API
+                 "http://localhost:4200")     // ? Angular (si lo usas)
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());
