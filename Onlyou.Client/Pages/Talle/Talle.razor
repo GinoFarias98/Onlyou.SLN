@@ -4,52 +4,112 @@
 @inject IJSRuntime JS
 @inject SweetAlertService swal
 
-<h3>Gestión de Talles</h3>
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Talles</h3>
+        <div class="badge bg-primary fs-6">@(talles?.Count ?? 0) talles</div>
+    </div>
 
-<div class="mb-3">
-    <input type="text" @bind="nombre" placeholder="Nombre del talle" class="form-control" />
-    <input type="text" @bind="codigo" placeholder="Codigo del talle" class="form-control" />
-   @*  <label>
-    <input type="checkbox" @bind="estado" placeholder="Estado del talle" class="form-control" /> Activo
-    </label> *@
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Talle" : "Nuevo Talle")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Talle</label>
+                    <input type="text" @bind="nombre" class="form-control" placeholder="Ej: S, M, L, XL, 42, 44, etc." />
+                </div>
+            </div>
 
-</div>
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarTalle">
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="GuardarTalle">
-        @(modoEdicion ? "Actualizar" : "Agregar")
-    </button>
-    @if (modoEdicion)
-    {
-        <button class="btn btn-secondary" @onclick="CancelarEdicion">Cancelar</button>
-    }
-</div>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Nombre</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (talles is not null)
-        {
-            @foreach (var talle in talles)
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Talles</h5>
+        </div>
+        <div class="card-body">
+            @if (talles == null)
             {
-                <tr>
-                    <td>@talle.Id</td>
-                    <td>@talle.Nombre</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" @onclick="() => EditarTalle(talle)">Editar</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => ArchivarTalle(talle)">Archivar</button>
-                    </td>
-                </tr>
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando talles...</p>
+                </div>
             }
-        }
-    </tbody>
-</table>
+            else if (!talles.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-ruler fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay talles</h5>
+                    <p class="text-muted">Comienza creando tu primer talle</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                @* <th width="100">ID</th> *@
+                                <th>Nombre</th>
+                                <th width="150" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var talle in talles)
+                            {
+                                <tr>
+                                    @* <td>
+                                        <span class="badge bg-secondary">@talle.Id</span>
+                                    </td> *@
+                                    <td>
+                                        <strong>@talle.Nombre</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- Botón Editar -->
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarTalle(talle)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                                <span>Editar</span>
+                                            </button>
+
+                                            <!-- Botón Archivar -->
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarTalle(talle)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash"></i>
+                                                <span>Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     private List<TallesDTO> talles = new();

@@ -3,76 +3,252 @@
 @inject IHttpServicios http
 @inject SweetAlertService swal
 
-<h3 class="titulo-seccion">Gestión de Proveedores</h3>
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Proveedores</h3>
+        <div class="badge bg-primary fs-6">@(provDto?.Count ?? 0) proveedores</div>
+    </div>
 
-<div class="formulario-proveedor">
-    <input class="input-texto" @bind="nombre" placeholder="Nombre del Proveedor" />
-    <input class="input-texto" @bind="direccion" placeholder="Dirección" />
-    <input class="input-texto" @bind="razonSocial" placeholder="Razón Social" />
-    <input class="input-texto" @bind="cuit" placeholder="CUIT" />
-    <input class="input-texto" @bind="telefono" placeholder="Teléfono" />
-    <input class="input-texto" @bind="email" placeholder="Email" />
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Proveedor" : "Nuevo Proveedor")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Proveedor</label>
+                    <input type="text" class="form-control" @bind="nombre" placeholder="Nombre comercial" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Razón Social</label>
+                    <input type="text" class="form-control" @bind="razonSocial" placeholder="Razón social legal" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">CUIT</label>
+                    <input type="text" class="form-control" @bind="cuit" placeholder="00-00000000-0" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" @bind="telefono" placeholder="+54 11 1234-5678" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" @bind="email" placeholder="proveedor@ejemplo.com" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Dirección</label>
+                    <input type="text" class="form-control" @bind="direccion" placeholder="Dirección completa" />
+                </div>
+            </div>
 
-    <button class="boton-accion" @onclick="GuardarProveedores">@((modoEdicion ? "Actualizar" : "Guardar"))</button>
-    @if (modoEdicion)
-    {
-        <button class="boton-accion-cancelar" @onclick="CancelarEdicion">Cancelar</button>
-    }
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarProveedor">
+                    <!-- CORREGIDO: Cambié a GuardarProveedor -->
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Compacta -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Proveedores</h5>
+        </div>
+        <div class="card-body">
+            @if (provDto == null)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando proveedores...</p>
+                </div>
+            }
+            else if (!provDto.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay proveedores</h5>
+                    <p class="text-muted">Comienza agregando tu primer proveedor</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Contacto</th>
+                                <th width="200" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var proveedor in provDto)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@proveedor.Nombre</strong>
+                                        <div class="small text-muted">@proveedor.RazonSocial</div>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            @if (!string.IsNullOrEmpty(proveedor.Telefono))
+                                            {
+                                                <div><i class="bi bi-telephone me-1"></i>@proveedor.Telefono</div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(proveedor.Email))
+                                            {
+                                                <div><i class="bi bi-envelope me-1"></i>@proveedor.Email</div>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- Botón Ver Detalles -->
+                                            <button class="btn-onlyou btn-sm btn-action"
+                                                    @onclick="() => MostrarDetallesProveedor(proveedor)"
+                                                    title="Ver Detalles">
+                                                <i class="bi bi-search"></i>
+                                                <span>Detalles</span>
+                                            </button>
+
+                                            <!-- Botón Editar -->
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarProveedor(proveedor)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                                <span>Editar</span>
+                                            </button>
+
+                                            <!-- Botón Archivar -->
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarProveedor(proveedor.Id, proveedor.Nombre)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash"></i>
+                                                <span>Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
-@if (provDto == null)
+<!-- Modal para Detalles del Proveedor -->
+@if (proveedorSeleccionado != null)
 {
-    <p>Cargando Proveedores...</p>
-}
-else if (!provDto.Any())
-{
-    <p>No hay proveedores para mostrar.</p>
-}
-else
-{
-    <table class="tabla-general">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Razón Social</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Email</th>
-                <th>CUIT</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var proveedor in provDto)
-            {
-                <tr>
-                    <td>@proveedor.Nombre</td>
-                    <td>@proveedor.RazonSocial</td>
-                    <td>@proveedor.Telefono</td>
-                    <td>@proveedor.Direccion</td>
-                    <td>@proveedor.Email</td>
-                    <td>@proveedor.CUIT</td>
-                    <td>
-                        <button class="boton-accion" @onclick="() => EditarProveedor(proveedor)">Editar</button>
-                        <button class="boton-accion-eliminar" @onclick="() => ArchivarProveedor(proveedor.Id, proveedor.Nombre)">Archivar</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="modal-backdrop fade show" style="display: block;"></div>
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles del Proveedor</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarDetalles"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre Comercial</label>
+                                <p class="form-control-plaintext">@proveedorSeleccionado.Nombre</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Razón Social</label>
+                                <p class="form-control-plaintext">@proveedorSeleccionado.RazonSocial</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">CUIT</label>
+                                <p class="form-control-plaintext">@(proveedorSeleccionado.CUIT ?? "No especificado")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                <p class="form-control-plaintext">
+                                    @if (!string.IsNullOrEmpty(proveedorSeleccionado.Telefono))
+                                    {
+                                        <a href="tel:@proveedorSeleccionado.Telefono" class="text-decoration-none">
+                                            <i class="bi bi-telephone me-2"></i>@proveedorSeleccionado.Telefono
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No especificado</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <p class="form-control-plaintext">
+                                    @if (!string.IsNullOrEmpty(proveedorSeleccionado.Email))
+                                    {
+                                        <a href="mailto:@proveedorSeleccionado.Email" class="text-decoration-none">
+                                            <i class="bi bi-envelope me-2"></i>@proveedorSeleccionado.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No especificado</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Dirección</label>
+                                <p class="form-control-plaintext">@(proveedorSeleccionado.Direccion ?? "No especificada")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                @* <label class="form-label fw-bold">Estado</label> *@
+                               @*  <p>
+                                    <span class="badge @(proveedorSeleccionado.Estado ? "bg-success" : "bg-secondary")">
+                                        @(proveedorSeleccionado.Estado ? "Activo" : "Inactivo")
+                                    </span>
+                                </p> *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-onlyou-secondary" @onclick="CerrarDetalles">Cerrar</button>
+@*                     <button type="button" class="btn-onlyou" @onclick="() => { CerrarDetalles(); }">
+                        Editar Proveedor
+                    </button> *@
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
     private List<GetProveedorDTO> provDto = new();
+    private GetProveedorDTO? proveedorSeleccionado = null;
     private string nombre = string.Empty;
-    private bool estado = true;
-    private int provEditandoId = 0;
-    private bool modoEdicion = false;
     private string direccion = string.Empty;
     private string razonSocial = string.Empty;
     private string cuit = string.Empty;
     private string telefono = string.Empty;
     private string email = string.Empty;
+    private bool estado = true;
+    private int provEditandoId = 0;
+    private bool modoEdicion = false;
 
     protected override async Task OnInitializedAsync() => await CargarProveedores();
 
@@ -81,22 +257,35 @@ else
         var resultado = await http.Get<List<GetProveedorDTO>>("api/Proveedores");
         if (!resultado.Error)
         {
-            provDto = resultado.Respuesta!;
+            provDto = resultado.Respuesta ?? new List<GetProveedorDTO>();
+            StateHasChanged();
         }
     }
 
-    private async Task GuardarProveedores()
+    private void MostrarDetallesProveedor(GetProveedorDTO proveedor)
+    {
+        proveedorSeleccionado = proveedor;
+        StateHasChanged();
+    }
+
+    private void CerrarDetalles()
+    {
+        proveedorSeleccionado = null;
+        StateHasChanged();
+    }
+
+    private async Task GuardarProveedor() // CORREGIDO: Cambié el nombre del método
     {
         // Validaciones front
         if (string.IsNullOrWhiteSpace(nombre))
         {
-            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
+            await MostrarError("El nombre es obligatorio");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(cuit))
         {
-            await swal.FireAsync("Atención", "El CUIT es obligatorio", SweetAlertIcon.Warning);
+            await MostrarError("El CUIT es obligatorio");
             return;
         }
 
@@ -106,13 +295,13 @@ else
             {
                 var dto = new PutProveedorDTO
                 {
-                    Nombre = nombre,
+                    Nombre = nombre.Trim(),
                     Estado = estado,
-                    Direccion = direccion,
-                    RazonSocial = razonSocial,
-                    CUIT = cuit,
-                    Telefono = telefono,
-                    Email = email
+                    Direccion = direccion?.Trim(),
+                    RazonSocial = razonSocial.Trim(),
+                    CUIT = cuit?.Trim(),
+                    Telefono = telefono?.Trim(),
+                    Email = email?.Trim()
                 };
 
                 var respuesta = await http.Put<PutProveedorDTO, GetProveedorDTO>($"api/Proveedores/ModificarProveedorId/{provEditandoId}", dto);
@@ -120,24 +309,24 @@ else
                 if (respuesta.Error)
                 {
                     var mensaje = await respuesta.ObtenerErrorAsync();
-                    await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
-                    return; // ⚠️ Detener si hay error
+                    await MostrarError(mensaje);
+                    return;
                 }
 
-                await swal.FireAsync("Éxito", $"Proveedor '{respuesta.Respuesta!.Nombre}' actualizado correctamente", SweetAlertIcon.Success);
+                await MostrarExito($"Proveedor '{nombre}' actualizado correctamente");
                 modoEdicion = false;
             }
             else
             {
                 var dto = new PostProveedorDTO
                 {
-                    Nombre = nombre,
+                    Nombre = nombre.Trim(),
                     Estado = estado,
-                    Direccion = direccion,
-                    RazonSocial = razonSocial,
-                    CUIT = cuit,
-                    Telefono = telefono,
-                    Email = email
+                    Direccion = direccion?.Trim(),
+                    RazonSocial = razonSocial.Trim(),
+                    CUIT = cuit?.Trim(),
+                    Telefono = telefono?.Trim(),
+                    Email = email?.Trim()
                 };
 
                 var respuesta = await http.Post<PostProveedorDTO, GetProveedorDTO>("api/Proveedores", dto);
@@ -145,11 +334,11 @@ else
                 if (respuesta.Error)
                 {
                     var mensaje = await respuesta.ObtenerErrorAsync();
-                    await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
-                    return; // ⚠️ Detener si hay error
+                    await MostrarError(mensaje);
+                    return;
                 }
 
-                await swal.FireAsync("Éxito", $"Proveedor '{respuesta.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+                await MostrarExito($"Proveedor '{nombre}' creado correctamente");
             }
 
             LimpiarFormulario();
@@ -157,8 +346,40 @@ else
         }
         catch (Exception ex)
         {
-            await swal.FireAsync("Error inesperado", ex.Message, SweetAlertIcon.Error);
+            await MostrarError($"Error inesperado: {ex.Message}");
         }
+    }
+
+    private async Task MostrarError(string mensaje)
+    {
+        await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Atención",
+            Text = mensaje,
+            Icon = SweetAlertIcon.Warning,
+            Background = "#F1C4C4",
+            Color = "#D4006A",
+            ConfirmButtonColor = "#D4006A",
+            ConfirmButtonText = "Ok",
+            CustomClass = new SweetAlertCustomClass
+            {
+                Icon = "icono-custom"
+            }
+        });
+    }
+
+    private async Task MostrarExito(string mensaje)
+    {
+        await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Éxito",
+            Text = mensaje,
+            Icon = SweetAlertIcon.Success,
+            Background = "#E8F5E8",
+            Color = "#28a745",
+            ConfirmButtonColor = "#28a745",
+            ConfirmButtonText = "Ok"
+        });
     }
 
     private void EditarProveedor(GetProveedorDTO proveedor)
@@ -166,24 +387,37 @@ else
         provEditandoId = proveedor.Id;
         nombre = proveedor.Nombre;
         estado = proveedor.Estado;
-        direccion = proveedor.Direccion;
+        direccion = proveedor.Direccion ?? "";
         razonSocial = proveedor.RazonSocial;
-        cuit = proveedor.CUIT;
-        telefono = proveedor.Telefono;
-        email = proveedor.Email;
+        cuit = proveedor.CUIT ?? "";
+        telefono = proveedor.Telefono ?? "";
+        email = proveedor.Email ?? "";
         modoEdicion = true;
+        proveedorSeleccionado = null; // Cerrar modal si está abierto
+        StateHasChanged();
+
+        // // Scroll al formulario para que el usuario vea que está editando
+        // JS.InvokeVoidAsync("scrollToElement", "formulario-proveedor");
     }
 
-    private async Task ArchivarProveedor(int id, string nombre)
+    private async Task ArchivarProveedor(int id, string nombreProveedor)
     {
         var confirm = await swal.FireAsync(new SweetAlertOptions
         {
             Title = "Confirmar",
-            Text = $"¿Seguro que deseas eliminar el proveedor {nombre}?",
+            Text = $"¿Seguro que deseas archivar el proveedor {nombreProveedor}?",
             Icon = SweetAlertIcon.Question,
             ShowCancelButton = true,
-            ConfirmButtonText = "Sí",
-            CancelButtonText = "Cancelar"
+            ConfirmButtonText = "Sí, archivar",
+            CancelButtonText = "Cancelar",
+            Background = "#F1C4C4",
+            Color = "#D4006A",
+            ConfirmButtonColor = "#D4006A",
+            CancelButtonColor = "#6c757d",
+            CustomClass = new SweetAlertCustomClass
+            {
+                Icon = "icono-custom"
+            }
         });
 
         if (confirm.IsConfirmed)
@@ -192,11 +426,12 @@ else
             if (respuesta.Error)
             {
                 var mensaje = await respuesta.ObtenerErrorAsync();
-                await swal.FireAsync("Error", mensaje, SweetAlertIcon.Warning);
-                return; // ⚠️ Detener si hay error
+                await MostrarError(mensaje);
+                return;
             }
 
             await CargarProveedores();
+            await MostrarExito($"Proveedor '{nombreProveedor}' archivado correctamente");
         }
     }
 
@@ -213,5 +448,6 @@ else
         email = string.Empty;
         provEditandoId = 0;
         modoEdicion = false;
+        StateHasChanged();
     }
 }

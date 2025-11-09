@@ -1,0 +1,742 @@
+﻿@page "/movimientosCaja"
+
+<style>
+    :root {
+        --primary: #6c5ce7;
+        --primary-dark: #5649c0;
+        --secondary: #a29bfe;
+        --success: #00b894;
+        --danger: #d63031;
+        --warning: #fdcb6e;
+        --light: #f8f9fa;
+        --dark: #2d3436;
+        --gray: #636e72;
+        --border-radius: 10px;
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background-color: #f5f7fb;
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .financial-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .financial-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e0e6ed;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .date-selector {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .date-selector select, .date-selector button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            background-color: white;
+            font-size: 14px;
+        }
+
+        .date-selector button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+            .date-selector button:hover {
+                background-color: var(--primary-dark);
+            }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 20px;
+        transition: var(--transition);
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .card-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .card-detail {
+        font-size: 14px;
+        color: var(--gray);
+    }
+
+    .positive {
+        color: var(--success);
+    }
+
+    .negative {
+        color: var(--danger);
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .payment-method {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+        .payment-method:last-child {
+            border-bottom: none;
+        }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 30px 0 20px 0;
+        color: var(--dark);
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e0e6ed;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+    }
+
+    th, td {
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-paid {
+        background-color: rgba(0, 184, 148, 0.1);
+        color: var(--success);
+    }
+
+    .status-pending {
+        background-color: rgba(253, 203, 110, 0.1);
+        color: #e17055;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .form-section {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 25px;
+    }
+
+    .form-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--dark);
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e0e6ed;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        transition: var(--transition);
+    }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+    .btn {
+        padding: 12px 20px;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+    }
+
+        .btn-outline:hover {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        padding: 15px 0;
+    }
+
+    .pagination-info {
+        font-size: 14px;
+        color: var(--gray);
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 8px;
+    }
+
+    .pagination-btn {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        background-color: white;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .pagination-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:hover:not(.active) {
+            background-color: #f8f9fa;
+        }
+
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .category-item {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .category-item:hover {
+            border-color: var(--primary);
+            background-color: rgba(108, 92, 231, 0.05);
+        }
+
+        .category-item.active {
+            border-color: var(--primary);
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background-color: rgba(0, 184, 148, 0.1);
+        color: var(--success);
+    }
+
+    .badge-warning {
+        background-color: rgba(253, 203, 110, 0.1);
+        color: #e17055;
+    }
+
+    .badge-danger {
+        background-color: rgba(214, 48, 49, 0.1);
+        color: var(--danger);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .financial-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    
+</style>
+<body>
+    <div class="financial-container">
+        <div class="financial-header">
+            <h1 class="page-title">Control Financiero</h1>
+            <div class="date-selector">
+                <select id="month-select">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+                <select id="year-select">
+                    <option value="2023">2023</option>
+                    <option value="2024" selected>2024</option>
+                    <option value="2025">2025</option>
+                </select>
+                <button id="apply-date" class="btn btn-primary">Aplicar</button>
+            </div>
+        </div>
+
+        <h2 class="section-title">Resumen de Ventas - 15 de Enero, 2024</h2>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Ventas del Día</div>
+                </div>
+                <div class="card-value">$2,450.00</div>
+                <div class="card-detail">18 pedidos totales</div>
+                <div class="card-detail negative">5 pendientes de pago</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Métodos de Pago</div>
+                </div>
+                <div class="payment-method">
+                    <span>Efectivo</span>
+                    <span>$1,300.00</span>
+                </div>
+                <div class="payment-method">
+                    <span>YappyApp</span>
+                    <span>$1,250.00</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Pendientes de Pago</div>
+                </div>
+                <div class="card-value negative">$380.00</div>
+                <div class="card-detail">5 pedidos sin pagar</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Control Financiero - Enero 2024</h2>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Ingresos por Ventas</div>
+                </div>
+                <div class="card-value">$45,230.00</div>
+                <div class="card-detail">127 productos vendidos</div>
+                <div class="card-detail positive">+123 vs mes anterior</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Costo de Productos</div>
+                </div>
+                <div class="card-value">$22,150.00</div>
+                <div class="card-detail">Costo de mercancía</div>
+                <div class="card-detail">40% del ingreso</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Gastos Operativos</div>
+                </div>
+                <div class="card-value">$8,920.00</div>
+                <div class="card-detail">Nómina, marketing, etc.</div>
+                <div class="card-detail negative">+3% vs mes anterior</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Ganancia Neta</div>
+                </div>
+                <div class="card-value positive">$14,160.00</div>
+                <div class="summary-row">
+                    <span>Meta:</span>
+                    <span>$12,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>Diferencia:</span>
+                    <span class="positive">+$1,160</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-section">
+                <div class="form-title">Registrar Ingreso</div>
+                <div class="form-group">
+                    <label for="income-amount">Monto *</label>
+                    <input type="number" id="income-amount" placeholder="$0.00">
+                </div>
+                <div class="form-group">
+                    <label for="income-category">Categoría *</label>
+                    <select id="income-category">
+                        <option value="product-sales">Venta de productos</option>
+                        <option value="services">Servicios</option>
+                        <option value="other">Otros ingresos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="income-description">Descripción</label>
+                    <textarea id="income-description" rows="3" placeholder="Venta pedido #1234..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="income-date">Fecha Referencia</label>
+                    <input type="date" id="income-date" value="2024-01-15">
+                </div>
+                <div class="form-group">
+                    <label for="income-reference">Referencia</label>
+                    <input type="text" id="income-reference" placeholder="Pedido #1234">
+                </div>
+                <button class="btn btn-primary">Registrar Ingreso</button>
+            </div>
+
+            <div class="form-section">
+                <div class="form-title">Registrar Gasto</div>
+                <div class="form-group">
+                    <label for="expense-amount">Monto *</label>
+                    <input type="number" id="expense-amount" placeholder="$0.00">
+                </div>
+                <div class="form-group">
+                    <label for="expense-category">Categoría *</label>
+                    <select id="expense-category">
+                        <option value="product-cost">Costo Productos</option>
+                        <option value="shipping">Envío</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="payroll">Nómina</option>
+                        <option value="other">Otros gastos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expense-description">Descripción</label>
+                    <textarea id="expense-description" rows="3" placeholder="Compra de materiales..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="expense-date">Fecha Referencia</label>
+                    <input type="date" id="expense-date" value="2024-01-15">
+                </div>
+                <div class="form-group">
+                    <label for="expense-reference">Referencia</label>
+                    <input type="text" id="expense-reference" placeholder="Factura #5678">
+                </div>
+                <button class="btn btn-primary">Registrar Gasto</button>
+            </div>
+        </div>
+
+        <h2 class="section-title">Listado de Pedidos</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>#001</td>
+                    <td>María González</td>
+                    <td>15/01 - 09:30</td>
+                    <td>$125.00</td>
+                    <td>Efectivo</td>
+                    <td><span class="status status-paid">Pagado</span></td>
+                </tr>
+                <tr>
+                    <td>#002</td>
+                    <td>Carlos Ruiz</td>
+                    <td>15/01 - 10:15</td>
+                    <td>$89.50</td>
+                    <td>YappyApp</td>
+                    <td><span class="status status-paid">Pagado</span></td>
+                </tr>
+                <tr>
+                    <td>#003</td>
+                    <td>Ana Martínez</td>
+                    <td>15/01 - 11:45</td>
+                    <td>$156.00</td>
+                    <td>Sin definir</td>
+                    <td><span class="status status-pending">Pendiente</span></td>
+                </tr>
+                <tr>
+                    <td>#004</td>
+                    <td>Luis Fernández</td>
+                    <td>15/01 - 12:30</td>
+                    <td>$203.50</td>
+                    <td>Efectivo</td>
+                    <td><span class="status status-paid">Pagado</span></td>
+                </tr>
+                <tr>
+                    <td>#005</td>
+                    <td>Patricia López</td>
+                    <td>15/01 - 13:10</td>
+                    <td>$97.00</td>
+                    <td>Sin definir</td>
+                    <td><span class="status status-pending">Pendiente</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <div class="pagination-info">Mostrando 5 de 18 pedidos</div>
+            <div class="pagination-controls">
+                <button class="pagination-btn">Anterior</button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">Siguiente</button>
+            </div>
+        </div>
+
+        <h2 class="section-title">Movimientos Recientes</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Referencia</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>15/01</td>
+                    <td>Venta productos varios</td>
+                    <td>Venta Productos</td>
+                    <td>Pedido #1234</td>
+                    <td class="positive">+$2,450.00</td>
+                </tr>
+                <tr>
+                    <td>15/01</td>
+                    <td>Costo productos variados</td>
+                    <td>Costo Productos</td>
+                    <td>Pedido #1234</td>
+                    <td class="negative">-$1,200.00</td>
+                </tr>
+                <tr>
+                    <td>14/01</td>
+                    <td>Pago nómina empleados</td>
+                    <td>Nómina</td>
+                    <td>Quincena 1</td>
+                    <td class="negative">-$1,850.00</td>
+                </tr>
+                <tr>
+                    <td>14/01</td>
+                    <td>Venta servicio personalizado</td>
+                    <td>Servicios</td>
+                    <td>Servicio #567</td>
+                    <td class="positive">+$350.00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Establecer el mes actual en el selector
+            const currentMonth = new Date().getMonth();
+            document.getElementById('month-select').value = currentMonth;
+
+            // Funcionalidad para la selección de fecha
+            document.getElementById('apply-date').addEventListener('click', function() {
+                const month = document.getElementById('month-select').value;
+                const year = document.getElementById('year-select').value;
+
+                // Simular carga de datos
+                alert(`Cargando datos para ${getMonthName(month)}/${year}`);
+            });
+
+            // Funcionalidad para los botones de paginación
+            document.querySelectorAll('.pagination-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.textContent === 'Anterior' || this.textContent === 'Siguiente') {
+                        // Lógica para cambiar de página
+                        alert(`Navegando a página ${this.textContent}`);
+                        return;
+                    }
+
+                    document.querySelectorAll('.pagination-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+
+                    this.classList.add('active');
+
+                    // Simular carga de página
+                    alert(`Cargando página ${this.textContent}`);
+                });
+            });
+
+            // Funcionalidad para los elementos de categoría
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.category-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+
+            // Función auxiliar para obtener nombre del mes
+            function getMonthName(monthIndex) {
+                const months = [
+                    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                return months[monthIndex];
+            }
+        });
+    </script>
+</body>

@@ -3,66 +3,124 @@
 @inject IHttpServicios http
 @inject SweetAlertService swal
 
-<h3 class="titulo-seccion">Gestión de Colores</h3>
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Colores</h3>
+        <div class="badge bg-primary fs-6">@(colores?.Count ?? 0) colores</div>
+    </div>
 
-<div class="mb-3">
-    <input type="text" @bind="nombre" placeholder="Nombre del color" class="form-control" />
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Color" : "Nuevo Color")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Color</label>
+                    <input type="text" @bind="nombre" class="form-control" placeholder="Ej: Rojo Onlyou" />
+                </div>
 
-    <div class="color-picker-container">
-        <input type="color" @bind="hexadecimal" class="color-picker" />
-        <input type="text" @bind="hexadecimal" class="form-control color-hex" maxlength="7" />
-        <div class="color-preview" style="background-color:@hexadecimal;"></div>
+                <div class="col-md-6">
+                    <label class="form-label">Color</label>
+                    <div class="color-picker-container">
+                        <input type="color" @bind="hexadecimal" class="color-picker" />
+                        <input type="text" @bind="hexadecimal" class="form-control color-hex" maxlength="7"
+                               placeholder="#000000" />
+                        <div class="color-preview" style="background-color:@hexadecimal; border: 1px solid #dee2e6; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarColor">
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Colores</h5>
+        </div>
+        <div class="card-body">
+            @if (colores == null)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando colores...</p>
+                </div>
+            }
+            else if (!colores.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-palette fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay colores</h5>
+                    <p class="text-muted">Comienza creando tu primer color</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Hexadecimal</th>
+                                <th width="80" class="text-center">Muestra</th>
+                                <th width="150" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var color in colores)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@color.Nombre</strong>
+                                    </td>
+                                    <td>
+                                        <code>@color.Hexadecimal</code>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="color-box mx-auto" style="background-color:@color.Hexadecimal; border: 1px solid #ccc;"></div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarColor(color)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                                <span>Editar</span>
+                                            </button>
+
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarColor(color.Id, color.Nombre)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash"></i>
+                                                <span>Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
     </div>
 </div>
-
-
-<div class="mb-3">
-    <button class="btn-onlyou" @onclick="GuardarColor">
-        @(modoEdicion ? "Actualizar" : "Agregar")
-    </button>
-    @if (modoEdicion)
-    {
-        <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">Cancelar</button>
-    }
-</div>
-
-@if (colores == null)
-{
-    <p>Cargando colores...</p>
-}
-else if (!colores.Any())
-{
-    <p>No hay colores para mostrar.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Hexadecimal</th>
-                <th>Vista</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var color in colores)
-            {
-                <tr>
-                    <td>@color.Nombre</td>
-                    <td>@color.Hexadecimal</td>
-                    <td>
-                        <div style="width:20px;height:20px;border:1px solid black;background-color:@color.Hexadecimal"></div>
-                    </td>
-                    <td>
-                        <button class="btn-onlyou btn-sm" @onclick="() => EditarColor(color)">Editar</button>
-                        <button class="btn-onlyou-danger btn-sm" @onclick="() => ArchivarColor(color.Id, color.Nombre)">Archivar</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
     private List<GetColorDTO> colores = new();

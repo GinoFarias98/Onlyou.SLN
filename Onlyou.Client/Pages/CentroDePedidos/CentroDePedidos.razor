@@ -1,0 +1,249 @@
+﻿@page "/pedidos"
+@using Microsoft.JSInterop
+
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-dark fw-bold">Centro de Pedidos</h3>
+            <p class="text-muted mb-0">Gestión completa desde pedido web hasta entrega</p>
+        </div>
+        <div class="badge bg-primary fs-6">3 pedidos</div>
+    </div>
+
+    <!-- Filtros de Estado -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-onlyou">Todos (3)</button>
+                <button class="btn btn-onlyou-secondary">Pend. Pago (1)</button>
+                <button class="btn btn-onlyou-secondary">Pago Confirmado (1)</button>
+                <button class="btn btn-onlyou-secondary">Con Proveedor (1)</button>
+                <button class="btn btn-onlyou-secondary">Recibidos (0)</button>
+                <button class="btn btn-onlyou-secondary">Completados (0)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Pedidos -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Pedidos Totales</h5>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" placeholder="Buscar por cliente..." style="width: 200px;" />
+                    <button class="btn-onlyou btn-sm">
+                        <i class="bi bi-plus-circle"></i> Nuevo Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th width="80">ID</th>
+                            <th>CLIENTE</th>
+                            <th>PRODUCTOS</th>
+                            <th>PROVEEDOR</th>
+                            <th width="100" class="text-end">TOTAL</th>
+                            <th width="100" class="text-end">GANANCIA</th>
+                            <th width="120" class="text-center">ESTADO</th>
+                            <th width="150" class="text-center">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Pedido 1 - Pendiente de Pago -->
+                        <tr>
+                            <td>
+                                <strong>#001</strong>
+                                <div class="small text-muted">15/11/24</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">María González</div>
+                                <div class="small text-muted">maria@email.com</div>
+                                <div class="small text-muted">+54 11 1234-5678</div>
+                            </td>
+                            <td>
+                                <div class="small">Conjunto Rosa Encaje - 1 x $45.00</div>
+                                <div class="small">Bralette Deportivo - 1 x $32.50</div>
+                                <div class="small text-muted">2 productos</div>
+                            </td>
+                            <td>
+                                <div>Textiles Luna</div>
+                                <div class="small text-success">Contactado</div>
+                            </td>
+                            <td class="text-end fw-bold">$89.50</td>
+                            <td class="text-end">
+                                <span class="text-success fw-bold">+$35.00</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-warning">Pend. Pago</span>
+                                <div class="small text-muted mt-1">
+                                    <i class="bi bi-clock text-warning"></i> Pendiente
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn-onlyou btn-sm" title="Ver Detalles">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn-onlyou-secondary btn-sm" title="Contactar por WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn-onlyou-danger btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                title="Más Acciones">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Confirmar Pago</a></li>
+                                            <li><a class="dropdown-item" href="#">Cancelar Pedido</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Pedido 2 - Pago Confirmado -->
+                        <tr>
+                            <td>
+                                <strong>#002</strong>
+                                <div class="small text-muted">14/11/24</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">Ana Martinez</div>
+                                <div class="small text-muted">ana@email.com</div>
+                                <div class="small text-muted">+54 11 2345-6789</div>
+                            </td>
+                            <td>
+                                <div class="small">Pijama Seda Premium - 1 x $156.00</div>
+                                <div class="small text-muted">1 producto</div>
+                            </td>
+                            <td>
+                                <div>Sedas del Norte</div>
+                                <div class="small text-warning">Pendiente</div>
+                            </td>
+                            <td class="text-end fw-bold">$156.00</td>
+                            <td class="text-end">
+                                <span class="text-success fw-bold">+$65.00</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info">Pago Confirmado</span>
+                                <div class="small text-muted mt-1">
+                                    <i class="bi bi-check-circle text-success"></i> Pagado
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn-onlyou btn-sm" title="Ver Detalles">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn-onlyou-secondary btn-sm" title="Contactar por WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn-onlyou-danger btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                title="Más Acciones">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Solicitar a Proveedor</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Pedido 3 - Con Proveedor -->
+                        <tr>
+                            <td>
+                                <strong>#003</strong>
+                                <div class="small text-muted">13/11/24</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">Carmen López</div>
+                                <div class="small text-muted">carmen@email.com</div>
+                                <div class="small text-muted">+54 11 3456-7890</div>
+                            </td>
+                            <td>
+                                <div class="small">Vestido Noche - 1 x $89.00</div>
+                                <div class="small">Falda Plisada - 1 x $45.00</div>
+                                <div class="small text-muted">2 productos</div>
+                            </td>
+                            <td>
+                                <span class="text-muted">No asignado</span>
+                            </td>
+                            <td class="text-end fw-bold">$149.00</td>
+                            <td class="text-end">
+                                <span class="text-success fw-bold">+$50.00</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary">Con Proveedor</span>
+                                <div class="small text-muted mt-1">
+                                    <i class="bi bi-check-circle text-success"></i> Pagado
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn-onlyou btn-sm" title="Ver Detalles">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn-onlyou-secondary btn-sm" title="Contactar por WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn-onlyou-danger btn-sm dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown"
+                                                title="Más Acciones">
+                                            <i class="bi bi-gear"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#">Marcar como Recibido</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Detalles del Pedido (ejemplo) -->
+<div class="modal-backdrop fade show" style="display: none;">
+</div>
+<div class="modal fade show" style="display: none;" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pedido #001 - Pendiente de Pago</h5>
+                <button type="button" class="btn-close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Contenido del modal de detalles -->
+                <p>Detalles del pedido aquí...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Solo datos de ejemplo para la plantilla
+    private List<string> estados = new List<string>
+    {
+        "PendientePago",
+        "PagoConfirmado",
+        "EnProveedor",
+        "Recibido",
+        "Completado"
+    };
+}

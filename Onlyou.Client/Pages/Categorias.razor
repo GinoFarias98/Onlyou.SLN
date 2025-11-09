@@ -4,240 +4,353 @@
 @inject IJSRuntime JS
 @inject SweetAlertService swal
 
-<h3 class="titulo-seccion">Gestión de Categorías</h3>
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Categorías</h3>
+        <div class="badge bg-primary fs-6">@(categorias?.Count ?? 0) categorías</div>
+    </div>
 
-<div class="form-control">
-	<input @bind="nombre" placeholder="Nombre de la categoría" />
-	<label>
-		<input type="checkbox" @bind="estado" />
-		Activa
-	</label>
-	<button class="boton-accion" @onclick="GuardarCategoria">Guardar</button>
-	@if (modoEdicion)
-	{
-		<button class="boton-accion" @onclick="CancelarEdicion">Cancelar</button>
-	}
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Categoría" : "Nueva Categoría")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" @bind="nombre" placeholder="Nombre de categoría" />
+                </div>
 
-	<InputFile OnChange="SubirImagen" />
+                <div class="col-md-6">
+                    <label class="form-label">Imagen</label>
+                    <InputFile class="form-control" OnChange="SubirImagen" accept="image/*" />
 
+                    <!-- Preview corregido -->
+                    @if (!string.IsNullOrEmpty(imagenBase64))
+                    {
+                        <div class="mt-3">
+                            <p class="small text-muted mb-2">Vista previa:</p>
+                            <img src="data:image/@imagenExtension?.Replace(".", "");base64,@imagenBase64"
+                                 alt="Preview"
+                                 class="img-thumbnail"
+                                 style="max-width: 150px; max-height: 150px;" />
+                        </div>
+                    }
+                    else if (modoEdicion)
+                    {
+                        <!-- Mostrar imagen actual cuando se está editando -->
+                        var categoriaActual = categorias.FirstOrDefault(c => c.Id == categoriaEditandoId);
+                        @if (categoriaActual != null && !string.IsNullOrEmpty(categoriaActual.Imagen))
+                        {
+                            <div class="mt-3">
+                                <p class="small text-muted mb-2">Imagen actual:</p>
+                                <img src="@categoriaActual.Imagen"
+                                     alt="@categoriaActual.Nombre"
+                                     class="img-thumbnail"
+                                     style="max-width: 150px; max-height: 150px;" />
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarCategoria">
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Categorías</h5>
+        </div>
+        <div class="card-body">
+            @if (categorias == null)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando categorías...</p>
+                </div>
+            }
+            else if (!categorias.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay categorías</h5>
+                    <p class="text-muted">Comienza creando tu primera categoría</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th width="80">Imagen</th>
+                                <th>Nombre</th>
+                                <th width="150" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cat in categorias)
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@cat.Imagen" alt="@cat.Nombre" width="50" class="rounded" />
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@cat.Nombre</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- Botón Editar con iconos de Bootstrap -->
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarCategoria(cat)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil d-inline d-md-none"></i>
+                                                <span class="d-none d-md-inline">Editar</span>
+                                            </button>
+
+                                            <!-- Botón Archivar con iconos de Bootstrap -->
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarCategoria(cat.Id, cat.Nombre)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash d-inline d-md-none"></i>
+                                                <span class="d-none d-md-inline">Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
-@if (categorias == null)
-{
-	<p>Cargando categorías...</p>
-}
-else if (!categorias.Any())
-{
-	<p>No hay categorías para mostrar.</p>
-}
-else
-{
-	<table class="table">
-		<thead>
-			<tr>
-				<th>Imagen</th>
-				<th>Nombre</th>
-				<th>Estado</th>
-				<th>Acciones</th>
-			</tr>
-		</thead>
-		<tbody>
-			@foreach (var cat in categorias)
-			{
-				<tr>
-					<td><img src="@cat.Imagen" alt="@cat.Nombre" width="50" /></td>
-					<td>@cat.Nombre</td>
-					<td>@(cat.Estado ? "Activa" : "Inactiva")</td>
-					<td>
-						<button class="boton-accion" @onclick="() => EditarCategoria(cat)">Editar</button>
-						<button class="boton-accion" @onclick="() => ArchivarCategoria(cat.Id, cat.Nombre)">Archivar</button>
-					</td>
-				</tr>
-			}
-		</tbody>
-	</table>
-}
-
 @code {
-	private List<GetCategoriasDTO> categorias = new();
-	private string nombre = string.Empty;
-	private bool estado = true;
-	private int categoriaEditandoId = 0;
-	private bool modoEdicion = false;
+    private List<GetCategoriasDTO> categorias = new();
+    private string nombre = string.Empty;
+    private bool estado = true;
+    private int categoriaEditandoId = 0;
+    private bool modoEdicion = false;
 
-	private string? imagenBase64;
-	private string? imagenExtension;
+    private string? imagenBase64;
+    private string? imagenExtension;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCategorias();
+    }
 
+    private async Task CargarCategorias()
+    {
+        var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
+        if (!resultado.Error)
+        {
+            categorias = resultado.Respuesta;
+            StateHasChanged();
+        }
+    }
 
-	protected override async Task OnInitializedAsync()
-	{
-		await CargarCategorias();
-	}
+    private async Task GuardarCategoria()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Atención",
+                Text = "El nombre de la Categoria es obligatorio",
+                Icon = SweetAlertIcon.Warning,
+                Background = "#F1C4C4",
+                Color = "#D4006A",
+                ConfirmButtonColor = "#D4006A",
+                ConfirmButtonText = "Ok",
+                CustomClass = new SweetAlertCustomClass
+                {
+                    Icon = "icono-custom"
+                }
+            });
+            return;
+        }
 
-	private async Task CargarCategorias()
-	{
-		var resultado = await http.Get<List<GetCategoriasDTO>>("api/Categorias");
-		if (!resultado.Error)
-		{
-			categorias = resultado.Respuesta;
-			StateHasChanged();
-		}
-	}
+        if (modoEdicion)
+        {
+            var dto = new EditarCategoriasDTO
+            {
+                Id = categoriaEditandoId,
+                Nombre = nombre,
+                Estado = estado,
+                Imagen = imagenBase64,
+                ImagenExtension = imagenExtension,
+            };
 
-	private async Task GuardarCategoria()
-	{
-		if (string.IsNullOrWhiteSpace(nombre))
-		{
-			await swal.FireAsync(new SweetAlertOptions
-			{
-				Title = "Atención",
-				Text = "El nombre de la Categoria es obligatorio",
-				Icon = SweetAlertIcon.Warning,
-				Background = "#F1C4C4",       // fondo del recuadro
-				Color = "#D4006A",            // color del texto
-				ConfirmButtonColor = "#D4006A", // color rosa oscuro
-				ConfirmButtonText = "Ok",	
-				CustomClass = new SweetAlertCustomClass
-				{
-					Icon = "icono-custom" // 🎯 Aplica color al ícono
-				}
-			});
-			return;
-		}
+            var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
 
-		if (modoEdicion)
-		{
-			var dto = new EditarCategoriasDTO
-			{
-				Id = categoriaEditandoId,
-				Nombre = nombre,
-				Estado = estado,
-				Imagen = imagenBase64,
-				ImagenExtension = imagenExtension,
-			};
+            if (respuesta.Error)
+            {
+                await swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Atención",
+                    Text = "Ocurrio un error al Editar la categoria",
+                    Icon = SweetAlertIcon.Warning,
+                    Background = "#F1C4C4",
+                    Color = "#D4006A",
+                    ConfirmButtonColor = "#D4006A",
+                    ConfirmButtonText = "Ok",
+                    CustomClass = new SweetAlertCustomClass
+                    {
+                        Icon = "icono-custom"
+                    }
+                });
+                return;
+            }
 
-			var respuesta = await http.Put($"api/Categorias/{dto.Id}", dto);
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new CrearCategoriasDTO
+            {
+                Nombre = nombre,
+                Estado = estado,
+                Imagen = imagenBase64,
+                ImagenExtension = imagenExtension,
+            };
 
-			if (respuesta.Error)
-			{
-				await swal.FireAsync(new SweetAlertOptions
-				{
-					Title = "Atención",
-					Text = "Ocurrio un error al Editar la categoria",
-					Icon = SweetAlertIcon.Warning,
-					Background = "#F1C4C4",       // fondo del recuadro
-					Color = "#D4006A",            // color del texto
-					ConfirmButtonColor = "#D4006A", // color rosa oscuro
-					ConfirmButtonText = "Ok",
-					CustomClass = new SweetAlertCustomClass
-					{
-						Icon = "icono-custom" // 🎯 Aplica color al ícono
-					}
-				});
-				return;
-			}
+            var respuesta = await http.Post("api/Categorias", dto);
 
-			modoEdicion = false;
-		}
-		else
-		{
-			var dto = new CrearCategoriasDTO
-			{
-				Nombre = nombre,
-				Estado = estado,
-				Imagen = imagenBase64,
-				ImagenExtension = imagenExtension,
-			};
+            if (respuesta.Error)
+            {
+                await swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Atención",
+                    Text = "Ocurrio un error al cargar la categoria",
+                    Icon = SweetAlertIcon.Warning,
+                    Background = "#F1C4C4",
+                    Color = "#D4006A",
+                    ConfirmButtonColor = "#D4006A",
+                    ConfirmButtonText = "Ok",
+                    CustomClass = new SweetAlertCustomClass
+                    {
+                        Icon = "icono-custom"
+                    }
+                });
+                return;
+            }
+        }
 
-			var respuesta = await http.Post("api/Categorias", dto);
+        // Limpiar formulario
+        nombre = string.Empty;
+        estado = true;
+        categoriaEditandoId = 0;
+        imagenBase64 = null;
+        imagenExtension = null;
 
-			if (respuesta.Error)
-			{
-				await swal.FireAsync(new SweetAlertOptions
-				{
-					Title = "Atención",
-					Text = "Ocurrio un error al cargar la categoria",
-					Icon = SweetAlertIcon.Warning,
-					Background = "#F1C4C4",       // fondo del recuadro
-					Color = "#D4006A",            // color del texto
-					ConfirmButtonColor = "#D4006A", // color rosa oscuro
-					ConfirmButtonText = "Ok",
-					CustomClass = new SweetAlertCustomClass
-					{
-						Icon = "icono-custom" // 🎯 Aplica color al ícono
-					}
-				});
-				return;
-			}
-		}
+        await CargarCategorias();
+    }
 
-		nombre = string.Empty;
-		estado = true;
-		categoriaEditandoId = 0;
+    private void EditarCategoria(GetCategoriasDTO cat)
+    {
+        nombre = cat.Nombre;
+        estado = cat.Estado;
+        categoriaEditandoId = cat.Id;
+        modoEdicion = true;
+        // No cargamos la imagen existente en base64 para no enviar datos duplicados
+        imagenBase64 = null;
+        imagenExtension = null;
+    }
 
-		await CargarCategorias();
-	}
+    private async Task<bool> Confirmar(string nombre)
+    {
+        var result = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Atencion",
+            Text = $"Estas a punto de Archivar la Categoria {nombre.ToUpper()}. Deseas continuar?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar",
+            Background = "#F1C4C4",
+            Color = "#D4006A",
+            ConfirmButtonColor = "#D4006A",
+            CancelButtonColor = "#D4006A",
+            CustomClass = new SweetAlertCustomClass
+            {
+                Icon = "icono-custom"
+            }
+        });
 
-	private void EditarCategoria(GetCategoriasDTO cat)
-	{
-		nombre = cat.Nombre;
-		estado = cat.Estado;
-		categoriaEditandoId = cat.Id;
-		modoEdicion = true;
-	}
+        return result.IsConfirmed;
+    }
 
-	private async Task<bool> Confirmar(string nombre)
-	{
-		var result = await swal.FireAsync(new SweetAlertOptions
-		{
-			Title = "Atencion",
-			Text = $"Estas a punto de Archivar la Categoria {nombre.ToUpper()}. Deseas continuar?",
-			Icon = SweetAlertIcon.Question,
-			ShowCancelButton = true,
-			ConfirmButtonText = "Sí",
-			CancelButtonText = "Cancelar",
-			Background = "#F1C4C4",         // fondo rosado
-			Color = "#D4006A",              // color del texto rosa oscuro
-			ConfirmButtonColor = "#D4006A", // botón  rosa oscuri
-			CancelButtonColor = "#D4006A",   // botón rosa oscuri
-			CustomClass = new SweetAlertCustomClass
-			{
-				Icon = "icono-custom" // 🎯 Aplica color al ícono
-			}
-		});
+    private async Task ArchivarCategoria(int id, string nombre)
+    {
+        var confirmado = await Confirmar(nombre);
+        if (confirmado)
+        {
+            await http.Put<object>($"api/Categorias/Archivados/{id}", null);
+            await CargarCategorias();
+            await swal.FireAsync("Exito", "Categoria Archivada de forma satisfactoria", SweetAlertIcon.Success);
+        }
+    }
 
-		return result.IsConfirmed;
-	}
+    private void CancelarEdicion()
+    {
+        nombre = string.Empty;
+        estado = true;
+        modoEdicion = false;
+        imagenBase64 = null;
+        imagenExtension = null;
+    }
 
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
 
-	private async Task ArchivarCategoria(int id, string nombre)
-	{
-		var confirmado = await Confirmar(nombre);
-		if (confirmado)
-		{
-			await http.Put<object>($"api/Categorias/Archivados/{id}",null);
-			await CargarCategorias();
-			await swal.FireAsync("Exito", "Categoria Archivada de forma satisfactoria", SweetAlertIcon.Success);
+        // Validar que sea una imagen
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            await swal.FireAsync("Error", "Por favor selecciona un archivo de imagen válido.", "error");
+            return;
+        }
 
-		}
-	}
+        // Validar tamaño (max 5MB)
+        if (file.Size > 5 * 1024 * 1024)
+        {
+            await swal.FireAsync("Error", "La imagen no debe superar los 5MB.", "error");
+            return;
+        }
 
-	private void CancelarEdicion()
-	{
-		nombre = string.Empty;
-		estado = true;
-		modoEdicion = false;
-	}
+        try
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+            imagenBase64 = Convert.ToBase64String(buffer);
+            imagenExtension = Path.GetExtension(file.Name);
 
-
-	private async Task SubirImagen(InputFileChangeEventArgs e)
-	{
-		var file = e.File;
-		var buffer = new byte[file.Size];
-		await file.OpenReadStream().ReadAsync(buffer);
-		imagenBase64 = Convert.ToBase64String(buffer);
-		imagenExtension = Path.GetExtension(file.Name);
-	}
-
+            StateHasChanged(); // Forzar actualización para mostrar el preview
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error", "Error al procesar la imagen.", "error");
+        }
+    }
 }
