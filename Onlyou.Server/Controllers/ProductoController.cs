@@ -131,6 +131,33 @@ namespace Onlyou.Server.Controllers
             }
         }
 
+        // 'Productos/ProductosPublicados'
+        [HttpGet("ProductosPublicados")]
+        public async Task<ActionResult<List<GetProductoDTO>>> ObtenerProductosPublicados()
+        {
+            try
+            {
+                var productos = await repositorioProducto.ObtenerProductosParaWebAsyncConRelaciones();
+                var dto = mapper.Map<List<GetProductoDTO>>(productos);
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en Get ProductosPublicados: {ex.Message}");
+                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+            }
+
+        }
+
+        [HttpPost("Filtrar")]
+        public async Task<ActionResult<List<GetProductoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
+        {
+            var productos = await repositorioProducto.FiltrarAsync(filtros);
+            var dto = mapper.Map<List<GetProductoDTO>>(productos);
+            return Ok(dto);
+        }
+
+
 
         [HttpPost]
         public async Task<ActionResult<GetProductoDTO>> Post(PostProductoDTO postProductoDTO, [FromServices] IImagenValidator validator)
@@ -139,6 +166,19 @@ namespace Onlyou.Server.Controllers
             {
                 if (postProductoDTO == null)
                     return BadRequest("Favor de verificar, valor ingresado nulo.");
+
+                bool ExisteXCodigo = await repositorioProducto.ExistePorCodigo(postProductoDTO.Codigo);
+                if (ExisteXCodigo)
+                {
+                    return Conflict($"Ya existe un producto registrado con el código '{postProductoDTO.Codigo}'.");
+                }
+
+                bool ExisteXNombre = await repositorioProducto.ExistePorCodigo(postProductoDTO.Codigo);
+                if (ExisteXNombre)
+                {
+                    return Conflict($"Ya existe un producto registrado con el nombre '{postProductoDTO.Nombre}'.");
+                }
+
 
                 // Validar y guardar imagen solo si existe
                 if (!string.IsNullOrWhiteSpace(postProductoDTO.Imagen) &&
@@ -325,6 +365,18 @@ namespace Onlyou.Server.Controllers
             }
         }
 
+
+        // =============================================================
+        [HttpPatch("ActualizarPublicadoWeb/{id}")]
+        public async Task<IActionResult> ActualizarPublicadoWeb(int id, [FromBody] bool publicado)
+        {
+            var actualizado = await repositorioProducto.ActualizarPublicadoWeb(id, publicado);
+
+            if (!actualizado)
+                return NotFound(new { mensaje = "Producto no encontrado" });
+
+            return Ok(new { Id = id, PublicadoWeb = publicado });
+        }
 
         // =============================================================
 

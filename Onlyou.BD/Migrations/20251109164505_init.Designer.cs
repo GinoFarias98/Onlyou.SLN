@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251024191016_inicio")]
-    partial class inicio
+    [Migration("20251109164505_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -622,6 +622,9 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("ProveedorId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("PublicadoWeb")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Stock")
                         .HasColumnType("int");
 
@@ -632,9 +635,11 @@ namespace Onlyou.BD.Migrations
 
                     b.HasIndex("CategoriaId");
 
-                    b.HasIndex("Codigo");
+                    b.HasIndex("Codigo")
+                        .IsUnique();
 
-                    b.HasIndex("Nombre");
+                    b.HasIndex("Nombre")
+                        .IsUnique();
 
                     b.HasIndex("ProveedorId");
 

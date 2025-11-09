@@ -60,6 +60,33 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
+        public async Task<bool> ExistePorCodigo(string codigo)
+        {
+            try
+            {
+                bool existe = await context.Productos.AnyAsync(p => p.Codigo == codigo);
+                return existe;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
+        public async Task<bool> ExistePorNombre(string nombre)
+        {
+            try
+            {
+                bool existe = await context.Productos.AnyAsync(p => p.Nombre == nombre);
+                return existe;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
 
         // metodo que busca por nombre paracial y devuelve similares a lo que se escribe
         public async Task<List<Producto>> SelectBySimilName(string similName)
@@ -117,6 +144,28 @@ namespace Onlyou.Server.Repositorio
 
         }
 
+        public async Task<List<Producto>> SelectConRelacionesByIdCategoria(int idCategoria)
+        {
+            try
+            {
+                var productosCompletosXCategoria = await context.Productos.Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
+                    .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
+                    .Include(p => p.Marca)
+                    .Include(p => p.Categoria)
+                    .Include(p => p.TipoProducto)
+                    .Include(p => p.Proveedor)
+                    .Where(p => p.Estado == true && p.CategoriaId == idCategoria)
+                    .ToListAsync();
+                return productosCompletosXCategoria;
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+
+        }
+
         public async Task<Producto?> SelectConRelacionesXId(int id)
         {
             try
@@ -151,6 +200,21 @@ namespace Onlyou.Server.Repositorio
                 .Include(p => p.Proveedor)
                 .ToListAsync();
         }
+
+
+        public async Task<List<Producto>> ObtenerProductosParaWebAsyncConRelaciones()
+        {
+            return await context.Productos
+                .Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
+                .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
+                .Include(p => p.Marca)
+                .Include(p => p.Categoria)
+                .Include(p => p.TipoProducto)
+                .Include(p => p.Proveedor)
+                .Where(p => p.PublicadoWeb)
+                .ToListAsync();
+        }
+
 
         // para paginacion
         // skip = cantidad de productos omitidos
@@ -195,5 +259,16 @@ namespace Onlyou.Server.Repositorio
 
         }
 
+
+        public async Task<bool> ActualizarPublicadoWeb(int id, bool publicado)
+        {
+            var entidad = await SelectById(id);
+            if (entidad == null)
+                return false;
+
+            entidad.PublicadoWeb = publicado; 
+            await context.SaveChangesAsync();
+            return true;
+        }
     }
 }

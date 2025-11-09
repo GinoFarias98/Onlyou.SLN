@@ -975,6 +975,18 @@ code {
 
 /* ===== FORMULARIO DE PRODUCTOS V2 ===== */
 
+
+/* Hover y cursor pointer para los cards de producto */
+.card.producto-hover {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .card.producto-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
 .producto-formulario {
     background-color: var(--bg-card);
     border-radius: 12px;
@@ -1112,6 +1124,14 @@ code {
     to {
         opacity: 1;
     }
+}
+
+.volver-sticky {
+    position: sticky;
+    top: 10px; /* distancia desde el top del contenedor */
+    z-index: 10; /* por si hay otros elementos */
+    align-self: flex-start; /* opcional, si el contenedor es flex */
+}
 }
 /*
 ////////////////////////////////////////////////////////////////////// edicion pages*/

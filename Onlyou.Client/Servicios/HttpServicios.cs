@@ -66,6 +66,27 @@ namespace Onlyou.Client.Servicios
             }
         }
 
+        public async Task<HttpRespuesta<object>> Patch<O>(string url, O entidad)
+        {
+            var EntSerializada = JsonSerializer.Serialize(entidad);
+            var EnviarJSON = new StringContent(EntSerializada, Encoding.UTF8, "application/json");
+
+            var request = new HttpRequestMessage(new HttpMethod("PATCH"), url)
+            {
+                Content = EnviarJSON
+            };
+
+            var response = await http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new HttpRespuesta<object>(null, false, response);
+            }
+            else
+            {
+                return new HttpRespuesta<object>(default, true, response);
+            }
+        }
 
 
         #region Sobreescritura Metodos Put y Post

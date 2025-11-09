@@ -1,0 +1,118 @@
+﻿@using Onlyou.Client.Servicios.ServiciosEntidades
+@typeparam TEntidad
+
+@inject IHttpServicios Http
+
+<div class="card p-3 shadow-sm mb-3">
+    <EditForm Model="@filtros" OnValidSubmit="BuscarAsync">
+        <div class="row g-2 align-items-end">
+            @foreach (var campo in Campos)
+            {
+                <div class="col-md-@(12 / (Campos.Count > 3 ? 3 : Campos.Count))">
+                    <label class="form-label">@campo.Label</label>
+
+                    @if (campo.Tipo == TipoCampo.Texto)
+                    {
+                        <input class="form-control"
+                               placeholder="@campo.Placeholder"
+                               value="@Convert.ToString(filtros[campo.Nombre])"
+                               @oninput="(e) => filtros[campo.Nombre] = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : e.Value?.ToString()" />
+                    }
+                    else if (campo.Tipo == TipoCampo.Select && campo.Opciones is not null)
+                    {
+                        <select class="form-select"
+                                value="@Convert.ToString(filtros[campo.Nombre])"
+                                @onchange="(e) => filtros[campo.Nombre] = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : Convert.ToInt32(e.Value)">
+                            <option value="">-- Todos --</option>
+                            @foreach (var opt in campo.Opciones)
+                            {
+                                <option value="@opt.Id">@opt.Nombre</option>
+                            }
+                        </select>
+                    }
+                </div>
+            }
+
+            <div class="col-md-2 text-end">
+                <button type="submit" class="btn btn-primary mt-3 w-100">Buscar</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@if (Resultados is null)
+{
+    <p class="text-muted">Realizá una búsqueda para ver resultados.</p>
+}
+else if (!Resultados.Any())
+{
+    <p class="text-muted">No se encontraron resultados.</p>
+}
+
+@code {
+    [Parameter] public List<CampoFiltro> Campos { get; set; } = new();
+    [Parameter] public string UrlBase { get; set; } = string.Empty;
+    [Parameter] public EventCallback<List<TEntidad>> OnResultadosActualizados { get; set; }
+
+    private Dictionary<string, object?> filtros = new();
+    private List<TEntidad>? Resultados;
+
+    protected override void OnParametersSet()
+    {
+        if (Campos is not null)
+        {
+            foreach (var campo in Campos)
+            {
+                if (!filtros.ContainsKey(campo.Nombre))
+                    filtros[campo.Nombre] = null;
+            }
+        }
+
+        if (!filtros.ContainsKey("Nombre"))
+            filtros["Nombre"] = null;
+    }
+
+    private async Task BuscarAsync()
+    {
+        var servicio = new FiltroGenericoServicio<TEntidad>(Http, UrlBase);
+
+        // Enviamos solo filtros no nulos
+        var filtrosLimpios = filtros
+            .Where(kvp => kvp.Value is not null)
+            .ToDictionary(k => k.Key, v => v.Value!);
+
+        var respuesta = await servicio.FiltrarAsync(filtrosLimpios);
+
+        if (!respuesta.Error && respuesta.Respuesta is not null)
+        {
+            Resultados = respuesta.Respuesta;
+            await OnResultadosActualizados.InvokeAsync(Resultados);
+        }
+        else
+        {
+            Resultados = new();
+        }
+    }
+
+    // 🔸 Clases auxiliares ---------------------------
+    public class CampoFiltro
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+        public TipoCampo Tipo { get; set; } = TipoCampo.Texto;
+        public string? Placeholder { get; set; }
+        public List<OpcionSelect>? Opciones { get; set; }
+    }
+
+    public class OpcionSelect
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+    }
+
+    public enum TipoCampo
+    {
+        Texto,
+        Select
+    }
+}

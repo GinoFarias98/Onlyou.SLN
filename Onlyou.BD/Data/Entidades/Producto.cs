@@ -6,8 +6,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Onlyou.BD.Data.Entidades
 {
-    [Index(nameof(Nombre))] // Índice para búsquedas rápidas por Nombre
-    [Index(nameof(Codigo))] // Índice para búsquedas rápidas por Codigo
+    [Index(nameof(Nombre))]
+    [Index(nameof(Codigo), IsUnique = true)]
     [Index(nameof(MarcaId), nameof(TipoProductoId))] // Índice compuesto para filtros por Marca y Tipo
     public class Producto : EntidadBase
     {
@@ -70,6 +70,14 @@ namespace Onlyou.BD.Data.Entidades
         [Display(Name = "Precio",
                  Description = "Precio de venta del producto.")]
         public decimal Precio { get; set; }
+
+
+        // Publicar en Web Si/No -------------------------------------------------------------------
+
+
+        [Display(Name = "Publicado en Web",
+         Description = "Indica si el producto está disponible para la vista de usuarios finales.")]
+        public bool PublicadoWeb { get; set; } = false;
 
         // FK Proveedor -------------------------------------------------------------
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Onlyou.Client;
 using Onlyou.Client.Autorizacion;
 using Onlyou.Client.Servicios;
+using Onlyou.Client.Servicios.ServiciosEntidades;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -17,6 +18,7 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddScoped<IHttpServicios, HttpServicios>();
 builder.Services.AddScoped<ICategoriaServicios, CategoriaServicios>();
+builder.Services.AddScoped(typeof(FiltroGenericoServicio<>));
 
 
 builder.Services.AddScoped<ProveedorAutenticacionJWT>();

@@ -703,7 +703,8 @@ namespace Onlyou.BD.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_Codigo",
                 table: "Productos",
-                column: "Codigo");
+                column: "Codigo",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_MarcaId_TipoProductoId",
@@ -713,7 +714,8 @@ namespace Onlyou.BD.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_Nombre",
                 table: "Productos",
-                column: "Nombre");
+                column: "Nombre",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_ProveedorId",

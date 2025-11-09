@@ -40,6 +40,10 @@ namespace Onlyou.Shared.DTOS.Producto
         [Range(0, 10000000, ErrorMessage = "El precio debe ser un número positivo o cero.")]
         public decimal Precio { get; set; }
 
+        [Display(Name = "Publicado en Web",
+        Description = "Indica si el producto está disponible para la vista de usuarios finales.")]
+        public bool PublicadoWeb { get; set; } = false;
+
         [Required(ErrorMessage = "El proveedor es obligatorio.")]
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un proveedor válido.")]
         public int ProveedorId { get; set; }

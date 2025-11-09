@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Onlyou.BD.Data;
 
@@ -11,9 +12,11 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20251108213425_inicio")]
+    partial class inicio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -619,9 +622,6 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("ProveedorId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("PublicadoWeb")
-                        .HasColumnType("bit");
-
                     b.Property<int>("Stock")
                         .HasColumnType("int");
 
@@ -635,7 +635,8 @@ namespace Onlyou.BD.Migrations
                     b.HasIndex("Codigo")
                         .IsUnique();
 
-                    b.HasIndex("Nombre");
+                    b.HasIndex("Nombre")
+                        .IsUnique();
 
                     b.HasIndex("ProveedorId");
 

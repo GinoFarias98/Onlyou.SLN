@@ -8,6 +8,7 @@ namespace Onlyou.Server.Repositorio
         Task<bool> Delete(int id);
         Task<bool> Existe(int id);
         Task<bool> ExistePorCondicion(Expression<Func<E, bool>> predicado);
+        Task<List<E>> FiltrarAsync(Dictionary<string, object?> filtros);
         Task<int> Insert(E entidad);
         Task<TDTO> InsertDevuelveDTO<TDTO>(E entidad);
         Task<List<E>> Select();

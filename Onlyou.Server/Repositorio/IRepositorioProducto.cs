@@ -4,6 +4,10 @@ namespace Onlyou.Server.Repositorio
 {
     public interface IRepositorioProducto : IRepositorio<Producto>
     {
+        Task<bool> ActualizarPublicadoWeb(int id, bool publicado);
+        Task<bool> ExistePorCodigo(string codigo);
+        Task<bool> ExistePorNombre(string nombre);
+        Task<List<Producto>> ObtenerProductosParaWebAsyncConRelaciones();
         Task<Producto?> SelecByCod(string codigo);
         Task<List<Producto>> SelectArchivadosConRelaciones();
         Task<List<Producto>> SelectBySimilName(string similName);

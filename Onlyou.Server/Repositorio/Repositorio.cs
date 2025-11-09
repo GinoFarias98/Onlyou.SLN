@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
+using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Utils;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -25,6 +28,60 @@ namespace Onlyou.Server.Repositorio
             this.context = context;
             this.mapper = mapper;
         }
+
+
+        public async Task<List<E>> FiltrarAsync(Dictionary<string, object?> filtros)
+        {
+            IQueryable<E> query = context.Set<E>().AsQueryable();
+            var parameter = Expression.Parameter(typeof(E), "x");
+
+            foreach (var filtro in filtros)
+            {
+                var property = Expression.Property(parameter, filtro.Key);
+                var value = filtro.Value;
+
+                // 🔹 Ignorar filtros null
+                if (value is null)
+                    continue;
+
+                // 🔸 Si el valor es JsonElement, convertirlo
+                if (value is JsonElement jsonElement)
+                {
+                    value = jsonElement.ValueKind switch
+                    {
+                        JsonValueKind.String => jsonElement.GetString(),
+                        JsonValueKind.Number => jsonElement.TryGetInt32(out var intVal) ? intVal : jsonElement.GetDecimal(),
+                        JsonValueKind.True => true,
+                        JsonValueKind.False => false,
+                        _ => jsonElement.ToString()
+                    };
+                }
+
+                Expression expression;
+
+                if (property.Type == typeof(string))
+                {
+                    var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes)!;
+                    var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string )})!;
+
+                    var left = Expression.Call(property, toLowerMethod);
+                    var right = Expression.Constant(value.ToString()!.ToLower());
+                    expression = Expression.Call(left, containsMethod, right);
+                }
+                else
+                {
+                    // 🔹 Convertir solo si no es null
+                    var constant = Expression.Constant(Convert.ChangeType(value, property.Type));
+                    expression = Expression.Equal(property, constant);
+                }
+
+                var lambda = Expression.Lambda<Func<E, bool>>(expression, parameter);
+                query = query.Where(lambda);
+            }
+
+            return await query.ToListAsync();
+        }
+
 
         public async Task<bool> Existe(int id)
         {
@@ -51,7 +108,7 @@ namespace Onlyou.Server.Repositorio
             {
                 //solo traemos los que tengan estado activo
                 return await context.Set<E>().Where(x => x.Estado == true).ToListAsync();
-                               
+
             }
             catch (Exception ex)
             {
