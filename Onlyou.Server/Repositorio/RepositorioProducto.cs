@@ -88,37 +88,6 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
-        // metodo que busca por nombre paracial y devuelve similares a lo que se escribe
-        public async Task<List<Producto>> SelectBySimilName(string similName)
-        {
-            try
-            {
-                // busqueda case-insensitive
-                var productos = await context.Productos.Where(p => EF.Functions.Like(p.Nombre, $"%{similName.ToLower()}")).ToListAsync();
-                return productos;
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-
-                throw;
-            }
-
-        }
-
-        public async Task<List<Producto>> SelectByTipoProducto(int tipoProductoId)
-        {
-            try
-            {
-                var productos = await context.Productos.Where(p => p.TipoProductoId == tipoProductoId).ToListAsync();
-                return productos;
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-        }
 
 
         public async Task<List<Producto>> SelectConRelaciones()
@@ -144,27 +113,6 @@ namespace Onlyou.Server.Repositorio
 
         }
 
-        public async Task<List<Producto>> SelectConRelacionesByIdCategoria(int idCategoria)
-        {
-            try
-            {
-                var productosCompletosXCategoria = await context.Productos.Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
-                    .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
-                    .Include(p => p.Marca)
-                    .Include(p => p.Categoria)
-                    .Include(p => p.TipoProducto)
-                    .Include(p => p.Proveedor)
-                    .Where(p => p.Estado == true && p.CategoriaId == idCategoria)
-                    .ToListAsync();
-                return productosCompletosXCategoria;
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-
-        }
 
         public async Task<Producto?> SelectConRelacionesXId(int id)
         {
@@ -229,12 +177,26 @@ namespace Onlyou.Server.Repositorio
             return productosPaginados;
         }
 
-        public async Task<List<Producto>> SelectProductoByProv(int proveedorId)
+
+        public async Task<List<Producto>> FiltrarConRelacionesAsync(Dictionary<string, object?> filtros)
         {
             try
             {
-                var productoByProv = await context.Productos.Where(p => p.ProveedorId == proveedorId).ToListAsync();
-                return productoByProv;
+                var productosFiltrados = await FiltrarAsync(filtros);
+                var ids = productosFiltrados.Select(p => p.Id).ToList();
+
+                var productosConRelaciones = await context.Productos
+                    .Where(p => ids.Contains(p.Id)) // Ojo: sin AsQueryable()
+                    .Include(p => p.ProductosColores).ThenInclude(pc => pc.Color)
+                    .Include(p => p.ProductosTalles).ThenInclude(pt => pt.Talle)
+                    .Include(p => p.Marca)
+                    .Include(p => p.Categoria)
+                    .Include(p => p.TipoProducto)
+                    .Include(p => p.Proveedor)
+                    .ToListAsync();
+
+                return productosConRelaciones;
+
             }
             catch (Exception ex)
             {
@@ -244,20 +206,6 @@ namespace Onlyou.Server.Repositorio
 
         }
 
-        public async Task<List<Producto>> SelectProdByMarcaFiltro(int marcaId)
-        {
-            try
-            {
-                var productosByMarca = await context.Productos.Where(p => p.MarcaId == marcaId).ToListAsync();
-                return productosByMarca;
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-
-        }
 
 
         public async Task<bool> ActualizarPublicadoWeb(int id, bool publicado)

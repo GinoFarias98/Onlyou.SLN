@@ -152,7 +152,7 @@ namespace Onlyou.Server.Controllers
         [HttpPost("Filtrar")]
         public async Task<ActionResult<List<GetProductoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
         {
-            var productos = await repositorioProducto.FiltrarAsync(filtros);
+            var productos = await repositorioProducto.FiltrarConRelacionesAsync(filtros);
             var dto = mapper.Map<List<GetProductoDTO>>(productos);
             return Ok(dto);
         }
