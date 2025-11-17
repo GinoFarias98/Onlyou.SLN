@@ -12,7 +12,7 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251109164505_init")]
+    [Migration("20251113174017_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -234,11 +234,6 @@ namespace Onlyou.BD.Migrations
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
-                    b.Property<string>("EstadoCaja")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
                     b.Property<DateTime>("FechaFin")
                         .HasColumnType("datetime2");
 
@@ -248,13 +243,16 @@ namespace Onlyou.BD.Migrations
                     b.Property<decimal>("SaldoInicial")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("Id");
+                    b.Property<int>("estadoCaja")
+                        .HasColumnType("int");
 
-                    b.HasIndex("EstadoCaja");
+                    b.HasKey("Id");
 
                     b.HasIndex("FechaFin");
 
                     b.HasIndex("FechaInicio");
+
+                    b.HasIndex("estadoCaja");
 
                     b.ToTable("Cajas");
                 });
@@ -638,8 +636,7 @@ namespace Onlyou.BD.Migrations
                     b.HasIndex("Codigo")
                         .IsUnique();
 
-                    b.HasIndex("Nombre")
-                        .IsUnique();
+                    b.HasIndex("Nombre");
 
                     b.HasIndex("ProveedorId");
 

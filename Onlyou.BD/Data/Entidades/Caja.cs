@@ -8,7 +8,7 @@ namespace Onlyou.BD.Data.Entidades
 {
     [Index(nameof(FechaInicio))]
     [Index(nameof(FechaFin))]
-    [Index(nameof(EstadoCaja))]
+    [Index(nameof(estadoCaja))]
     public class Caja : EntidadBase
     {
         // Fecha de inicio ------------------------------------------------------------
@@ -20,10 +20,9 @@ namespace Onlyou.BD.Data.Entidades
 
         // Fecha de fin ---------------------------------------------------------------
 
-        [Required(ErrorMessage = "La fecha de fin es obligatoria.")]
         [Display(Name = "Fecha de fin",
                  Description = "Fecha en que se cerró o finalizó la caja.")]
-        public DateTime FechaFin { get; set; } = DateTime.UtcNow;
+        public DateTime? FechaFin { get; set; }
 
         // Saldo inicial --------------------------------------------------------------
 
@@ -36,16 +35,24 @@ namespace Onlyou.BD.Data.Entidades
 
         // Estado --------------------------------------------------------------------
 
-        [Required(ErrorMessage = "El estado de la caja es obligatorio.")]
-        [StringLength(128, ErrorMessage = "Máximo {1} caracteres.")]
-        [Display(Name = "Estado de la caja",
-                 Description = "Estado actual de la caja (Ej: Abierta, Cerrada, Anulada).")]
-        public string EstadoCaja { get; set; } = null!;
-
+        [Required]
+        [Display(Name = "Estado de la caja")]
+        public EstadoCaja estadoCaja { get; set; } = EstadoCaja.Abierta;
         // Movimientos asociados -----------------------------------------------------
 
         [Display(Name = "Movimientos",
                  Description = "Lista de movimientos asociados a esta caja.")]
         public ICollection<Movimiento> Movimientos { get; set; } = new List<Movimiento>();
+
+        public ICollection<ObservacionCaja> Observaciones { get; set; } = new List<ObservacionCaja>();
+
+
+        public enum EstadoCaja
+        {
+            Abierta,
+            Cerrada,
+            Anulada
+        }
+
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.TipoMovimento;
 
 namespace Onlyou.Server.Repositorio
 {
-    public interface IRepositorioTipoMovimiento
+    public interface IRepositorioTipoMovimiento : IRepositorio<TipoMovimiento>
     {
-        Task<int> Insert(Movimiento entidad);
-        Task<string?> InsertDevuelveCodigo(Movimiento entidad);
-        Task<TDTO> InsertDevuelveDTO<TDTO>(Movimiento entidad);
-        Task<bool> UpdateEntidad(int id, Movimiento entidad);
-        Task<bool> UpdateEstado(int id, Movimiento entidad);
+        Task EliminarTMovimientoAsync(int id);
+        Task<List<TipoMovimiento>> FiltrarConRelacionesAsync(Dictionary<string, object?> filtros);
+        Task ValidarNombreUnico(string nombre, int? id = null);
     }
 }

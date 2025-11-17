@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.TipoMovimento;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -16,44 +18,60 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
-        public Task<int> Insert(Movimiento entidad)
+        public async Task ValidarNombreUnico(string nombre, int? id = null)
         {
-            throw new NotImplementedException();
+            var existe = await context.TipoMovimientos
+                .AnyAsync(x =>
+                    x.Nombre.ToLower() == nombre.ToLower() &&
+                    (id == null || x.Id != id)
+                );
+
+            if (existe)
+                throw new Exception("Ya existe un tipo de movimiento con ese nombre.");
         }
 
-        public Task<string?> InsertDevuelveCodigo(Movimiento entidad)
+        // ----------------------------
+        // FILTRO USANDO EL SELECTOR GENÉRICO
+        // ----------------------------
+        public async Task<List<TipoMovimiento>> FiltrarConRelacionesAsync(Dictionary<string, object?> filtros)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var TipoMovimientosFiltrados = await FiltrarAsync(filtros);
+                var ids = TipoMovimientosFiltrados.Select(p => p.Id).ToList();
+
+                var TPFiltrados = await context.TipoMovimientos
+                    .Where(p => ids.Contains(p.Id)) // Ojo: sin AsQueryable()
+                    .ToListAsync();
+
+                return TPFiltrados;
+
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+
         }
 
-        public Task<TDTO> InsertDevuelveDTO<TDTO>(Movimiento entidad)
+
+
+        public async Task EliminarTMovimientoAsync(int id)
         {
-            throw new NotImplementedException();
+            var TipoMovimiento = await context.TipoMovimientos
+                                         .Include(tm => tm.Movimientos)
+                                         .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (TipoMovimiento == null)
+                throw new Exception("Categoría no encontrada.");
+
+            if (TipoMovimiento.Movimientos != null && TipoMovimiento.Movimientos.Any())
+                throw new InvalidOperationException("No se puede eliminar un Tipo de Movimiento con Movimientos asociados.");
+
+            context.TipoMovimientos.Remove(TipoMovimiento);
+            await context.SaveChangesAsync();
         }
 
-        public Task<bool> UpdateEntidad(int id, Movimiento entidad)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateEstado(int id, Movimiento entidad)
-        {
-            throw new NotImplementedException();
-        }
-
-        //Task<List<Movimiento>> IRepositorio<Movimiento>.Select()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Movimiento?> IRepositorio<Movimiento>.SelectByCod(string codigo)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Movimiento?> IRepositorio<Movimiento>.SelectById(int id)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }

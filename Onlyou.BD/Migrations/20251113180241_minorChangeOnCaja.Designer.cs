@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251109165023_modif")]
-    partial class modif
+    [Migration("20251113180241_minorChangeOnCaja")]
+    partial class minorChangeOnCaja
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -234,12 +234,7 @@ namespace Onlyou.BD.Migrations
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
-                    b.Property<string>("EstadoCaja")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<DateTime>("FechaFin")
+                    b.Property<DateTime?>("FechaFin")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaInicio")
@@ -248,13 +243,16 @@ namespace Onlyou.BD.Migrations
                     b.Property<decimal>("SaldoInicial")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("Id");
+                    b.Property<int>("estadoCaja")
+                        .HasColumnType("int");
 
-                    b.HasIndex("EstadoCaja");
+                    b.HasKey("Id");
 
                     b.HasIndex("FechaFin");
 
                     b.HasIndex("FechaInicio");
+
+                    b.HasIndex("estadoCaja");
 
                     b.ToTable("Cajas");
                 });

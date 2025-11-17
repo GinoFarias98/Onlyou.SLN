@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Onlyou.BD.Migrations
 {
     /// <inheritdoc />
-    public partial class inicio : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -59,7 +59,7 @@ namespace Onlyou.BD.Migrations
                     FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaFin = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    EstadoCaja = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    estadoCaja = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -339,6 +339,7 @@ namespace Onlyou.BD.Migrations
                     FecUltimaModificacion = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Costo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PublicadoWeb = table.Column<bool>(type: "bit", nullable: false),
                     ProveedorId = table.Column<int>(type: "int", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
                     TipoProductoId = table.Column<int>(type: "int", nullable: false),
@@ -560,9 +561,9 @@ namespace Onlyou.BD.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Cajas_EstadoCaja",
+                name: "IX_Cajas_estadoCaja",
                 table: "Cajas",
-                column: "EstadoCaja");
+                column: "estadoCaja");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Cajas_FechaFin",
@@ -714,8 +715,7 @@ namespace Onlyou.BD.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_Nombre",
                 table: "Productos",
-                column: "Nombre",
-                unique: true);
+                column: "Nombre");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_ProveedorId",

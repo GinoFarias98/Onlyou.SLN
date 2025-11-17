@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.Caja;
 using Onlyou.Shared.DTOS.Categorias;
 using Onlyou.Shared.DTOS.Color;
 using Onlyou.Shared.DTOS.Marca;
+using Onlyou.Shared.DTOS.ObservacionCaja;
 using Onlyou.Shared.DTOS.Producto;
 using Onlyou.Shared.DTOS.Proveedor;
 using Onlyou.Shared.DTOS.Talle;
+using Onlyou.Shared.DTOS.TipoMovimento;
 using Onlyou.Shared.DTOS.TipoProducto;
 
 namespace Onlyou.Server.Helpers
@@ -83,6 +86,36 @@ namespace Onlyou.Server.Helpers
             //        src.Colores.Select(id => new ProductoColor { ColorId = id })))
             //    .ForMember(dest => dest.ProductosTalles, opt => opt.MapFrom(src =>
             //        src.Talles.Select(id => new ProductoTalle { TalleId = id })));
+
+
+            // Caja
+
+
+            CreateMap<Caja, GetCajaDTO>().ReverseMap();
+            CreateMap<PostCajaDTO, Caja>();
+            CreateMap<PutCajaDTO, Caja>();
+
+
+            // ObservacionCaja
+
+
+            CreateMap<ObservacionCaja, GetObservacionCajaDTO>();
+            CreateMap<PostObservacionCajaDTO, ObservacionCaja>(); // opcional
+            CreateMap<Caja, GetCajaDTO>()
+                .ForMember(d => d.Observaciones, o => o.MapFrom(s => s.Observaciones));
+
+
+            // Tipo Movimiento
+
+
+            CreateMap<TipoMovimiento, GetTipoMovimeintoDTO>().ReverseMap();
+            CreateMap<PostTipoMovimientoDTO, TipoMovimiento>();
+            CreateMap<PutTipoMovimiento, TipoMovimiento>();
+
+
+
+
+
         }
     }
 }

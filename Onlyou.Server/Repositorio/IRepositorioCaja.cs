@@ -4,6 +4,9 @@ namespace Onlyou.Server.Repositorio
 {
     public interface IRepositorioCaja : IRepositorio<Caja>
     {
+        Task<Caja> AbrirNuevaCajaAsync(decimal saldoInicial);
+        Task<Caja> CambiarEstadoCajaAsync(int idCaja, Caja.EstadoCaja nuevoEstado, string? observacion = null);
+        Task<IEnumerable<Caja>> ListarCajasCerradasAsync();
         Task<Caja?> SelectCajaAbiertaAsync();
         Task<IEnumerable<Caja>> SelectCajasPorRangoFechasAsync(DateTime inicio, DateTime fin);
     }

@@ -13,6 +13,11 @@ namespace Onlyou.BD.Data.Entidades
                  Description = "Nombre del tipo de movimiento.")]
         public string Nombre { get; set; } = null!;
 
+        [MaxLength(256, ErrorMessage = "Máximo 256 caracteres.")]
+        [Display(Name = "Nombre",
+             Description = "Descripcion del tipo de movimiento.")]
+        public string? Descripcion { get; set; }
+
         [Display(Name = "¿Corresponde a un ingreso?",
                  Description = "Indica si el registro corresponde a un ingreso de dinero o recurso.")]
         public bool EsIngreso { get; set; }

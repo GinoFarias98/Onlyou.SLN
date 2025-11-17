@@ -25,6 +25,7 @@ namespace Onlyou.BD.Data
         public DbSet<TipoProducto> TipoProductos { get; set; }
         public DbSet<TipoMovimiento> TipoMovimientos { get; set; }
         public DbSet<Caja> Cajas { get; set; }
+        public DbSet<ObservacionCaja> ObservacionCajas { get; set; }
         public DbSet<Movimiento> Movimientos { get; set; }
         public DbSet<Pago> Pagos { get; set; }
 
