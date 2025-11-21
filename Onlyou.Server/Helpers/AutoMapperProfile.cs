@@ -4,12 +4,16 @@ using Onlyou.Shared.DTOS.Caja;
 using Onlyou.Shared.DTOS.Categorias;
 using Onlyou.Shared.DTOS.Color;
 using Onlyou.Shared.DTOS.Marca;
+using Onlyou.Shared.DTOS.Pedidos;
+using Onlyou.Shared.DTOS.Pedidos.PedidoItem;
 using Onlyou.Shared.DTOS.ObservacionCaja;
 using Onlyou.Shared.DTOS.Producto;
 using Onlyou.Shared.DTOS.Proveedor;
 using Onlyou.Shared.DTOS.Talle;
 using Onlyou.Shared.DTOS.TipoMovimento;
 using Onlyou.Shared.DTOS.TipoProducto;
+using Onlyou.Shared.DTOS.Pedidos.EstadoPedido;
+
 
 namespace Onlyou.Server.Helpers
 {
@@ -79,6 +83,37 @@ namespace Onlyou.Server.Helpers
                 .ForMember(dest => dest.Imagen, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductosColores, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductosTalles, opt => opt.Ignore());
+
+
+            //// Mapeos para Pedidos
+            CreateMap<Pedido, GetPedidosDTO>()
+                .ForMember(dest => dest.EstadoPedidoNombre, opt => opt.MapFrom(src => src.EstadoPedido.Nombre))
+                .ForMember(dest => dest.PedidoItems, opt => opt.MapFrom(src => src.PedidoItems));
+
+
+            CreateMap<PostPedidoDTO, Pedido>()
+                .ForMember(dest => dest.EstadoEntrega, opt => opt.Ignore()) // Se setea manualmente
+                .ForMember(dest => dest.EstadoPago, opt => opt.Ignore())    // Se setea manualmente
+                .ForMember(dest => dest.FechaGenerado, opt => opt.Ignore()) // Se setea manualmente
+                .ForMember(dest => dest.FechaPedidoAProveedor, opt => opt.Ignore()) // Se setea manualmente
+                .ForMember(dest => dest.MontoEntregado, opt => opt.Ignore()) // Se setea manualmente
+                .ForMember(dest => dest.MontoPagado, opt => opt.Ignore());  // Se setea manualmente
+
+            //esto no se
+            CreateMap<PutPedidoDTO, Producto>()
+                .ForMember(dest => dest.FecUltimaModificacion, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+            // Mapeos para PedidoItems
+            CreateMap<PedidoItem, GetPedidoItemDTO>()
+                .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src => src.Producto.Nombre))
+                .ForMember(dest => dest.ProductoImagen, opt => opt.MapFrom(src => src.Producto.Imagen));
+
+            CreateMap<PostPedidoItemDTO, PedidoItem>();
+            CreateMap<PutPedidoItemDTO, PedidoItem>();
+
+            // Mapeo para EstadoPedido
+            CreateMap<EstadoPedido, EstadoPedidoDTO>();
+            CreateMap<EstadoPedidoDTO, EstadoPedido>();
 
             //CreateMap<PutProductoDTO, Producto>()
             //    .ForMember(dest => dest.Imagen, opt => opt.Ignore())

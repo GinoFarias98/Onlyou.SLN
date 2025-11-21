@@ -1,0 +1,295 @@
+﻿@page "/pedido-detalle/{pedidoId:int}"
+@using Onlyou.Shared.DTOS.Pedidos
+@using Onlyou.Shared.DTOS.Pedidos.EstadoPedido
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Gestión del Pedido #@pedidoId</h3>
+    <button class="btn btn-outline-secondary" @onclick="VolverALista">← Volver a Pedidos</button>
+</div>
+
+@if (cargando)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else if (pedido == null)
+{
+    <div class="alert alert-danger">
+        No se encontró el pedido solicitado.
+    </div>
+}
+else
+{
+    <div class="row">
+        <!-- Columna izquierda: Datos del cliente -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📋 Datos del Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Nombre:</strong><br />
+                            @pedido.NombreCliente
+                        </div>
+                        <div class="col-6">
+                            <strong>DNI:</strong><br />
+                            @pedido.DNI
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Dirección:</strong><br />
+                            @pedido.DireccionCliente
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Localidad:</strong><br />
+                            @pedido.Localidad
+                        </div>
+@*                         <div class="col-6">
+                            <strong>Teléfono:</strong><br />
+                            <a href="https://wa.me/@pedido.Telefono" target="_blank" class="btn btn-sm btn-success">
+                                📞 @pedido.Telefono
+                            </a>
+                        </div> *@
+                    </div>
+                    <hr />
+                    <div>
+                        <strong>Descripción:</strong><br />
+                        @pedido.Descripcion
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen financiero -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">💰 Resumen Financiero</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span>Total del Pedido:</span>
+                        <strong>$@pedido.MontoTotal.ToString("N2")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Monto Pagado:</span>
+                        <strong class="text-success">$@pedido.MontoPagado.ToString("N2")</strong>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <span>Saldo Pendiente:</span>
+                        <strong class="text-danger">$@pedido.SaldoPendiente.ToString("N2")</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Gestión del pedido -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">⚙️ Gestión del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Estado del Pedido:</strong></label>
+                        <select @bind="nuevoEstadoId" class="form-select">
+                            @foreach (var estado in estadosPedido)
+                            {
+                                <option value="@estado.Id">@estado.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Estado de Entrega:</strong></label>
+                        <select @bind="nuevoEstadoEntrega" class="form-select">
+                            <option value="0">📦 No Entregado</option>
+                            <option value="1">📤 Parcial</option>
+                            <option value="2">✅ Completo</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Estado de Pago:</strong></label>
+                        <select @bind="nuevoEstadoPago" class="form-select">
+                            <option value="0">💳 No Pagado</option>
+                            <option value="1">💰 Parcial</option>
+                            <option value="2">✅ Pagado</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Monto Pagado:</strong></label>
+                        <input type="number" step="0.01" @bind="nuevoMontoPagado" class="form-control" />
+                        <div class="form-text">
+                            Saldo pendiente: $@(pedido.MontoTotal - nuevoMontoPagado).ToString("N2")
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="GuardarCambios">
+                            💾 Guardar Cambios
+                        </button>
+                        <button class="btn btn-warning" @onclick="MarcarComoPedidoProveedor">
+                            📦 Marcar como Pedido a Proveedor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos del pedido -->
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🛍️ Productos del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant</th>
+                                    <th>Precio</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in pedido.PedidoItems)
+                                {
+                                    <tr>
+                                        <td>@item.ProductoNombre</td>
+                                        <td>@item.Cantidad</td>
+                                        <td>$@item.PrecioUnitarioVenta.ToString("N2")</td>
+                                        <td>$@item.SubTotal.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int pedidoId { get; set; }
+
+    private GetPedidosDTO? pedido;
+    private List<EstadoPedidoDTO> estadosPedido = new();
+    private int nuevoEstadoId;
+    private int nuevoEstadoEntrega;
+    private int nuevoEstadoPago;
+    private decimal nuevoMontoPagado;
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEstadosPedido();
+        await CargarPedido();
+    }
+
+    private async Task CargarEstadosPedido()
+    {
+        try
+        {
+            estadosPedido = await Http.GetFromJsonAsync<List<EstadoPedidoDTO>>("api/Pedidos/Estados") ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar estados: {ex.Message}");
+        }
+    }
+
+    private async Task CargarPedido()
+    {
+        cargando = true;
+        try
+        {
+            pedido = await Http.GetFromJsonAsync<GetPedidosDTO>($"api/Pedidos/{pedidoId}");
+            if (pedido != null)
+            {
+                nuevoEstadoId = pedido.EstadoPedidoId;
+                nuevoEstadoEntrega = pedido.EstadoEntrega;
+                nuevoEstadoPago = pedido.EstadoPago;
+                nuevoMontoPagado = pedido.MontoPagado;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar pedido: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GuardarCambios()
+    {
+        if (pedido != null)
+        {
+            var putDTO = new PutPedidoDTO
+            {
+                MontoTotal = pedido.MontoTotal,
+                Descripcion = pedido.Descripcion,
+                NombreCliente = pedido.NombreCliente,
+                DireccionCliente = pedido.DireccionCliente,
+                Localidad = pedido.Localidad,
+                DNI = pedido.DNI,
+                EstadoPedidoId = nuevoEstadoId,
+                EstadoEntrega = nuevoEstadoEntrega,
+                EstadoPago = nuevoEstadoPago,
+                MontoPagado = nuevoMontoPagado
+            };
+
+            try
+            {
+                var response = await Http.PutAsJsonAsync($"api/Pedidos/{pedidoId}", putDTO);
+                if (response.IsSuccessStatusCode)
+                {
+                    await CargarPedido();
+                    // Aquí podrías agregar una notificación de éxito
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al guardar cambios: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarcarComoPedidoProveedor()
+    {
+        try
+        {
+            var response = await Http.PatchAsync($"api/Pedidos/MarcarProveedor/{pedidoId}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                await CargarPedido();
+                // Aquí podrías agregar una notificación de éxito
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al marcar como pedido a proveedor: {ex.Message}");
+        }
+    }
+
+    private void VolverALista()
+    {
+        Navigation.NavigateTo("/pedidos");
+    }
+}
