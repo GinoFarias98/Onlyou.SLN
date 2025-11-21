@@ -50,27 +50,27 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
-        public async Task<IEnumerable<Movimiento>> SelectMovimientosPorEstadoAsync(string estado)
-        {
-            try
-            {
-                return await context.Movimientos
-                    .Where(m => m.EstadoMovimiento == estado)
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
-        }
+        //public async Task<IEnumerable<Movimiento>> SelectMovimientosPorEstadoAsync(string estado)
+        //{
+        //    try
+        //    {
+        //        return await context.Movimientos
+        //            .Where(m => m.EstadoMovimiento == estado)
+        //            .ToListAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ImprimirError(ex);
+        //        throw;
+        //    }
+        //}
 
         public async Task<decimal> SelectTotalIngresosPorCajaAsync(int cajaId)
         {
             try
             {
                 return await context.Movimientos
-                    .Where(m => m.CajaId == cajaId && m.TipoMovimiento.Nombre == "Ingreso")
+                    .Where(m => m.CajaId == cajaId && m.TipoMovimiento.signo == Signo.Suma)
                     .SumAsync(m => m.Monto);
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace Onlyou.Server.Repositorio
             try
             {
                 return await context.Movimientos
-                    .Where(m => m.CajaId == cajaId && m.TipoMovimiento.Nombre == "Egreso")
+                    .Where(m => m.CajaId == cajaId && m.TipoMovimiento.signo == Signo.Resta)
                     .SumAsync(m => m.Monto);
             }
             catch (Exception ex)
@@ -94,7 +94,6 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
-
 
 
     }

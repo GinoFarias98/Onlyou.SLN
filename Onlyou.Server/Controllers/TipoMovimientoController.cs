@@ -87,12 +87,11 @@ namespace Onlyou.Server.Controllers
         }
 
 
-
         [HttpPost("Filtrar")]
-        public async Task<ActionResult<List<GetProductoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
+        public async Task<ActionResult<List<GetTipoMovimeintoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
         {
-            var productos = await repositorioTipoMovimiento.FiltrarConRelacionesAsync(filtros);
-            var dto = mapper.Map<List<GetProductoDTO>>(productos);
+            var TipoMovimientos = await repositorioTipoMovimiento.FiltrarConRelacionesAsync(filtros);
+            var dto = mapper.Map<List<GetTipoMovimeintoDTO>>(TipoMovimientos);
             return Ok(dto);
         }
 

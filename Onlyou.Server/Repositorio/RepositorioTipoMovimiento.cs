@@ -18,6 +18,7 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
+
         public async Task ValidarNombreUnico(string nombre, int? id = null)
         {
             var existe = await context.TipoMovimientos

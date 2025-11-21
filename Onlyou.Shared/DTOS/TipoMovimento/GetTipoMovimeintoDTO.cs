@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Onlyou.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace Onlyou.Shared.DTOS.TipoMovimento
         public int Id { get; set; }
         public string Nombre { get; set; }
         public string? Descripcion { get; set; }
+        public SignoTipoMovimientoDto Signo { get; set; }
         public bool Estado { get; set; }
 
     }

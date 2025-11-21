@@ -47,7 +47,7 @@ namespace Onlyou.BD.Data.Entidades
         [StringLength(50, ErrorMessage = "Máximo {1} caracteres.")]
         [Display(Name = "Estado",
                  Description = "Estado actual del movimiento (Ej: Pendiente, Pagado, Anulado).")]
-        public string EstadoMovimiento { get; set; } = null!;
+        public EstadoMovimiento EstadoMovimiento { get; set; }
 
 
 
@@ -68,14 +68,12 @@ namespace Onlyou.BD.Data.Entidades
 
         // FK: Proveedor --------------------------------------------------------------
 
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Proveedor.")]
         [ForeignKey(nameof(Proveedor))]
         public int? ProveedorId { get; set; }
         public Proveedor? Proveedor { get; set; }
 
         // FK: Pedido -----------------------------------------------------------------
 
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un Pedido.")]
         [ForeignKey(nameof(Pedido))]
         public int? PedidoId { get; set; }
         public Pedido? Pedido { get; set; }
@@ -88,4 +86,15 @@ namespace Onlyou.BD.Data.Entidades
                  Description = "Lista de pagos asociados a este movimiento.")]
         public ICollection<Pago> Pagos { get; set; } = new List<Pago>();
     }
+
+
+    public enum EstadoMovimiento
+    {
+        Pendiente,   // El movimiento fue creado pero no se concretó
+        Pagado,      // Ya se realizó el pago o ingreso correspondiente
+        Anulado,     // Movimiento cancelado
+        Parcial,     // Opcional, si se admite pago parcial
+        Rechazado    // Opcional, para movimientos que no se validan
+    }
+
 }
