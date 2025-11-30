@@ -28,7 +28,9 @@ namespace Onlyou.BD.Data
         public DbSet<ObservacionCaja> ObservacionCajas { get; set; }
         public DbSet<Movimiento> Movimientos { get; set; }
         public DbSet<Pago> Pagos { get; set; }
+        public DbSet<ObservacionPago> ObservacionPagos { get; set; }
 
+        public DbSet<TipoPago> TipoPagos { get; set; }
 
 
         // Es necesario trabajar con DNI en Clientes, para indexar mejor, AGREGAR

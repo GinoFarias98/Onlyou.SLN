@@ -379,10 +379,8 @@ namespace Onlyou.BD.Migrations
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
-                    b.Property<string>("EstadoMovimiento")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("EstadoMovimiento")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("FechaDelMovimiento")
                         .HasColumnType("datetime2");
@@ -416,7 +414,7 @@ namespace Onlyou.BD.Migrations
                     b.ToTable("Movimientos");
                 });
 
-            modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionCaja", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -424,9 +422,63 @@ namespace Onlyou.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Descripcion")
+                    b.Property<int>("CajaId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CajaId");
+
+                    b.ToTable("ObservacionCajas");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionPago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PagoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PagoId");
+
+                    b.ToTable("ObservacionPagos");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("EsPagoCliente")
                         .HasColumnType("bit");
@@ -437,31 +489,27 @@ namespace Onlyou.BD.Migrations
                     b.Property<DateTime>("FechaRealizado")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("MetodoDePago")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<decimal>("Monto")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("MovimientoId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Situacion")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("Situacion")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoPagoId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FechaRealizado");
 
-                    b.HasIndex("MetodoDePago");
-
                     b.HasIndex("MovimientoId");
 
                     b.HasIndex("Situacion");
+
+                    b.HasIndex("TipoPagoId");
 
                     b.HasIndex("FechaRealizado", "MovimientoId");
 
@@ -768,8 +816,36 @@ namespace Onlyou.BD.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("EsIngreso")
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("Estado")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("signo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("TipoMovimientos");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.TipoPago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
@@ -781,10 +857,9 @@ namespace Onlyou.BD.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Nombre")
-                        .IsUnique();
+                    b.HasIndex("Nombre");
 
-                    b.ToTable("TipoMovimientos");
+                    b.ToTable("TipoPagos");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.TipoProducto", b =>
@@ -893,6 +968,28 @@ namespace Onlyou.BD.Migrations
                     b.Navigation("TipoMovimiento");
                 });
 
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionCaja", b =>
+                {
+                    b.HasOne("Onlyou.BD.Data.Entidades.Caja", "Caja")
+                        .WithMany("Observaciones")
+                        .HasForeignKey("CajaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Caja");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionPago", b =>
+                {
+                    b.HasOne("Onlyou.BD.Data.Entidades.Pago", "Pago")
+                        .WithMany("Observaciones")
+                        .HasForeignKey("PagoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pago");
+                });
+
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
                 {
                     b.HasOne("Onlyou.BD.Data.Entidades.Movimiento", "Movimiento")
@@ -901,7 +998,15 @@ namespace Onlyou.BD.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Onlyou.BD.Data.Entidades.TipoPago", "TipoPago")
+                        .WithMany("Pagos")
+                        .HasForeignKey("TipoPagoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Movimiento");
+
+                    b.Navigation("TipoPago");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pedido", b =>
@@ -1010,6 +1115,8 @@ namespace Onlyou.BD.Migrations
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Caja", b =>
                 {
                     b.Navigation("Movimientos");
+
+                    b.Navigation("Observaciones");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Categoria", b =>
@@ -1035,6 +1142,11 @@ namespace Onlyou.BD.Migrations
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Movimiento", b =>
                 {
                     b.Navigation("Pagos");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
+                {
+                    b.Navigation("Observaciones");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pedido", b =>
@@ -1066,6 +1178,11 @@ namespace Onlyou.BD.Migrations
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.TipoMovimiento", b =>
                 {
                     b.Navigation("Movimientos");
+                });
+
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.TipoPago", b =>
+                {
+                    b.Navigation("Pagos");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.TipoProducto", b =>

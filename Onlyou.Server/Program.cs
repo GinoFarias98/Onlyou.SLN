@@ -83,6 +83,8 @@ builder.Services.AddScoped<IRepositorioPedido, RepositorioPedido>();
 builder.Services.AddScoped<IRepositorioPedidoItem, RepositorioPedidoItem>();
 builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
 builder.Services.AddScoped<IRepositorioObservacionCaja, RepositorioObservacionCaja>();
+builder.Services.AddScoped<IRepositorioTipoPago, RepositorioTipoPago>();
+builder.Services.AddScoped<IRepositorioObservacionPago, RepositorioObservacionPago>();
 
 
 

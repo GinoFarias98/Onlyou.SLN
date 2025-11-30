@@ -5,27 +5,29 @@ using Onlyou.BD.Data.Entidades;
 
 namespace Onlyou.Server.Repositorio
 {
-    public class RepositorioObservacionCaja : Repositorio<ObservacionCaja>, IRepositorioObservacionCaja
+    public class RepositorioObservacionPago : Repositorio<ObservacionPago>, IRepositorioObservacionPago
     {
         private readonly Context context;
+        private readonly IMapper mapper;
 
-        public RepositorioObservacionCaja(Context context, IMapper mapper) : base(context, mapper)
+        public RepositorioObservacionPago(Context context, IMapper mapper) : base(context, mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
-        public async Task<ObservacionCaja> AgregarObservacionAsync(int cajaId, string texto)
+        public async Task<ObservacionPago> AgregarObservacionAsync(int pagoID, string texto)
         {
             try
             {
-                var obs = new ObservacionCaja
+                var obs = new ObservacionPago
                 {
-                    CajaId = cajaId,
+                    PagoId = pagoID,
                     Texto = texto,
                     FechaCreacion = DateTime.UtcNow
                 };
 
-                context.ObservacionCajas.Add(obs);
+                context.ObservacionPagos.Add(obs);
                 await context.SaveChangesAsync();
                 return obs;
 
@@ -38,22 +40,22 @@ namespace Onlyou.Server.Repositorio
 
         }
 
-        public async Task<IEnumerable<ObservacionCaja>> ListarObservacionesAsync(int cajaId)
+        public async Task<IEnumerable<ObservacionPago>> ListarObservacionesAsync(int pagoID)
         {
             try
             {
-                var caja = await context.Cajas
+                var pago = await context.Pagos
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == cajaId);
+                    .FirstOrDefaultAsync(c => c.Id == pagoID);
 
-                if (caja is null)
-                    throw new KeyNotFoundException($"No existe la Caja {cajaId}");
+                if (pago is null)
+                    throw new KeyNotFoundException($"No existe el Pago {pagoID}");
 
-                var query = context.ObservacionCajas
-                                   .Where(o => o.CajaId == cajaId);
+                var query = context.ObservacionPagos
+                                   .Where(o => o.PagoId == pagoID);
 
                 // Si la caja está activa, solo observaciones activas
-                if (caja.Estado)
+                if (pago.Estado)
                 {
                     query = query.Where(o => o.Estado == true);
                 }

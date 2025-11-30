@@ -126,7 +126,7 @@ namespace Onlyou.Server.Controllers
                 var prov = await repoProveedor.SelectById(id);
                 if (prov == null)
                 {
-                    return BadRequest($"No se encontró un Color con Id {id}.");
+                    return BadRequest($"No se encontró un Proveedor con Id {id}.");
                 }
                 // Mapear los cambios del DTO al color
                 mapper.Map(putProveedorDTO, prov);

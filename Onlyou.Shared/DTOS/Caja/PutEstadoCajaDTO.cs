@@ -11,12 +11,11 @@ namespace Onlyou.Shared.DTOS.Caja
     public class PutEstadoCajaDTO
     {
         [Required]
-        public EstadoCajaDto estadoCaja { get; set; } // "Abierta", "Cerrada", "Anulada"
+        public EstadoCajaDto EstadoCaja { get; set; } // "Abierta", "Cerrada", "Anulada"
 
         [StringLength(500)]
         public string? Observacion { get; set; }
 
     }
-
 
 }

@@ -1,4 +1,5 @@
-﻿using Onlyou.Shared.DTOS.ObservacionCaja;
+﻿using Onlyou.Shared.DTOS.Movimiento;
+using Onlyou.Shared.DTOS.ObservacionCaja;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,12 @@ namespace Onlyou.Shared.DTOS.Caja
         public string EstadoCaja { get; set; } = string.Empty;
         public bool Estado { get; set; }
 
-        // movimientos asociados
-        // public List<MovimientoDto>? Movimientos { get; set; }
 
+        // ============================
+        // movimientos y obs asociados
+        // ============================
+
+         public List<GetMovimientoDTO>? Movimientos { get; set; }
         public List<GetObservacionCajaDTO>? Observaciones { get; set; }
 
 

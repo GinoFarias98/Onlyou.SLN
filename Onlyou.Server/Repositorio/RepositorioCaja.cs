@@ -117,8 +117,13 @@ namespace Onlyou.Server.Repositorio
                 }
 
                 if (nuevoEstado == Caja.EstadoCaja.Anulada)
+                {
                     caja.Estado = false; // desactivar caja si se anula
 
+                    await context.ObservacionCajas.Where(o => o.CajaId == idCaja && o.Estado == true)
+                        .ExecuteUpdateAsync(u => u.SetProperty(o => o.Estado, false));
+
+                }
                 await context.SaveChangesAsync();
                 return caja;
             }
@@ -135,7 +140,7 @@ namespace Onlyou.Server.Repositorio
 
         private async Task<Caja> ObtenerCajaPorIdAsync(int idCaja)
         {
-            var caja = await context.Cajas.FirstOrDefaultAsync(c => c.Id == idCaja);
+            var caja = await context.Cajas.Include(c => c.Observaciones).FirstOrDefaultAsync(c => c.Id == idCaja);
             if (caja == null)
                 throw new InvalidOperationException($"No se encontró la caja con ID {idCaja}.");
 

@@ -11,7 +11,7 @@ namespace Onlyou.BD.Data.Entidades
 {
     [Index(nameof(FechaRealizado))]
     [Index(nameof(Situacion))]
-    [Index(nameof(MetodoDePago))]
+    [Index(nameof(TipoPagoId))]
     [Index(nameof(MovimientoId))]
     [Index(nameof(FechaRealizado), nameof(MovimientoId))]
     public class Pago : EntidadBase
@@ -36,25 +36,10 @@ namespace Onlyou.BD.Data.Entidades
         // Situación ------------------------------------------------------------------
 
         [Required(ErrorMessage = "La situación es obligatoria.")]
-        [StringLength(50, ErrorMessage = "Máximo {1} caracteres.")]
         [Display(Name = "Situación",
                  Description = "Estado actual del pago (Ej: Completo, Parcial, Anulado).")]
-        public string Situacion { get; set; } = null!;
+        public Situacion Situacion { get; set; }
 
-        // Descripción ----------------------------------------------------------------
-
-        [StringLength(500, ErrorMessage = "Máximo {1} caracteres.")]
-        [Display(Name = "Descripción",
-                 Description = "Detalle breve sobre el pago.")]
-        public string? Descripcion { get; set; }
-
-        // Método de pago -------------------------------------------------------------
-
-        [Required(ErrorMessage = "El método de pago es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo {1} caracteres.")]
-        [Display(Name = "Método de pago",
-                 Description = "Forma en que se realizó el pago (Ej: Efectivo, Transferencia, Tarjeta).")]
-        public string MetodoDePago { get; set; } = null!;
 
         // Es pago de cliente ---------------------------------------------------------
 
@@ -69,5 +54,28 @@ namespace Onlyou.BD.Data.Entidades
         public int MovimientoId { get; set; }
         public Movimiento Movimiento { get; set; } = null!;
 
+
+
+        [Required(ErrorMessage = "El TipoPago es obligatoria.")]
+        [ForeignKey(nameof(TipoPago))]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un TipoPago válido.")]
+        [Display(Name = "TipoPago",
+         Description = "TipoPago del producto.")]
+        public int TipoPagoId { get; set; }
+        public TipoPago TipoPago { get; set; } = null!;
+
+
+        public ICollection<ObservacionPago> Observaciones { get; set; } = new List<ObservacionPago>();
+
+
+
     }
+
+    public enum Situacion
+    {
+        Completo,
+        Parcial, 
+        Anulado
+    }
+
 }

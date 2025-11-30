@@ -57,7 +57,7 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     estadoCaja = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
@@ -165,12 +165,27 @@ namespace Onlyou.BD.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    EsIngreso = table.Column<bool>(type: "bit", nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    signo = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TipoMovimientos", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TipoPagos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Estado = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TipoPagos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -294,6 +309,28 @@ namespace Onlyou.BD.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ObservacionCajas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CajaId = table.Column<int>(type: "int", nullable: false),
+                    Texto = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Estado = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ObservacionCajas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ObservacionCajas_Cajas_CajaId",
+                        column: x => x.CajaId,
+                        principalTable: "Cajas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Pedidos",
                 columns: table => new
                 {
@@ -384,7 +421,7 @@ namespace Onlyou.BD.Migrations
                     FechaDelMovimiento = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    EstadoMovimiento = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    EstadoMovimiento = table.Column<int>(type: "int", nullable: false),
                     CajaId = table.Column<int>(type: "int", nullable: false),
                     TipoMovimientoId = table.Column<int>(type: "int", nullable: false),
                     ProveedorId = table.Column<int>(type: "int", nullable: true),
@@ -503,11 +540,10 @@ namespace Onlyou.BD.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FechaRealizado = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Situacion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    MetodoDePago = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Situacion = table.Column<int>(type: "int", nullable: false),
                     EsPagoCliente = table.Column<bool>(type: "bit", nullable: false),
                     MovimientoId = table.Column<int>(type: "int", nullable: false),
+                    TipoPagoId = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -517,6 +553,34 @@ namespace Onlyou.BD.Migrations
                         name: "FK_Pagos_Movimientos_MovimientoId",
                         column: x => x.MovimientoId,
                         principalTable: "Movimientos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Pagos_TipoPagos_TipoPagoId",
+                        column: x => x.TipoPagoId,
+                        principalTable: "TipoPagos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ObservacionPagos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PagoId = table.Column<int>(type: "int", nullable: false),
+                    Texto = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Estado = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ObservacionPagos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ObservacionPagos_Pagos_PagoId",
+                        column: x => x.PagoId,
+                        principalTable: "Pagos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -630,6 +694,16 @@ namespace Onlyou.BD.Migrations
                 column: "TipoMovimientoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ObservacionCajas_CajaId",
+                table: "ObservacionCajas",
+                column: "CajaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ObservacionPagos_PagoId",
+                table: "ObservacionPagos",
+                column: "PagoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Pagos_FechaRealizado",
                 table: "Pagos",
                 column: "FechaRealizado");
@@ -640,11 +714,6 @@ namespace Onlyou.BD.Migrations
                 columns: new[] { "FechaRealizado", "MovimientoId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Pagos_MetodoDePago",
-                table: "Pagos",
-                column: "MetodoDePago");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Pagos_MovimientoId",
                 table: "Pagos",
                 column: "MovimientoId");
@@ -653,6 +722,11 @@ namespace Onlyou.BD.Migrations
                 name: "IX_Pagos_Situacion",
                 table: "Pagos",
                 column: "Situacion");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Pagos_TipoPagoId",
+                table: "Pagos",
+                column: "TipoPagoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PedidoItems_PedidoId",
@@ -768,6 +842,11 @@ namespace Onlyou.BD.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TipoPagos_Nombre",
+                table: "TipoPagos",
+                column: "Nombre");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TipoProductos_Nombre",
                 table: "TipoProductos",
                 column: "Nombre",
@@ -793,7 +872,10 @@ namespace Onlyou.BD.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Pagos");
+                name: "ObservacionCajas");
+
+            migrationBuilder.DropTable(
+                name: "ObservacionPagos");
 
             migrationBuilder.DropTable(
                 name: "PedidoItems");
@@ -811,7 +893,7 @@ namespace Onlyou.BD.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Movimientos");
+                name: "Pagos");
 
             migrationBuilder.DropTable(
                 name: "Colores");
@@ -823,13 +905,10 @@ namespace Onlyou.BD.Migrations
                 name: "Talles");
 
             migrationBuilder.DropTable(
-                name: "Cajas");
+                name: "Movimientos");
 
             migrationBuilder.DropTable(
-                name: "Pedidos");
-
-            migrationBuilder.DropTable(
-                name: "TipoMovimientos");
+                name: "TipoPagos");
 
             migrationBuilder.DropTable(
                 name: "Categorias");
@@ -838,10 +917,19 @@ namespace Onlyou.BD.Migrations
                 name: "Marcas");
 
             migrationBuilder.DropTable(
+                name: "TipoProductos");
+
+            migrationBuilder.DropTable(
+                name: "Cajas");
+
+            migrationBuilder.DropTable(
+                name: "Pedidos");
+
+            migrationBuilder.DropTable(
                 name: "Proveedores");
 
             migrationBuilder.DropTable(
-                name: "TipoProductos");
+                name: "TipoMovimientos");
 
             migrationBuilder.DropTable(
                 name: "EstadoPedidos");

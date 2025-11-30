@@ -130,32 +130,6 @@ namespace Onlyou.Server.Controllers
 
         #region Metodos PUT
 
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<GetCajaDTO>> ActualizarCaja(int id, [FromBody] PutCajaDTO putCajaDTO)
-        {
-            try
-            {
-                var caja = await repoCaja.SelectById(id);
-                if (caja == null)
-                {
-                    return NotFound("Caja no encontrada.");
-                }
-
-                mapper.Map(putCajaDTO, caja);
-
-                await repoCaja.UpdateEntidad(id, caja);
-
-                var DtoCaja = mapper.Map<GetCajaDTO>(caja);
-                return Ok(DtoCaja);
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error en el método ActualizarCaja: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-
-            }
-        }
 
         [HttpPut("{id:int}/cambiar-estado")]
         public async Task<ActionResult<GetCajaDTO>> CambiarEstado(int id, [FromBody] PutEstadoCajaDTO dto)
@@ -164,7 +138,7 @@ namespace Onlyou.Server.Controllers
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                var nuevoEstado = mapper.Map<Caja.EstadoCaja>(dto.estadoCaja);
+                var nuevoEstado = mapper.Map<Caja.EstadoCaja>(dto.EstadoCaja);
                 var caja = await repoCaja.CambiarEstadoCajaAsync(id, nuevoEstado, dto.Observacion);
 
                 var dtoCaja = mapper.Map<GetCajaDTO>(caja);

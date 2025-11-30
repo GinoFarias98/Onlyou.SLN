@@ -44,7 +44,6 @@ namespace Onlyou.BD.Data.Entidades
         // Estado --------------------------------------------------------------------
 
         [Required(ErrorMessage = "El estado es obligatorio.")]
-        [StringLength(50, ErrorMessage = "Máximo {1} caracteres.")]
         [Display(Name = "Estado",
                  Description = "Estado actual del movimiento (Ej: Pendiente, Pagado, Anulado).")]
         public EstadoMovimiento EstadoMovimiento { get; set; }

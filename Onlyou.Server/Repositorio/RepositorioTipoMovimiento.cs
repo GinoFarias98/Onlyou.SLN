@@ -65,7 +65,7 @@ namespace Onlyou.Server.Repositorio
                                          .FirstOrDefaultAsync(c => c.Id == id);
 
             if (TipoMovimiento == null)
-                throw new Exception("Categoría no encontrada.");
+                throw new Exception("Tipo de Movimiento no encontrado.");
 
             if (TipoMovimiento.Movimientos != null && TipoMovimiento.Movimientos.Any())
                 throw new InvalidOperationException("No se puede eliminar un Tipo de Movimiento con Movimientos asociados.");
