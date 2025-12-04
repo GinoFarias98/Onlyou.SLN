@@ -12,8 +12,8 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251125020533_2")]
-    partial class _2
+    [Migration("20251204213542_inicio")]
+    partial class inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -581,6 +581,13 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ColorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ColorNombre")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
@@ -593,14 +600,24 @@ namespace Onlyou.BD.Migrations
                     b.Property<int>("ProductoId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TalleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TalleNombre")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ColorId");
 
                     b.HasIndex("PedidoId");
 
                     b.HasIndex("ProductoId");
 
-                    b.HasIndex("PedidoId", "ProductoId")
-                        .IsUnique();
+                    b.HasIndex("TalleId");
+
+                    b.HasIndex("PedidoId", "ProductoId");
 
                     b.ToTable("PedidoItems");
                 });
@@ -968,6 +985,10 @@ namespace Onlyou.BD.Migrations
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.PedidoItem", b =>
                 {
+                    b.HasOne("Onlyou.BD.Data.Entidades.Color", "Color")
+                        .WithMany()
+                        .HasForeignKey("ColorId");
+
                     b.HasOne("Onlyou.BD.Data.Entidades.Pedido", "Pedido")
                         .WithMany("PedidoItems")
                         .HasForeignKey("PedidoId")
@@ -980,9 +1001,17 @@ namespace Onlyou.BD.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Onlyou.BD.Data.Entidades.Talle", "Talle")
+                        .WithMany()
+                        .HasForeignKey("TalleId");
+
+                    b.Navigation("Color");
+
                     b.Navigation("Pedido");
 
                     b.Navigation("Producto");
+
+                    b.Navigation("Talle");
                 });
 
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Producto", b =>
