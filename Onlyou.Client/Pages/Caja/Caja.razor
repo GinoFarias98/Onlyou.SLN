@@ -1,0 +1,331 @@
+﻿@page "/caja"
+
+@inject IHttpServicios httpServicio
+@inject SweetAlertService swal
+@inject NavigationManager Navigation
+@using Onlyou.Client.Shared.ObservacionesCaja
+@using Onlyou.Shared.DTOS.Caja
+@using Onlyou.Shared.DTOS.ObservacionCaja
+@using Onlyou.Shared.DTOS.TipoMovimento
+@using Onlyou.Shared.DTOS.TipoPago
+@using Onlyou.Shared.Enums
+
+<h2 class="titulo-seccion mb-4">Gestión de Caja</h2>
+
+<div class="dashboard">
+
+	<!-- =====================  ESTADO DE LA CAJA  ===================== -->
+	<div class="card card-dash sombra p-4">
+		@if (caja == null)
+		{
+			<div class="text-center">
+				<h4 class="mb-3">No hay caja abierta</h4>
+
+				<EditForm Model="@nuevaCaja" OnValidSubmit="AbrirCaja">
+					<DataAnnotationsValidator />
+					<div class="mb-3">
+						<label class="form-label">Saldo Inicial</label>
+						<InputNumber @bind-Value="nuevaCaja.SaldoInicial" class="form-control form-control-lg" />
+					</div>
+					<button class="btn btn-success btn-lg px-5">
+						<i class="bi bi-unlock"></i> Abrir Caja
+					</button>
+				</EditForm>
+			</div>
+		}
+		else
+		{
+			<div class="d-flex justify-content-between align-items-center mb-3">
+				<h4>Caja Abierta</h4>
+				<span class="badge bg-success fs-5">@caja.EstadoCaja</span>
+			</div>
+
+			<div class="row mb-3">
+				<div class="col-md-3"><strong>ID:</strong> @caja.Id</div>
+				<div class="col-md-3"><strong>Inicio:</strong> @caja.FechaInicio</div>
+				<div class="col-md-3"><strong>Saldo Inicial:</strong> $@caja.SaldoInicial</div>
+			</div>
+
+			<div class="d-flex gap-2 mt-3">
+				<button class="btn btn-outline-primary" @onclick="IrCajaAbierta">
+					<i class="bi bi-box-arrow-in-right"></i> Ver detalle completo
+				</button>
+
+				<button class="btn btn-warning" @onclick="() => MostrarCambiarEstado(true)">
+					<i class="bi bi-pencil-square"></i> Cambiar estado
+				</button>
+			</div>
+		}
+	</div>
+
+	<!-- =====================   PANEL CAMBIO ESTADO ===================== -->
+	@if (panelCambiarEstado)
+	{
+		<div class="card card-dash sombra p-4 mt-3">
+			<h5 class="mb-3">Cambiar estado de la caja</h5>
+
+			<EditForm Model="@putEstado" OnValidSubmit="CambiarEstado">
+				<DataAnnotationsValidator />
+				<div class="mb-3">
+					<label class="form-label">Nuevo Estado</label>
+					<InputSelect @bind-Value="putEstado.EstadoCaja" class="form-control">
+						<option value="">Seleccione...</option>
+						<option value="@EstadoCajaDto.Abierta">Abierta</option>
+						<option value="@EstadoCajaDto.Cerrada">Cerrada</option>
+						<option value="@EstadoCajaDto.Anulada">Anulada</option>
+					</InputSelect>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label">Observación</label>
+					<InputTextArea @bind-Value="putEstado.Observacion" class="form-control"></InputTextArea>
+				</div>
+
+				<button class="btn btn-primary">Guardar</button>
+				<button type="button" class="btn btn-secondary ms-2" @onclick="() => MostrarCambiarEstado(false)">
+					Cancelar
+				</button>
+			</EditForm>
+		</div>
+	}
+
+	<!-- =====================   ACCIONES RÁPIDAS ===================== -->
+	@if (caja != null)
+	{
+		<div class="card card-dash sombra p-4">
+			<h5 class="mb-3">Acciones rápidas</h5>
+
+			<div class="d-flex gap-3">
+				<button class="btn btn-outline-secondary">
+					<i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
+				</button>
+
+				<button class="btn btn-outline-secondary" @onclick='() => AbrirModalEntidad("Tipo de Pago")'>
+					<i class="bi bi-credit-card me-1"></i> Tipos de Pago
+				</button>
+
+				<button class="btn btn-outline-secondary" @onclick='() => AbrirModalEntidad("Tipo de Movimiento")'>
+					<i class="bi bi-sliders me-1"></i> Tipos de Movimiento
+				</button>
+			</div>
+		</div>
+	}
+
+	<!-- =====================   RESUMEN ===================== -->
+	@if (caja != null)
+	{
+		var ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => x.Monto) ?? 0;
+		var egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => x.Monto) ?? 0;
+		var saldoNeto = ingresos + egresos;
+
+		<div class="card card-dash sombra p-4">
+			<h5 class="mb-3">Resumen</h5>
+
+			<div class="row text-center">
+				<div class="col-md-3">
+					<div class="kpi">
+						<span class="kpi-titulo">Movimientos</span>
+						<span class="kpi-valor">@caja.Movimientos?.Count() ?? 0</span>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="kpi">
+						<span class="kpi-titulo">Ingresos</span>
+						<span class="kpi-valor text-success">$@ingresos</span>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="kpi">
+						<span class="kpi-titulo">Egresos</span>
+						<span class="kpi-valor text-danger">$@egresos</span>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="kpi">
+						<span class="kpi-titulo">Saldo Neto</span>
+						<span class="kpi-valor @(saldoNeto >= 0 ? "text-success" : "text-danger")">$@saldoNeto</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+
+	<!-- =====================  OBSERVACIONES ===================== -->
+	@if (caja != null)
+	{
+		<div class="card card-dash sombra p-4">
+			<div class="d-flex justify-content-between mb-3">
+				<h5>Observaciones</h5>
+				<p>Cant obs: @caja?.Observaciones?.Count()</p>
+				<button class="btn btn-primary" @onclick="() => modalObs.Abrir()">
+					<i class="bi bi-plus"></i> Nueva Observación
+				</button>
+			</div>
+
+			<ModalObservacion @ref="modalObs"
+							  Titulo="Nueva Observación"
+							  OnConfirmar="GuardarObservacion" />
+
+			@if (caja.Observaciones != null && caja.Observaciones.Any())
+			{
+				<ObservacionCajaList Observaciones="@caja.Observaciones"
+									 OnArchivar="ArchivarObservacion" />
+			}
+			else
+			{
+				<p class="text-muted">Sin observaciones.</p>
+			}
+		</div>
+	}
+</div>
+
+<!-- ===================== MODAL REUTILIZABLE ===================== -->
+<MostrarEntidad @bind-Mostrar="mostrarModal"
+				Titulo="@modalTitulo"
+				Campos="camposModal"
+				EntidadCreada="OnEntidadCreada" />
+
+@code {
+	private GetCajaDTO? caja;
+	private PostCajaDTO nuevaCaja = new();
+	private PutEstadoCajaDTO putEstado = new();
+
+	private bool panelCambiarEstado = false;
+	private ModalObservacion modalObs;
+
+	#region Modal Crear Entidad
+	private bool mostrarModal = false;
+	private string modalTitulo = "";
+	private List<MostrarEntidad.CampoModal> camposModal = new();
+
+	private void AbrirModalEntidad(string entidad)
+	{
+		modalTitulo = entidad;
+
+		camposModal = entidad switch
+		{
+			"Tipo de Pago" => new List<MostrarEntidad.CampoModal>
+			{
+				new() { Label = "Nombre", Placeholder = "Ej: Tarjeta, Efectivo, Transferencia" }
+			},
+
+			"Tipo de Movimiento" => new List<MostrarEntidad.CampoModal>
+			{
+				new() { Label = "Nombre", Placeholder = "Nombre del movimiento" },
+				new() { Label = "Descripción", Placeholder = "Opcional" },
+				new() { Label = "Tipo", TipoCampo = MostrarEntidad.TipoCampo.Select, Opciones = new List<string>{ "Ingreso", "Egreso" } }
+			},
+
+			_ => new List<MostrarEntidad.CampoModal>()
+		};
+
+		mostrarModal = true;
+	}
+
+	private async Task OnEntidadCreada(Dictionary<string, string> datos)
+	{
+		switch (modalTitulo)
+		{
+			case "Tipo de Pago":
+				var dtoPago = new TipoPagoDTO { Nombre = datos["Nombre"] };
+				var respPago = await httpServicio.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dtoPago);
+
+				if (!respPago.Error)
+				{
+					await swal.FireAsync("Éxito", $"Tipo de Pago '{respPago.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+				}
+				break;
+
+			case "Tipo de Movimiento":
+				var dtoMov = new PostTipoMovimientoDTO
+				{
+					Nombre = datos["Nombre"],
+					Descripcion = datos.ContainsKey("Descripción") ? datos["Descripción"] : null,
+					Signo = datos["Tipo"] == "Egreso"
+								? SignoTipoMovimientoDto.Resta
+								: SignoTipoMovimientoDto.Suma
+				};
+				var respMov = await httpServicio.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>("/TipoMovimientos", dtoMov);
+
+				if (!respMov.Error)
+				{
+					await swal.FireAsync("Éxito", $"Tipo de Movimiento '{respMov.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+				}
+				break;
+		}
+
+		mostrarModal = false;
+	}
+	#endregion
+
+	protected override async Task OnInitializedAsync()
+	{
+		await CargarCaja();
+	}
+
+	private async Task CargarCaja()
+	{
+		var resp = await httpServicio.Get<GetCajaDTO>("Cajas/abierta");
+		var cajaTemp = resp.Error ? null : resp.Respuesta;
+
+		if (cajaTemp != null)
+		{
+			var obsResp = await httpServicio.Get<List<GetObservacionCajaDTO>>(
+				$"Cajas/{cajaTemp.Id}/Observaciones");
+
+			cajaTemp.Observaciones = obsResp.Error ? new() : obsResp.Respuesta;
+		}
+
+		caja = cajaTemp;
+	}
+
+	private async Task AbrirCaja()
+	{
+		var resp = await httpServicio.Post<PostCajaDTO, GetCajaDTO>("Cajas/abrir", nuevaCaja);
+		if (!resp.Error)
+			caja = resp.Respuesta;
+	}
+
+	private void MostrarCambiarEstado(bool mostrar)
+	{
+		panelCambiarEstado = mostrar;
+		putEstado = new PutEstadoCajaDTO();
+	}
+
+	private async Task CambiarEstado()
+	{
+		if (caja == null) return;
+
+		var resp = await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
+			$"Cajas/{caja.Id}/cambiar-estado", putEstado);
+
+		if (!resp.Error)
+		{
+			panelCambiarEstado = false;
+			await CargarCaja(); // Siempre refresca
+		}
+	}
+
+	private async Task GuardarObservacion(string texto)
+	{
+		var dto = new PostObservacionCajaDTO { Texto = texto };
+
+		await httpServicio.Post<PostObservacionCajaDTO, GetObservacionCajaDTO>(
+			$"Cajas/{caja.Id}/Observaciones", dto);
+
+		await CargarCaja();
+	}
+
+	private async Task ArchivarObservacion(int id)
+	{
+		await httpServicio.Put<object, bool>(
+			$"Cajas/{caja.Id}/Observaciones/Archivados/{id}", null);
+
+		await CargarCaja();
+	}
+
+	private void IrCajaAbierta()
+	{
+		Navigation.NavigateTo("/CajaAbierta");
+	}
+}

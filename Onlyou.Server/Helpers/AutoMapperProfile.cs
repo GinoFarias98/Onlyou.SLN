@@ -195,6 +195,8 @@ namespace Onlyou.Server.Helpers
             CreateMap<PutTipoMovimiento, TipoMovimiento>();
 
 
+            // movimiento
+
             CreateMap<Movimiento, GetMovimientoDTO>()
               .ForMember(dest => dest.EstadoMovimiento,
                          opt => opt.MapFrom(src => src.EstadoMovimiento))
@@ -275,10 +277,23 @@ namespace Onlyou.Server.Helpers
                 .ForMember(d => d.Observaciones, o => o.MapFrom(s => s.Observaciones));
 
             CreateMap<PostPagoDTO, Pago>()
-                .ForMember(d => d.Situacion, o => o.MapFrom(s => (Situacion)s.Situacion));
+             .ForMember(d => d.Id, o => o.Ignore())
+             .ForMember(d => d.Caja, o => o.Ignore())                 // La caja la asigna el servicio
+             .ForMember(d => d.CajaId, o => o.MapFrom(s => s.CajaId)) // Solo si CajaId viene por DTO
+             .ForMember(d => d.Situacion, o => o.MapFrom(s => (Situacion)s.Situacion))
+             .ForMember(d => d.Estado, o => o.Ignore())               // Se calcula en el servicio
+             .ForMember(d => d.TipoPago, o => o.Ignore())             // Lo carga EF por FK
+             .ForMember(d => d.Movimiento, o => o.Ignore());         // Lo carga EF
+
 
             CreateMap<PutPagoDTO, Pago>()
-                .ForMember(d => d.Situacion, o => o.MapFrom(s => (Situacion)s.Situacion));
+            .ForMember(d => d.Id, o => o.Ignore())
+            .ForMember(d => d.Situacion, o => o.MapFrom(s => (Situacion)s.Situacion))
+            .ForMember(d => d.CajaId, o => o.Ignore())
+            .ForMember(d => d.Estado, o => o.Ignore())
+            .ForMember(d => d.Monto, o => o.Ignore())
+            .ForMember(d => d.TipoPagoId, o => o.Ignore())
+            .ForMember(d => d.MovimientoId, o => o.Ignore());
 
             // Observacion Pago
 

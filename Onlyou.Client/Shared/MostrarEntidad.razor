@@ -19,6 +19,16 @@
                             </div>
                         }
                     }
+                    else if (campo.TipoCampo == TipoCampo.Select && campo.Opciones != null)
+                    {
+                        <InputSelect class="form-control" @bind-Value="campo.Valor">
+                            <option value="">Seleccione...</option>
+                            @foreach (var op in campo.Opciones)
+                            {
+                                <option value="@op">@op</option>
+                            }
+                        </InputSelect>
+                    }
                     else
                     {
                         <input class="form-control" @bind="campo.Valor" placeholder="@campo.Placeholder" />
@@ -35,6 +45,13 @@
 }
 
 @code {
+    // Tipo de campo para controlar input de texto o select
+    public enum TipoCampo
+    {
+        Texto,
+        Select
+    }
+
     public class CampoModal
     {
         public string Label { get; set; } = "";
@@ -42,6 +59,10 @@
         public string Valor { get; set; } = "";
         public bool EsImagen { get; set; } = false;
         public string? Extension { get; set; }
+
+        // Para combobox/select
+        public TipoCampo TipoCampo { get; set; } = TipoCampo.Texto;
+        public List<string> Opciones { get; set; } = new();
     }
 
     [Parameter] public bool Mostrar { get; set; }

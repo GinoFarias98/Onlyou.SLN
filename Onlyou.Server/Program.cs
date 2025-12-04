@@ -87,6 +87,12 @@ builder.Services.AddScoped<IRepositorioTipoPago, RepositorioTipoPago>();
 builder.Services.AddScoped<IRepositorioObservacionPago, RepositorioObservacionPago>();
 
 
+// Servicios
+
+
+builder.Services.AddScoped<ICajaService, CajaService>();
+builder.Services.AddScoped<IMovimientoService, MovimientoService>();
+builder.Services.AddScoped<IPagoService, PagoService>();
 
 
 // =====================================================================================================================================

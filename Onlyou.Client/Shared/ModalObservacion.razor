@@ -1,0 +1,25 @@
+﻿@inject SweetAlertService Swal
+
+@code {
+    [Parameter] public string Titulo { get; set; } = "Ingrese texto";
+    [Parameter] public string Placeholder { get; set; } = "Escriba aquí...";
+    [Parameter] public EventCallback<string> OnConfirmar { get; set; }
+
+    public async Task Abrir()
+    {
+        var result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = Titulo,
+            Input = "textarea",
+            InputPlaceholder = Placeholder,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Guardar",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (!string.IsNullOrWhiteSpace(result?.Value))
+        {
+            await OnConfirmar.InvokeAsync(result.Value);
+        }
+    }
+}

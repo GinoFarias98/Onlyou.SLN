@@ -6,6 +6,7 @@ namespace Onlyou.Server.Repositorio
     {
         Task<Pago> CambiarSituacionPagoAsync(int idPago, Situacion nuevaSituacion, string? observacion = null);
         Task<List<Pago>> FiltrarConRelacionesAsync(Dictionary<string, object?> filtros);
+        Task<Pago> RegistrarPagoConImpactoAsync(Pago pagoNuevo);
         Task<List<Pago>> SelectArchivadosConRelaciones();
         Task<List<Pago>> SelectConRelaciones();
         Task<Pago> SelectConRelacionesXId(int id);

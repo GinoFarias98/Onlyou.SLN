@@ -1,4 +1,5 @@
-﻿using Onlyou.Shared.Enums;
+﻿using Onlyou.Shared.DTOS.Pago;
+using Onlyou.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,6 @@ namespace Onlyou.Shared.DTOS.Movimiento
         public string? PedidoDescripcion { get; set; }
 
         // Pagos
-        //public List<GetPagoDTO> Pagos { get; set; } = new();
+        public List<GetPagoDTO> Pagos { get; set; } = new();
     }
 }

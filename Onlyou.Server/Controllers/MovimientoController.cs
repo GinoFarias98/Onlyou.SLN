@@ -106,7 +106,6 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-
         [HttpPost("Filtrar")]
         public async Task<ActionResult<List<GetMovimientoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
         {
@@ -115,7 +114,9 @@ namespace Onlyou.Server.Controllers
             return Ok(dto);
         }
 
-
+        // ============================================================
+        // POST: Crear Movimiento + Actualizar estado según pagos
+        // ============================================================
         [HttpPost]
         public async Task<ActionResult<GetMovimientoDTO>> Post([FromBody] PostMovimientoDTO dto)
         {
@@ -127,6 +128,9 @@ namespace Onlyou.Server.Controllers
                 var entidad = mapper.Map<Movimiento>(dto);
                 var id = await repositorioMovimiento.Insert(entidad);
 
+                // 🔥 Recalcular estado después de crearlo
+                await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(id);
+
                 var creado = await repositorioMovimiento.SelectMovimientoPorIdAsync(id);
                 return Ok(mapper.Map<GetMovimientoDTO>(creado));
             }
@@ -137,6 +141,9 @@ namespace Onlyou.Server.Controllers
             }
         }
 
+        // ============================================================
+        // PUT: Editar Movimiento + Actualizar estado según pagos
+        // ============================================================
         [HttpPut("{id:int}")]
         public async Task<ActionResult<GetMovimientoDTO>> Put(int id, [FromBody] PutMovimientoDTO dto)
         {
@@ -150,6 +157,9 @@ namespace Onlyou.Server.Controllers
 
                 await repositorioMovimiento.UpdateEntidad(id, mov);
 
+                // 🔥 Recalcular estado después de editarlo
+                await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(id);
+
                 return Ok(mapper.Map<GetMovimientoDTO>(mov));
             }
             catch (Exception ex)
@@ -158,7 +168,6 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
 
         [HttpPut("{id:int}/cambiar-estado")]
         public async Task<ActionResult<GetMovimientoDTO>> CambiarEstado(int id, [FromBody] PutEstadoMovimientoDTO dto)
@@ -201,6 +210,5 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
     }
 }

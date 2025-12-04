@@ -65,6 +65,11 @@ namespace Onlyou.BD.Data.Entidades
         public TipoPago TipoPago { get; set; } = null!;
 
 
+
+        [ForeignKey(nameof(Caja))]
+        public int CajaId { get; set; }
+        public Caja Caja { get; set; } = null!;
+
         public ICollection<ObservacionPago> Observaciones { get; set; } = new List<ObservacionPago>();
 
 

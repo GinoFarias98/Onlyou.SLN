@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
+using Onlyou.Server.Services;
 using Onlyou.Shared.DTOS.Caja;
-using Onlyou.Shared.DTOS.Producto;
 
 namespace Onlyou.Server.Controllers
 {
@@ -12,15 +12,22 @@ namespace Onlyou.Server.Controllers
     public class CajaController : ControllerBase
     {
         private readonly IRepositorioCaja repoCaja;
+        private readonly ICajaService cajaService;
         private readonly IMapper mapper;
 
-        public CajaController(IRepositorioCaja repoCaja, IMapper mapper)
+        public CajaController(
+            IRepositorioCaja repoCaja,
+            ICajaService cajaService,
+            IMapper mapper)
         {
             this.repoCaja = repoCaja;
+            this.cajaService = cajaService;
             this.mapper = mapper;
         }
 
-        #region GET - OBTENER DATOS
+        // ======================================================
+        // GET - Lecturas
+        // ======================================================
 
         [HttpGet("abierta")]
         public async Task<ActionResult<GetCajaDTO>> GetCajaAbierta()
@@ -29,77 +36,52 @@ namespace Onlyou.Server.Controllers
             {
                 var caja = await repoCaja.SelectCajaAbiertaAsync();
                 if (caja == null)
-                {
                     return NotFound("No hay ninguna Caja abierta actualmente");
-                }
 
-                var DtoCaja = mapper.Map<GetCajaDTO>(caja);
-
-                return Ok(DtoCaja);
+                return Ok(mapper.Map<GetCajaDTO>(caja));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método GetCajaAbierta: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
-
         }
 
         [HttpGet("cerradas")]
-        public async Task<ActionResult<List<List<GetCajaDTO>>>> GetCajasCerradas()
+        public async Task<ActionResult<List<GetCajaDTO>>> GetCajasCerradas()
         {
             try
             {
                 var cajas = await repoCaja.ListarCajasCerradasAsync();
-                if (cajas == null)
-                {
-                    return NotFound("No se encontraron cajas cerradas que mostrar");
-                }
-
-                var DtoCajas = mapper.Map<List<GetCajaDTO>>(cajas);
-
-                return Ok(DtoCajas);
+                return Ok(mapper.Map<List<GetCajaDTO>>(cajas));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método GetCajasCerradas: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
-
         }
 
         [HttpGet("por-rango")]
-        public async Task<ActionResult<List<GetCajaDTO>>> GetCajasPorRango([FromQuery] DateTime inicio, [FromQuery] DateTime fin)
+        public async Task<ActionResult<List<GetCajaDTO>>> GetPorRango(DateTime inicio, DateTime fin)
         {
-
             try
             {
-                if (inicio == default || fin == default)
-                    return BadRequest("Debe proporcionar fechas válidas.");
-
-                if (inicio.Date > fin.Date)
-                    return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
-
+                if (inicio > fin)
+                    return BadRequest("La fecha de inicio no puede ser mayor que la fecha final.");
 
                 var cajas = await repoCaja.SelectCajasPorRangoFechasAsync(inicio, fin);
-                var DtoCajas = mapper.Map<List<GetCajaDTO>>(cajas);
-                return Ok(DtoCajas);
-
+                return Ok(mapper.Map<List<GetCajaDTO>>(cajas));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método GetCajasPorRango: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
 
 
-        #endregion
+        // ======================================================
+        // POST - Abrir Nueva Caja
+        // ======================================================
 
-
-
-        #region Abrir nueva Caja
         [HttpPost("abrir")]
         public async Task<ActionResult<GetCajaDTO>> AbrirCaja([FromBody] PostCajaDTO dto)
         {
@@ -108,28 +90,24 @@ namespace Onlyou.Server.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // Abrir caja usando el repositorio
-                var nuevaCaja = await repoCaja.AbrirNuevaCajaAsync(dto.SaldoInicial);
+                var caja = await cajaService.AbrirCajaAsync(dto.SaldoInicial);
 
-                // Mapear la entidad a un DTO de salida
-                var cajaDTO = mapper.Map<GetCajaDTO>(nuevaCaja);
-
-                return Ok(cajaDTO);
+                return Ok(mapper.Map<GetCajaDTO>(caja));
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); // caja ya abierta, etc.
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método AbrirCaja: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
-        #endregion
 
-        #region Metodos PUT
 
+        // ======================================================
+        // PUT - Cambiar Estado / Cerrar caja
+        // ======================================================
 
         [HttpPut("{id:int}/cambiar-estado")]
         public async Task<ActionResult<GetCajaDTO>> CambiarEstado(int id, [FromBody] PutEstadoCajaDTO dto)
@@ -139,22 +117,29 @@ namespace Onlyou.Server.Controllers
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
                 var nuevoEstado = mapper.Map<Caja.EstadoCaja>(dto.EstadoCaja);
-                var caja = await repoCaja.CambiarEstadoCajaAsync(id, nuevoEstado, dto.Observacion);
 
-                var dtoCaja = mapper.Map<GetCajaDTO>(caja);
-                return Ok(dtoCaja);
+                // Si quiere cerrar la caja → usar service (tiene lógica)
+                if (nuevoEstado == Caja.EstadoCaja.Cerrada)
+                {
+                    await cajaService.CerrarCajaAsync(id, dto.Observacion);
+                }
+                else
+                {
+                    // Para abrir o anular → repositorio directo
+                    await repoCaja.CambiarEstadoCajaAsync(id, nuevoEstado, dto.Observacion);
+                }
+
+                var cajaActualizada = await repoCaja.SelectById(id);
+                return Ok(mapper.Map<GetCajaDTO>(cajaActualizada));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en el método CambiarEstado: {ex.Message}");
-                return StatusCode(500, $"Ocurrió un error interno: {ex.Message}");
-
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
-        #endregion
-
-
-
-
     }
 }

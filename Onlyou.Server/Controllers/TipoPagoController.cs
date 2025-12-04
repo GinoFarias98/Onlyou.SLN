@@ -136,7 +136,7 @@ namespace Onlyou.Server.Controllers
             }
         }
 
-        [HttpPut("ModificarProveedorId/{id}")]
+        [HttpPut("ModificarXId/{id}")]
         public async Task<ActionResult<TipoPagoDTO>> Put(int id, [FromBody] TipoPagoDTO tipoPagoDTO)
         {
             try
@@ -153,9 +153,9 @@ namespace Onlyou.Server.Controllers
                 await repositorioTipoPago.UpdateEntidad(id, tipoPago);
 
                 // Devolver un DTO de lectura para mostrar en el frontend
-                var provDto = mapper.Map<TipoPagoDTO>(tipoPago);
+                var TipoPagoDto = mapper.Map<TipoPagoDTO>(tipoPago);
 
-                return Ok(provDto); // ✅ Devuelve el proveedor actualizado
+                return Ok(TipoPagoDto); 
             }
             catch (Exception ex)
             {

@@ -20,6 +20,25 @@ namespace Onlyou.Server.Repositorio
         // MÉTODOS PÚBLICOS
         // ============================
 
+
+        public async Task ValidarCajaHabilitadaParaOperar(int cajaId)
+        {
+            var caja = await context.Cajas
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == cajaId);
+
+            if (caja == null)
+                throw new InvalidOperationException("La caja no existe.");
+
+            if (caja.estadoCaja == Caja.EstadoCaja.Cerrada)
+                throw new InvalidOperationException("La caja está cerrada. No se permiten movimientos ni pagos.");
+
+            if (caja.estadoCaja == Caja.EstadoCaja.Anulada)
+                throw new InvalidOperationException("La caja está anulada. No se permite ninguna operación.");
+        }
+
+
+
         public async Task<Caja?> SelectCajaAbiertaAsync()
         {
             try
@@ -82,6 +101,7 @@ namespace Onlyou.Server.Repositorio
                 .Where(c => c.estadoCaja == Caja.EstadoCaja.Cerrada)
                 .OrderByDescending(c => c.FechaFin)
                 .Include(c => c.Movimientos)
+                .Include(c => c.Observaciones)
                 .ToListAsync();
         }
 
@@ -133,6 +153,82 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
+
+
+
+
+        public async Task<decimal> CalcularSaldoFinalRealAsync(int cajaId)
+        {
+            var totalPagos = await context.Pagos
+                .Where(p => p.CajaId == cajaId && p.Situacion == Situacion.Completo)
+                .Include(p => p.Movimiento)
+                .ThenInclude(m => m.TipoMovimiento)
+                .ToListAsync();
+
+            decimal saldo = 0;
+
+            foreach (var pago in totalPagos)
+            {
+                if (pago.Movimiento.TipoMovimiento.signo == Signo.Suma)
+                    saldo += pago.Monto;
+                else
+                    saldo -= pago.Monto;
+            }
+
+            var caja = await context.Cajas.AsNoTracking()
+                .FirstAsync(c => c.Id == cajaId);
+
+            return caja.SaldoInicial + saldo;
+        }
+
+
+
+        public async Task<decimal> CerrarCajaConSaldoFinalAsync(int cajaId, string? observacion = null)
+        {
+            // 1️⃣ Obtener caja
+            var caja = await context.Cajas
+                .Include(c => c.Movimientos)
+                .FirstOrDefaultAsync(c => c.Id == cajaId);
+
+            if (caja == null)
+                throw new InvalidOperationException("La caja no existe.");
+
+            if (caja.estadoCaja != Caja.EstadoCaja.Abierta)
+                throw new InvalidOperationException("Solo se puede cerrar una caja abierta.");
+
+            // 2️⃣ Verificar que no haya otra caja abierta (seguridad extra)
+            bool existeOtraCajaAbierta = await context.Cajas
+                .AnyAsync(c => c.estadoCaja == Caja.EstadoCaja.Abierta && c.Id != cajaId);
+
+            if (existeOtraCajaAbierta)
+                throw new InvalidOperationException("Existe otra caja abierta. No se puede cerrar esta.");
+
+            // 3️⃣ Calcular saldo final real
+            var saldoFinal = await CalcularSaldoFinalRealAsync(cajaId);
+
+            // 4️⃣ Registrar observación automática
+            var texto = string.IsNullOrWhiteSpace(observacion)
+                ? $"Caja cerrada con saldo final real de {saldoFinal}."
+                : observacion;
+
+            caja.Observaciones.Add(new ObservacionCaja
+            {
+                Texto = texto,
+                FechaCreacion = DateTime.UtcNow
+            });
+
+            // 5️⃣ Cerrar la caja usando tu lógica actual
+            caja.estadoCaja = Caja.EstadoCaja.Cerrada;
+            caja.FechaFin = DateTime.UtcNow;
+
+            await context.SaveChangesAsync();
+
+            // 6️⃣ Devolver el saldo final para la próxima caja
+            return saldoFinal;
+        }
+
+
+
 
         // ============================
         // MÉTODOS PRIVADOS AUXILIARES

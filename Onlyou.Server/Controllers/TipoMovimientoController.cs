@@ -31,7 +31,7 @@ namespace Onlyou.Server.Controllers
                 var TipoMovimientos = await repositorioTipoMovimiento.Select();
                 if (TipoMovimientos == null || !TipoMovimientos.Any())
                 {
-                    return Ok("No se encontraron Tipos de Movimiento que mostrar");
+                    return Ok(new List<GetTipoMovimeintoDTO>()); ;
                 }
 
                 var TipoMovimientoDTO = mapper.Map<List<GetTipoMovimeintoDTO>>(TipoMovimientos);
@@ -135,7 +135,7 @@ namespace Onlyou.Server.Controllers
 
                 await repositorioTipoMovimiento.UpdateEntidad(id, TipoMovimiento);
 
-                var TipoMovimientoDTO = mapper.Map<GetCategoriasDTO>(TipoMovimiento);
+                var TipoMovimientoDTO = mapper.Map<GetTipoMovimeintoDTO>(TipoMovimiento);
 
                 return Ok(TipoMovimientoDTO);
             }
@@ -166,7 +166,7 @@ namespace Onlyou.Server.Controllers
 
 
 
-        [HttpDelete("EliminarMarca/{id}")]
+        [HttpDelete("EliminarTipoMovimiento/{id}")]
         public async Task<ActionResult> Delete(int id)
         {
 

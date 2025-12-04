@@ -1,0 +1,239 @@
+﻿@page "/TipoMovimientos"
+@using Onlyou.Shared.DTOS.TipoMovimento
+@using Onlyou.Shared.Enums
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Tipos de Movimiento</h3>
+        <div class="badge bg-primary fs-6">@(tiposDto?.Count ?? 0) tipos</div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Tipo de Movimiento" : "Nuevo Tipo de Movimiento")</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Tipo de Movimiento</label>
+                    <input type="text" @bind="nombre" class="form-control" placeholder="Ej: Ingreso, Egreso, Ajuste, etc." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Signo</label>
+                    <select class="form-select" @bind="signo">
+                        <option value="@SignoTipoMovimientoDto.Suma">Ingreso</option>
+                        <option value="@SignoTipoMovimientoDto.Resta">Egreso</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarTipo">
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Tipos de Movimiento</h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (tiposDto == null)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Cargando tipos...</p>
+                </div>
+            }
+            else if (!tiposDto.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-shuffle text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted">No hay tipos de movimientos</h5>
+                    <p class="text-muted">Comienza creando uno nuevo</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th width="150" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var tipo in tiposDto)
+                            {
+                                <tr>
+                                    <td><strong>@tipo.Nombre</strong></td>
+                                    <td>
+                                        <span class="badge @(tipo.Signo == SignoTipoMovimientoDto.Suma ? "bg-success" : "bg-danger")">
+                                            @(tipo.Signo == SignoTipoMovimientoDto.Suma ? "Ingreso" : "Egreso")
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex gap-2 justify-content-center">
+
+                                            <!-- Editar -->
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarTipo(tipo)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                                <span>Editar</span>
+                                            </button>
+
+                                            <!-- Archivar -->
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarTipo(tipo.Id, tipo.Nombre)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash"></i>
+                                                <span>Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<GetTipoMovimeintoDTO> tiposDto = new();
+    private string nombre = string.Empty;
+    private SignoTipoMovimientoDto signo = SignoTipoMovimientoDto.Suma;
+    private bool modoEdicion = false;
+    private int tipoEditandoId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTipos();
+    }
+
+    private async Task CargarTipos()
+    {
+        var resultado = await http.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos");
+        if (!resultado.Error)
+            tiposDto = resultado.Respuesta!;
+    }
+
+    private async Task GuardarTipo()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
+            return;
+        }
+
+        if (modoEdicion)
+        {
+            var dto = new PutTipoMovimiento
+            {
+                Nombre = nombre,
+                Signo = signo
+            };
+
+            var respuesta = await http.Put<PutTipoMovimiento, GetTipoMovimeintoDTO>(
+                $"/TipoMovimientos/ModificarTMovimientoId/{tipoEditandoId}", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo editar el tipo", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito",
+                $"Tipo '{respuesta.Respuesta!.Nombre}' actualizado correctamente",
+                SweetAlertIcon.Success);
+
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new PostTipoMovimientoDTO
+            {
+                Nombre = nombre,
+                Signo = signo
+            };
+
+            var respuesta = await http.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>(
+                "/TipoMovimientos", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo guardar el tipo", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito",
+                $"Tipo '{respuesta.Respuesta!.Nombre}' creado correctamente",
+                SweetAlertIcon.Success);
+        }
+
+        LimpiarFormulario();
+        await CargarTipos();
+    }
+
+    private void EditarTipo(GetTipoMovimeintoDTO tipo)
+    {
+        tipoEditandoId = tipo.Id;
+        nombre = tipo.Nombre;
+        signo = tipo.Signo;
+        modoEdicion = true;
+    }
+
+    private async Task ArchivarTipo(int id, string nombre)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas archivar el Tipo {nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirm.IsConfirmed)
+        {
+            await http.Put<object>($"/TipoMovimientos/Archivar/{id}", null);
+            await CargarTipos();
+            await swal.FireAsync("Éxito", "Tipo archivado correctamente", SweetAlertIcon.Success);
+        }
+    }
+
+    private void CancelarEdicion() => LimpiarFormulario();
+
+    private void LimpiarFormulario()
+    {
+        nombre = string.Empty;
+        signo = SignoTipoMovimientoDto.Suma;
+        tipoEditandoId = 0;
+        modoEdicion = false;
+    }
+}

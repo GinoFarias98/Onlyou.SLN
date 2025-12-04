@@ -1,5 +1,6 @@
 ﻿using Onlyou.Shared.DTOS.Movimiento;
 using Onlyou.Shared.DTOS.ObservacionCaja;
+using Onlyou.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Onlyou.Shared.DTOS.Caja
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
         public decimal SaldoInicial { get; set; }
-        public string EstadoCaja { get; set; } = string.Empty;
+        public EstadoCajaDto EstadoCaja { get; set; }
         public bool Estado { get; set; }
 
 

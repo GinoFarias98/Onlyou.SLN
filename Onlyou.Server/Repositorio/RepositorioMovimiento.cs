@@ -9,11 +9,13 @@ namespace Onlyou.Server.Repositorio
     {
         private readonly Context context;
         private readonly IMapper mapper;
+        private readonly IRepositorioCaja repositorioCaja;
 
-        public RepositorioMovimiento(Context context, IMapper mapper) : base(context, mapper)
+        public RepositorioMovimiento(Context context, IMapper mapper, IRepositorioCaja repositorioCaja) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
+            this.repositorioCaja = repositorioCaja;
         }
 
         public async Task<Movimiento> SelectMovimientoPorIdAsync(int idMovimiento)
@@ -182,14 +184,15 @@ namespace Onlyou.Server.Repositorio
             {
                 var movimiento = await SelectByIdAsync(IdMovimiento);
                 if (movimiento == null)
-                {
                     throw new KeyNotFoundException($"No se encontro Movimiento con ID {IdMovimiento}");
-                }
+
+                // VALIDACIÓN CRÍTICA
+                await repositorioCaja.ValidarCajaHabilitadaParaOperar(movimiento.CajaId);
+
                 ValidarTransicionEstado(movimiento, nuevoEstado);
 
                 movimiento.EstadoMovimiento = nuevoEstado;
 
-                //activo inactivo segun estado
                 movimiento.Estado = nuevoEstado switch
                 {
                     EstadoMovimiento.Pagado => false,
@@ -197,7 +200,15 @@ namespace Onlyou.Server.Repositorio
                     _ => true
                 };
 
-                // registrar obs
+                if (nuevoEstado == EstadoMovimiento.Anulado)
+                {
+                    await context.Pagos
+                        .Where(p => p.MovimientoId == movimiento.Id && p.Estado == true)
+                        .ExecuteUpdateAsync(u => u.SetProperty(p => p.Estado, false));
+
+                    movimiento.Descripcion += " | | PAGOS ANULADOS AUTOMÁTICAMENTE AL ANULAR EL MOVIMIENTO. | |";
+                }
+
                 if (!string.IsNullOrWhiteSpace(Observacion))
                 {
                     movimiento.Descripcion += $" | Nota: {Observacion.Trim()}";
@@ -205,7 +216,6 @@ namespace Onlyou.Server.Repositorio
 
                 await context.SaveChangesAsync();
                 return movimiento;
-
             }
             catch (Exception ex)
             {
@@ -213,6 +223,49 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
+
+
+
+
+        public async Task RecalcularEstadoMovimientoPorPagosAsync(int movimientoId)
+        {
+            var movimiento = await context.Movimientos
+                .Include(m => m.Pagos)
+                .FirstOrDefaultAsync(m => m.Id == movimientoId);
+
+            if (movimiento == null)
+                throw new InvalidOperationException("Movimiento inexistente.");
+
+            var totalPagado = movimiento.Pagos
+                .Where(p => p.Situacion == Situacion.Completo)
+                .Sum(p => p.Monto);
+
+            if (totalPagado == 0)
+                movimiento.EstadoMovimiento = EstadoMovimiento.Pendiente;
+            else if (totalPagado < movimiento.Monto)
+                movimiento.EstadoMovimiento = EstadoMovimiento.Parcial;
+            else
+                movimiento.EstadoMovimiento = EstadoMovimiento.Pagado;
+
+            await context.SaveChangesAsync();
+        }
+
+
+
+        public async Task<decimal> SelectTotalRealPorPagosCajaAsync(int cajaId, Signo signo)
+        {
+            var pagos = await context.Pagos
+                .Where(p => p.CajaId == cajaId && p.Situacion == Situacion.Completo)
+                .Include(p => p.Movimiento)
+                .ThenInclude(m => m.TipoMovimiento)
+                .ToListAsync();
+
+            return pagos
+                .Where(p => p.Movimiento.TipoMovimiento.signo == signo)
+                .Sum(p => p.Monto);
+        }
+
+
 
         // Metodos Privados
 

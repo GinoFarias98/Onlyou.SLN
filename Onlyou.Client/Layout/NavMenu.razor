@@ -52,19 +52,56 @@
                         </div>
                     }
                 </div>
+            </div>
+            <!-- === Administrar Caja === -->
+            <div class="nav-item">
 
+                <div class="nav-link catalog-toggle"
+                     @onclick="ToggleCajaMenu">
+                    <div class="toggle-content">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Administrar Caja</span>
+                        <i class="bi bi-chevron-@(showCajaMenu ? "down" : "right")"></i>
+                    </div>
+                </div>
+
+                @if (showCajaMenu)
+                {
+                    <div class="submenu">
+
+                        <a class="submenu-link" href="caja" @onclick="CloseAllMenus">
+                            <i class="bi bi-currency-dollar"></i> Caja
+                        </a>
+                        <a class="submenu-link" href="TipoMovimientos" @onclick="CloseAllMenus">
+                            <i class="bi bi-tags-fill"></i> Tipo de Movimientos
+                        </a>
+                        <a class="submenu-link" href="TipoPagos" @onclick="CloseAllMenus">
+                            <i class="bi bi-tags-fill"></i> Tipo de Pagos
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Independientes -->
+            <a class="nav-link" href="caja">
+                <i class="bi bi-currency-dollar"></i> Caja
+            </a>
+
+            <a class="nav-link" href="Pedidos1">
+                <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
+            </a>
                 <!-- Centro de Pedidos -->
                 <a class="nav-link" href="Pedidos1">
                     <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
                 </a>
-
+            </a>
                 <!-- Reportes -->
                 <a class="nav-link" href="movimientosCaja">
                     <i class="bi bi-graph-up"></i> Reportes
                 </a>
             </Authorized>
         </AuthorizeView>
-
+            </a>
         <!-- Siempre visible - Swagger -->
         <a href="http://localhost:5258/swagger" target="_blank" rel="noopener noreferrer" class="nav-link">
             <i class="bi bi-file-code-fill"></i> Swagger API
@@ -74,7 +111,7 @@
                 <i class="bi bi-trash-fill"></i> Papelera
             </a>
         </div>
-
+            </div>
 
     </div>
 
@@ -108,9 +145,15 @@
         </AuthorizeView>
     </div>
 </div>
-
+    </AuthorizeView>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-
+    <a href="http://localhost:5258/swagger"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="nav-link">
+        <span class="oi oi-document"></span> Swagger
+    </a>
+    </a>
 <!-- Modal Container -->
 @if (mostrarModal)
 {
@@ -167,11 +210,12 @@
             background-color: rgba(220, 53, 69, 0.1) !important;
             color: #bd2130 !important;
         }
+</div>
+</div>
 
 </style>
 
 @code {
-    private bool showCatalogMenu = false;
     private bool mostrarModal = false;
     private string tituloModal = "";
     private RenderFragment? contenidoModal;
@@ -230,21 +274,29 @@
         builder.CloseComponent();
     }
 
+    private bool showCajaMenu = false;
+    private bool showCatalogMenu = false;
 
     private void ToggleCatalogMenu()
     {
         showCatalogMenu = !showCatalogMenu;
-        StateHasChanged();
+        showCajaMenu = false; // se cierra el otro menú
     }
 
-    private void CloseCatalogMenu()
+    private void ToggleCajaMenu()
+    {
+        showCajaMenu = !showCajaMenu;
+        showCatalogMenu = false; // se cierra el otro menú
+    }
+
+    private void CloseAllMenus()
     {
         showCatalogMenu = false;
-        StateHasChanged();
+        showCajaMenu = false;
     }
 
     protected override void OnInitialized()
     {
-        Navigation.LocationChanged += (sender, args) => CloseCatalogMenu();
+        Navigation.LocationChanged += (sender, args) => CloseAllMenus();
     }
 }

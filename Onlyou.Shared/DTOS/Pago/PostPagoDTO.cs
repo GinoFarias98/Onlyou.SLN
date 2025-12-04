@@ -30,5 +30,8 @@ namespace Onlyou.Shared.DTOS.Pago
 
         [Required]
         public int TipoPagoId { get; set; }
+
+        [Required]
+        public int CajaId { get; set; }
     }
 }

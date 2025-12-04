@@ -1,0 +1,222 @@
+﻿@page "/TipoPagos"
+@using Onlyou.Shared.DTOS.TipoPago
+@inject IHttpServicios http
+@inject SweetAlertService swal
+
+<div class="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-dark fw-bold">Gestión de Tipo de Pagos</h3>
+        <div class="badge bg-primary fs-6">@(tiposPagoDto?.Count ?? 0) tipos de pago</div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(modoEdicion ? "Editar Tipo de Pago" : "Nuevo Tipo de Pago")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre del Tipo de Pago</label>
+                    <input type="text" @bind="nombre" class="form-control" placeholder="Ej: Efectivo, Tarjeta, Transferencia, etc." />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button class="btn-onlyou" @onclick="GuardarTipoPago">
+                    @(modoEdicion ? "Actualizar" : "Guardar")
+                </button>
+                @if (modoEdicion)
+                {
+                    <button class="btn-onlyou-secondary" @onclick="CancelarEdicion">
+                        Cancelar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Lista de Tipos de Pago</h5>
+        </div>
+        <div class="card-body">
+            @if (tiposPagoDto == null)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando tipos de pago...</p>
+                </div>
+            }
+            else if (!tiposPagoDto.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay tipos de pago</h5>
+                    <p class="text-muted">Comienza creando tu primer tipo de pago</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th width="150" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tipo in tiposPagoDto)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@tipo.Nombre</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <!-- Botón Editar -->
+                                            <button class="btn-onlyou-secondary btn-sm btn-action"
+                                                    @onclick="() => EditarTipoPago(tipo)"
+                                                    title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                                <span>Editar</span>
+                                            </button>
+
+                                            <!-- Botón Archivar -->
+                                            <button class="btn-onlyou-danger btn-sm btn-action"
+                                                    @onclick="() => ArchivarTipoPago(tipo.Id, tipo.Nombre)"
+                                                    title="Archivar">
+                                                <i class="bi bi-trash"></i>
+                                                <span>Archivar</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TipoPagoDTO> tiposPagoDto = new();
+    private string nombre = string.Empty;
+    private bool estado = true;
+    private int tipoPagoEditandoId = 0;
+    private bool modoEdicion = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTiposPago();
+    }
+
+    private async Task CargarTiposPago()
+    {
+        var resultado = await http.Get<List<TipoPagoDTO>>("/TipoPago");
+        if (!resultado.Error)
+        {
+            tiposPagoDto = resultado.Respuesta!;
+        }
+    }
+
+    private async Task GuardarTipoPago()
+    {
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            await swal.FireAsync("Atención", "El nombre es obligatorio", SweetAlertIcon.Warning);
+            return;
+        }
+
+        if (modoEdicion)
+        {
+            var dto = new TipoPagoDTO
+            {
+                Id = tipoPagoEditandoId,
+                Nombre = nombre,
+                Estado = estado
+            };
+
+            var respuesta = await http.Put<TipoPagoDTO, TipoPagoDTO>($"/TipoPago/ModificarXId/{tipoPagoEditandoId}", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo editar el Tipo de Pago", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito",
+                $"Tipo de Pago '{respuesta.Respuesta!.Nombre}' actualizado correctamente",
+                SweetAlertIcon.Success);
+
+            modoEdicion = false;
+        }
+        else
+        {
+            var dto = new TipoPagoDTO
+            {
+                Nombre = nombre
+            };
+
+            var respuesta = await http.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dto);
+
+            if (respuesta.Error)
+            {
+                await swal.FireAsync("Error", "No se pudo guardar el Tipo de Pago", SweetAlertIcon.Error);
+                return;
+            }
+
+            await swal.FireAsync("Éxito",
+                $"Tipo de Pago '{respuesta.Respuesta!.Nombre}' creado correctamente",
+                SweetAlertIcon.Success);
+        }
+
+        LimpiarFormulario();
+        await CargarTiposPago();
+    }
+
+    private void EditarTipoPago(TipoPagoDTO tipo)
+    {
+        tipoPagoEditandoId = tipo.Id;
+        nombre = tipo.Nombre;
+        estado = tipo.Estado;
+        modoEdicion = true;
+    }
+
+    private async Task ArchivarTipoPago(int id, string nombre)
+    {
+        var confirm = await swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = $"¿Seguro que deseas Archivar el Tipo de Pago {nombre}?",
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar"
+        });
+
+        if (confirm.IsConfirmed)
+        {
+            await http.Put<object>($"/TipoPago/Archivados/{id}", null);
+            await CargarTiposPago();
+            await swal.FireAsync("Éxito", "Tipo de Pago archivado correctamente", SweetAlertIcon.Success);
+        }
+    }
+
+    private void CancelarEdicion() => LimpiarFormulario();
+
+    private void LimpiarFormulario()
+    {
+        nombre = string.Empty;
+        estado = true;
+        tipoPagoEditandoId = 0;
+        modoEdicion = false;
+    }
+}
