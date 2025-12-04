@@ -27,9 +27,13 @@ namespace Onlyou.Shared.DTOS.Producto
         public bool PublicadoWeb { get; set; } = false;
 
         // Relaciones simplificadas ----------------------
+        // Datos del proveedor (solo lectura, se cargan automáticamente)
         public int ProveedorId { get; set; }
-        public string ProveedorNombre { get; set; } = null!;
+        public string ProveedorNombre { get; set; } = string.Empty;
+        public string? ProveedorTelefono { get; set; }
+        public string? ProveedorEmail { get; set; }
 
+        //
         public int CategoriaId { get; set; }
         public string CategoriaNombre { get; set; } = null!;
 

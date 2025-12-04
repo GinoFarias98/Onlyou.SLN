@@ -16,14 +16,18 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
-        // Obtener pedido por ID incluyendo items y movimientos ------no hace falta mepa
+        // Obtener pedido por ID incluyendo items y movimientos
         public async Task<Pedido?> SelectPedidoPorIdAsync(int pedidoId)
         {
             try
             {
                 return await context.Pedidos
+                    .Include(p => p.EstadoPedido) // ← AGREGAR ESTO
                     .Include(p => p.PedidoItems)
+                        .ThenInclude(pi => pi.Producto) // ← AGREGAR ESTO
+                        .ThenInclude(producto => producto.Proveedor)
                     .Include(p => p.Movimientos)
+                    
                     .FirstOrDefaultAsync(p => p.Id == pedidoId);
             }
             catch (Exception ex)
@@ -38,17 +42,16 @@ namespace Onlyou.Server.Repositorio
         {
             try
             {
-                var query = context.Pedidos.AsQueryable();
-
-                query = query.Where(p => p.NombreCliente.Contains(nombreCliente));
+                var query = context.Pedidos
+                    .Include(p => p.EstadoPedido)
+                    .Include(p => p.PedidoItems)
+                    .Include(p => p.Movimientos)
+                    .Where(p => p.NombreCliente.Contains(nombreCliente));
 
                 if (dni.HasValue)
                     query = query.Where(p => p.DNI == dni.Value);
 
-                return await query
-                    .Include(p => p.PedidoItems)
-                    .Include(p => p.Movimientos)
-                    .ToListAsync();
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -57,51 +60,16 @@ namespace Onlyou.Server.Repositorio
             }
         }
 
-        ////Obtener pedidos por estado de pago
-        //public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoPagoAsync(Pedido.EstadoPago estadoPago)
-        //{
-        //    try
-        //    {
-        //        return await context.Pedidos
-        //            .Where(p => p.EstadoPago == estadoPago)
-        //            .Include(p => p.PedidoItems)
-        //            .Include(p => p.Movimientos)
-        //            .ToListAsync();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ImprimirError(ex);
-        //        throw;
-        //    }
-        //}
-
-        //Obtener pedidos por estado de entrega
-        //public async Task<IEnumerable<Pedido>> SelectPedidosPorEstadoEntregaAsync(Pedido.EstadoEntrega estadoEntrega)
-        //{
-        //    try
-        //    {
-        //        return await context.Pedidos
-        //            .Where(p => p.EstadoEntrega == estadoEntrega)
-        //            .Include(p => p.PedidoItems)
-        //            .Include(p => p.Movimientos)
-        //            .ToListAsync();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ImprimirError(ex);
-        //        throw;
-        //    }
-        //}
-
         // Obtener pedidos por rango de fechas
         public async Task<IEnumerable<Pedido>> SelectPedidosPorRangoFechasAsync(DateTime inicio, DateTime fin)
         {
             try
             {
                 return await context.Pedidos
-                    .Where(p => p.FechaGenerado >= inicio && p.FechaGenerado <= fin)
+                    .Include(p => p.EstadoPedido)
                     .Include(p => p.PedidoItems)
                     .Include(p => p.Movimientos)
+                    .Where(p => p.FechaGenerado >= inicio && p.FechaGenerado <= fin)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -125,5 +93,57 @@ namespace Onlyou.Server.Repositorio
                 throw;
             }
         }
+
+        public async Task<IEnumerable<Pedido>> GetAllWithDetailsAsync()
+        {
+            return await context.Pedidos
+                   .Include(p => p.EstadoPedido)
+                   .Include(p => p.PedidoItems)
+                       .ThenInclude(pi => pi.Producto)
+                           .ThenInclude(producto => producto.Proveedor)
+                   .Include(p => p.PedidoItems)
+                       .ThenInclude(pi => pi.Color)
+                   //.Include(p => p.PedidoItems)
+                   //    .ThenInclude(pi => pi.ColorNombre)
+
+                   .Include(p => p.PedidoItems)
+                       .ThenInclude(pi => pi.Talle)
+                   //.Include(p => p.PedidoItems)
+                   //    .ThenInclude(pi => pi.TalleNombre)
+
+                   .OrderByDescending(p => p.FechaGenerado)
+                   .ToListAsync();
+        }
+
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await context.Pedidos.AnyAsync(p => p.Id == id);
+        }
+
+        // NUEVO MÉTODO PARA ACTUALIZAR
+        public async Task UpdateAsync(Pedido entidad)
+        {
+            try
+            {
+                context.Pedidos.Update(entidad);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                ImprimirError(ex);
+                throw;
+            }
+        }
+
+        private void ImprimirError(Exception ex)
+        {
+            Console.WriteLine($"Error en RepositorioPedido: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+        }
+
     }
 }
+

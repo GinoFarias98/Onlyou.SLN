@@ -1,262 +1,1148 @@
 ﻿@page "/Pedidos1"
-@inject HttpClient Http
-@inject NavigationManager Navigation
 @using Onlyou.Shared.DTOS.Pedidos
 @using Onlyou.Shared.DTOS.Pedidos.EstadoPedido
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject SweetAlertService Swal
+
+<style>
+    /* Estilos para las nuevas clases del sistema de filtros */
+    .filters-container {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f0f0f0;
+    }
+
+    .filters-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .title-section {
+        flex: 1;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .orders-count {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-tag {
+        display: flex;
+        align-items: center;
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        gap: 0.5rem;
+    }
+
+        .filter-tag.warning {
+            background: #fffaf0;
+            border-color: #fbd38d;
+        }
+
+    .filter-text {
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .filter-remove {
+        background: none;
+        border: none;
+        color: #a0aec0;
+        cursor: pointer;
+        padding: 0.125rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+        .filter-remove:hover {
+            background: #edf2f7;
+            color: #e53e3e;
+        }
+
+    .search-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    .search-type-dropdown {
+        position: relative;
+    }
+
+    .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.625rem 1rem;
+        color: #4a5568;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+
+        .dropdown-toggle:hover,
+        .dropdown-toggle.active {
+            border-color: #667eea;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+    .dropdown-arrow {
+        font-size: 0.75rem;
+        transition: transform 0.3s ease;
+        margin-left: auto;
+    }
+
+    .dropdown-toggle.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        margin-top: 0.5rem;
+        animation: dropdownFadeIn 0.2s ease-out;
+        min-width: 200%; /* Asegura que al menos tenga el ancho del botón */
+        width: auto; /* Permite que se expanda según el contenido */
+        /* Opcional: si quieres que el dropdown no se rompa en varias líneas */
+
+    }
+
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        color: #4a5568;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+        .dropdown-item:hover,
+        .dropdown-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+    .search-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.625rem 1rem;
+        transition: all 0.3s ease;
+        min-width: 280px;
+    }
+
+        .search-bar:focus-within {
+            border-color: #667eea;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+    .search-icon {
+        color: #a0aec0;
+        margin-right: 0.75rem;
+    }
+
+    .search-input {
+        border: none;
+        background: none;
+        outline: none;
+        flex: 1;
+        color: #2d3748;
+        font-size: 0.875rem;
+    }
+
+        .search-input::placeholder {
+            color: #a0aec0;
+        }
+
+    .clear-search {
+        background: none;
+        border: none;
+        color: #a0aec0;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        margin-left: 0.5rem;
+    }
+
+        .clear-search:hover {
+            background: #edf2f7;
+            color: #e53e3e;
+        }
+
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.625rem 1rem;
+        color: #4a5568;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .payment-filter:hover,
+    .payment-filter.active {
+        background: #fed7d7;
+        border-color: #feb2b2;
+        color: #c53030;
+    }
+
+    .time-filters {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .time-filter-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .time-filter {
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 0.5rem 1.25rem;
+        color: #4a5568;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+
+        .time-filter:hover,
+        .time-filter.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+    .clear-filters-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        color: #718096;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .clear-filters-btn:hover {
+            background: #fed7d7;
+            border-color: #feb2b2;
+            color: #c53030;
+        }
+
+    /* Estilos originales de las tarjetas del dashboard (se mantienen igual) */
+    .dashboard-card {
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-card.active {
+            border: 3px solid #007bff;
+        }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-bottom: 0;
+    }
+
+    .pedido-card {
+        border-left: 4px solid #007bff;
+        transition: all 0.2s ease;
+        border-radius: 12px;
+    }
+
+        .pedido-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .pedido-card.pendiente {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+
+        .pedido-card.confirmado {
+            border-left-color: #17a2b8;
+            background-color: #f0f9ff;
+        }
+
+        .pedido-card.solicitado {
+            border-left-color: #6f42c1;
+            background-color: #f8f9ff;
+        }
+
+        .pedido-card.listo {
+            border-left-color: #20c997;
+            background-color: #f0fff4;
+        }
+
+        .pedido-card.entregado {
+            border-left-color: #28a745;
+            background-color: #f0fff0;
+        }
+
+        .pedido-card.cancelado {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+
+        .pedido-card.recibido {
+            border-left-color: #fd7e14;
+            background-color: #fff4e6;
+        }
+
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+        border-radius: 20px;
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .action-btn {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+    .btn-group-vertical .btn {
+        margin-bottom: 0.3rem;
+        border-radius: 6px;
+    }
+
+    .producto-chip {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+
+    .filtro-rapido {
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .titulo-responsive {
+        font-size: clamp(1.25rem, 4vw, 1.75rem);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitulo-responsive {
+        font-size: clamp(0.875rem, 2vw, 1rem);
+    }
+
+    .buscador-avanzado {
+        min-width: 280px;
+    }
+
+    .dropdown-busqueda {
+        min-width: 200px;
+    }
+
+    .badge-cantidad {
+        font-size: 0.8rem;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .dropdown-menu-custom {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 10px;
+        padding: 0.5rem;
+    }
+
+    .dropdown-item-custom {
+        border-radius: 6px;
+        margin: 2px 0;
+        transition: all 0.2s ease;
+    }
+
+        .dropdown-item-custom:hover {
+            background-color: #8a4c76;
+            color: white;
+        }
+
+        .dropdown-item-custom.active {
+            background-color: #8a4c76;
+            color: white;
+        }
+
+    .badge-filtro {
+        font-size: 0.75rem;
+        padding: 0.4em 0.6em;
+    }
+
+    .card-hover-effect {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+        .card-hover-effect:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+    .dropdown-enter {
+        animation: dropdownFadeIn 0.2s ease-out;
+    }
+
+    @@keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .btn-group-responsive {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .btn-filtro-tiempo {
+        font-size: 0.8rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Responsive para las nuevas clases */
+    @@media (max-width: 1024px) {
+        .filters-header {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-section {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .filters-container {
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .search-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-bar {
+            min-width: auto;
+        }
+
+        .dropdown-toggle,
+        .filter-btn {
+            min-width: auto;
+            justify-content: center;
+        }
+
+        .time-filters {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .time-filter-group {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .search-type-dropdown {
+            width: 100%;
+        }
+
+        .dropdown-toggle {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .buscador-avanzado {
+            min-width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .dropdown-busqueda {
+            min-width: 150px;
+        }
+
+        .header-mobile {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .stats-number {
+            font-size: 1.5rem;
+        }
+
+        .stats-label {
+            font-size: 0.8rem;
+        }
+
+        .mobile-stack {
+            flex-direction: column;
+        }
+
+        .mobile-w-100 {
+            width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .filters-container {
+            margin-bottom: 1rem;
+        }
+
+        .time-filter {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .filter-btn,
+        .clear-filters-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .active-filters {
+            justify-content: center;
+        }
+
+        .dashboard-card .card-body {
+            padding: 1rem;
+        }
+
+        .btn-group-responsive {
+            justify-content: center;
+        }
+
+        .btn-filtro-tiempo {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .mobile-text-center {
+            text-align: center;
+        }
+
+        .dropdown-busqueda {
+            min-width: 120px;
+        }
+    }
+</style>
 
 
-<h3>Gestión de Pedidos</h3>
-
-<!-- Filtros -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <label class="form-label">Filtrar por Estado:</label>
-        <select @bind="filtroEstadoId" @bind:event="onchange" class="form-select">
-            <option value="">Todos los estados</option>
-            @if (estadosPedido != null)
-            {
-                @foreach (var estado in estadosPedido)
-                {
-                    <option value="@estado.Id">@estado.Nombre</option>
-                }
-            }
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label class="form-label">Buscar por Cliente:</label>
-        <input @bind="filtroCliente" @bind:event="oninput" class="form-control" placeholder="Nombre del cliente..." />
-    </div>
-    <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-outline-secondary" @onclick="LimpiarFiltros">Limpiar Filtros</button>
-    </div>
-</div>
-
-@if (cargando)
-{
-    <div class="text-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-2">Cargando pedidos...</p>
-    </div>
-}
-else if (pedidos == null || !pedidos.Any())
-{
-    <div class="alert alert-info text-center">
-        <h5>No hay pedidos</h5>
-        <p>No se encontraron pedidos con los filtros aplicados.</p>
-    </div>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>DNI</th>
-                    <th>Teléfono</th>
-                    <th>Localidad</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Entrega</th>
-                    <th>Pago</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var pedido in pedidosFiltrados)
-                {
-                    <tr>
-                        <td>
-                            <strong>#@pedido.Id</strong>
-                            @if (pedido.Descripcion?.Contains("web") == true)
-                            {
-                                <span class="badge bg-info ms-1" title="Pedido desde la web">🌐</span>
-                            }
-                        </td>
-                        <td>@pedido.NombreCliente</td>
-                        <td>@pedido.DNI</td>
-@*                         <td>
-                            @if (!string.IsNullOrEmpty(pedido.Telefono))
-                            {
-                                <a href="https://wa.me/@pedido.Telefono" target="_blank" class="btn btn-sm btn-success">
-                                    📞 @pedido.Telefono
-                                </a>
-                            }
-                        </td> *@
-                        <td>@pedido.Localidad</td>
-                        <td>
-                            <strong class="text-success">$@pedido.MontoTotal.ToString("N2")</strong>
-                        </td>
-                        <td>
-                            <span class="badge @GetBadgeClass(pedido.EstadoPedidoNombre)">
-                                @pedido.EstadoPedidoNombre
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge @GetEntregaBadgeClass(pedido.EstadoEntrega)">
-                                @GetTextoEstadoEntrega(pedido.EstadoEntrega)
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge @GetPagoBadgeClass(pedido.EstadoPago)">
-                                $@pedido.MontoPagado.ToString("N2") / $@pedido.MontoTotal.ToString("N2")
-                            </span>
-                            @if (pedido.SaldoPendiente > 0)
-                            {
-                                <br />
-                                <small class="text-danger">Pendiente: $@pedido.SaldoPendiente.ToString("N2")</small>
-                            }
-                        </td>
-                        <td>
-                            <small>@pedido.FechaGenerado.ToString("dd/MM/yyyy")</small><br />
-                            <small class="text-muted">@pedido.FechaGenerado.ToString("HH:mm")</small>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-primary" @onclick="() => VerDetalles(pedido.Id)" title="Gestionar pedido">
-                                    📋
-                                </button>
-                                <button class="btn btn-sm btn-info" @onclick="() => VerItems(pedido)" title="Ver productos">
-                                    🛍️
-                                </button>
-                                @if (pedido.EstadoPedidoNombre?.ToLower().Contains("pendiente") == true)
-                                {
-                                    <button class="btn btn-sm btn-warning" @onclick="() => MarcarComoProveedor(pedido.Id)" title="Marcar como pedido a proveedor">
-                                        📦
-                                    </button>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Paginación -->
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <small class="text-muted">
-                Mostrando @((paginaActual - 1) * tamanoPagina + 1)-@Math.Min(paginaActual * tamanoPagina, pedidosFiltrados.Count) de @pedidosFiltrados.Count pedidos
-            </small>
-        </div>
-        <div>
-            <button class="btn btn-sm btn-outline-primary" @onclick="PaginaAnterior" disabled="@(paginaActual == 1)">← Anterior</button>
-            <span class="mx-2">Página @paginaActual</span>
-            <button class="btn btn-sm btn-outline-primary" @onclick="PaginaSiguiente" disabled="@(paginaActual* tamanoPagina >= pedidosFiltrados.Count)">Siguiente →</button>
-        </div>
-    </div>
-}
-
-<!-- Modal para ver items del pedido -->
-@if (pedidoSeleccionado != null)
-{
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Productos del Pedido #@pedidoSeleccionado.Id</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+    <!-- Header Mejorado -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center header-mobile">
+                <div class="flex-grow-1">
+                    <h1 class="titulo-responsive text-primary mb-1">📦 Panel de Pedidos</h1>
+@*                     <p class="subtitulo-responsive text-muted">Gestión simplificada para administración</p> *@
                 </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Imagen</th>
-                                    <th>Cantidad</th>
-                                    <th>Precio Unitario</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in pedidoSeleccionado.PedidoItems)
-                                {
-                                    <tr>
-                                        <td>@item.ProductoNombre</td>
-                                        <td>
-                                            @if (!string.IsNullOrEmpty(item.ProductoImagen))
-                                            {
-                                                <img src="@item.ProductoImagen" alt="@item.ProductoNombre" style="width: 50px; height: 50px; object-fit: cover;" />
-                                            }
-                                            else
-                                            {
-                                                <div style="width: 50px; height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-                                                    🏷️
-                                                </div>
-                                            }
-                                        </td>
-                                        <td>@item.Cantidad</td>
-                                        <td>$@item.PrecioUnitarioVenta.ToString("N2")</td>
-                                        <td><strong>$@item.SubTotal.ToString("N2")</strong></td>
-                                    </tr>
-                                }
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-success">
-                                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
-                                    <td><strong>$@pedidoSeleccionado.MontoTotal.ToString("N2")</strong></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" @onclick="() => VerDetalles(pedidoSeleccionado.Id)">Gestionar Pedido</button>
+                <div class="d-flex gap-2 flex-shrink-0">
+@*                     <button class="btn btn-outline-primary" @onclick="RecargarPedidos">
+                        <i class="fas fa-sync-alt me-2"></i>Actualizar
+                    </button> *@
                 </div>
             </div>
         </div>
     </div>
-}
+
+    <!-- Tarjetas de Estados Principales -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 0 ? "active" : "")"
+                 @onclick="() => {AplicarFiltroEstado(0);NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-primary">@estadisticas.Total</div>
+                    <div class="stats-label">Todos</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 1 ? "active" : "")"
+                 style="border-left: 4px solid #ffc107;"
+                 @onclick="() => {AplicarFiltroEstado(1); NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-warning">@estadisticas.Pendientes</div>
+                    <div class="stats-label">Pendientes</div>
+                    <small class="text-muted">Por confirmar</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 2 ? "active" : "")"
+                 style="border-left: 4px solid #17a2b8;"
+                 @onclick="() => {AplicarFiltroEstado(2); NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-info">@estadisticas.Confirmados</div>
+                    <div class="stats-label">Confirmados</div>
+                    <small class="text-muted">Listos para proveedor</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 3 ? "active" : "")"
+                 style="border-left: 4px solid #6f42c1;"
+                 @onclick="() => {AplicarFiltroEstado(3); NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-purple">@estadisticas.SolicitadosProveedor</div>
+                    <div class="stats-label">Solicitados</div>
+                    <small class="text-muted">A proveedor</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 4 ? "active" : "")"
+                 style="border-left: 4px solid #fd7e14;"
+                 @onclick="() => {AplicarFiltroEstado(4);NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-orange">@estadisticas.RecibidosProveedor</div>
+                    <div class="stats-label">Recibidos</div>
+                    <small class="text-muted">De proveedor</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 6 ? "active" : "")"
+                 style="border-left: 4px solid #28a745;"
+                 @onclick="() => {AplicarFiltroEstado(5);NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-success">@estadisticas.Entregados</div>
+                    <div class="stats-label">Entregados</div>
+                    <small class="text-muted">Finalizados</small>
+                </div>
+            </div>
+        </div>
+        <!-- TARJETA CANCELADOS -->
+        <div class="col-xl-2 col-md-4 col-6 mb-3">
+            <div class="card dashboard-card card-hover-effect @(filtroEstado == 7 ? "active" : "")"
+                 style="border-left: 4px solid #dc3545;"
+                 @onclick="() => {AplicarFiltroEstado(6);NavegarASeccionPedidos();}">
+                <div class="card-body text-center py-3">
+                    <div class="stats-number text-danger">@estadisticas.Cancelados</div>
+                    <div class="stats-label">Cancelados</div>
+                    <small class="text-muted">Archivados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="lista-pedidos" class="mt-4">
+
+    <!-- Filtros Rápidos Mejorados -->
+    @if (mostrarListaPedidos)
+    {
+        <!-- Header Principal de Filtros -->
+        <div class="filters-container">
+            <div class="filters-header">
+                <!-- Título y Contador -->
+                <div class="title-section">
+                    <h2 class="section-title">
+                        @(filtroEstado == 0 ? "Todos los Pedidos" : ObtenerNombreEstado(filtroEstado))
+                        <span class="orders-count">@pedidosFiltrados.Count</span>
+                    </h2>
+
+                    <!-- Filtros Activos -->
+                    @if (TieneFiltrosActivos())
+                    {
+                        <div class="active-filters">
+                            @if (!string.IsNullOrEmpty(filtroBusqueda))
+                            {
+                                <div class="filter-tag">
+                                    <span class="filter-text">
+                                        @(tipoBusqueda == "cliente" ? "Cliente: " : "Pedido: ")@filtroBusqueda
+                                    </span>
+                                    <button class="filter-remove" @onclick="LimpiarBusqueda">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                            @if (filtroDias > 0)
+                            {
+                                <div class="filter-tag">
+                                    <span class="filter-text">
+                                        @(filtroDias == 1 ? "Hoy" : filtroDias == 7 ? "Última semana" : "Último mes")
+                                    </span>
+                                    <button class="filter-remove" @onclick="() => AplicarFiltroDias(0)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                            @if (filtroPendientePago)
+                            {
+                                <div class="filter-tag warning">
+                                    <span class="filter-text">Pendientes Pago</span>
+                                    <button class="filter-remove" @onclick="ToggleFiltroPago">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Barra de Búsqueda y Filtros -->
+                <div class="search-section">
+                    <!-- Dropdown Tipo Búsqueda -->
+                    <div class="search-type-dropdown">
+                        <button class="dropdown-toggle @(dropdownOpen ? "active" : "")"
+                                @onclick="ToggleDropdown"
+                                @onblur="OnDropdownBlur">
+                            <i class="fas @(tipoBusqueda == "cliente" ? "fa-user" : "fa-hashtag")"></i>
+                            <span>@(tipoBusqueda == "cliente" ? "Cliente" : "Nº Pedido")</span>
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </button>
+
+                        @if (dropdownOpen)
+                        {
+                            <div class="dropdown-menu show">
+                                <button class="dropdown-item @(tipoBusqueda == "cliente" ? "active" : "")"
+                                        @onclick="SeleccionarCliente">
+                                    <i class="fas fa-user"></i>
+                                    <span>Buscar por Cliente</span>
+                                </button>
+                                <button class="dropdown-item @(tipoBusqueda == "pedido" ? "active" : "")"
+                                        @onclick="SeleccionarPedido">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>Buscar por Nº Pedido</span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Barra de Búsqueda -->
+                    <div class="search-bar">
+                        <i class="search-icon fas fa-search"></i>
+                        <input type="text"
+                               class="search-input"
+                               placeholder="@(tipoBusqueda == "cliente" ? "Buscar cliente..." : "Buscar nº pedido...")"
+                               @bind="filtroBusqueda"
+                               @oninput="OnFiltroBusquedaChange" />
+                        @if (!string.IsNullOrEmpty(filtroBusqueda))
+                        {
+                            <button class="clear-search" @onclick="LimpiarBusqueda">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Botón Filtro Pago -->
+                    <button class="filter-btn payment-filter @(filtroPendientePago ? "active" : "")"
+                            @onclick="ToggleFiltroPago">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Pendientes</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de Tiempo -->
+            <div class="time-filters">
+                <div class="time-filter-group">
+                    <button class="time-filter @(filtroDias == 1 ? "active" : "")"
+                            @onclick="() => AplicarFiltroDias(1)">
+                        <span>Hoy</span>
+                    </button>
+                    <button class="time-filter @(filtroDias == 7 ? "active" : "")"
+                            @onclick="() => AplicarFiltroDias(7)">
+                        <span>Última Semana</span>
+                    </button>
+                    <button class="time-filter @(filtroDias == 30 ? "active" : "")"
+                            @onclick="() => AplicarFiltroDias(30)">
+                        <span>Último Mes</span>
+                    </button>
+                </div>
+
+                <button class="clear-filters-btn" @onclick="LimpiarTodosFiltros">
+                    <i class="fas fa-broom"></i>
+                    <span>Limpiar Filtros</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Cargando pedidos...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando pedidos...</p>
+        </div>
+    }
+    else if (mostrarListaPedidos && !pedidosFiltrados.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted">
+                <i class="fas fa-box-open fa-4x mb-3 opacity-50"></i>
+                <h4>No se encontraron pedidos</h4>
+                <p>@(TieneFiltrosActivos() ? "Intenta ajustar los filtros" : "No hay pedidos en este estado")</p>
+                <button class="btn btn-primary mt-2" @onclick="VolverAInicio">
+                    <i class="fas fa-home me-2"></i>Volver al Inicio
+                </button>
+            </div>
+        </div>
+    }
+    else if (mostrarListaPedidos)
+    {
+        <!-- Lista de Pedidos -->
+        <div class="row">
+            @foreach (var pedido in PedidosPaginaActual)
+            {
+                <div class="col-xl-6 col-xxl-4 mb-4">
+                    <div class="card pedido-card card-hover-effect h-100 @GetCardClass(pedido)">
+                        <div class="card-body">
+                            <!-- Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1 text-dark">Pedido #@pedido.Id</h5>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @pedido.FechaGenerado.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge @GetBadgeClassEstado(pedido.EstadoPedidoId) status-badge">
+                                        @ObtenerNombreEstadoCorto(pedido.EstadoPedidoId)
+                                    </span>
+                                    <div class="mt-1">
+                                        <span class="badge @GetBadgeClassPago(pedido.EstadoPago) status-badge">
+                                            @GetEstadoPagoText(pedido.EstadoPago)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información del cliente -->
+                            <div class="mb-3">
+                                <h6 class="fw-semibold mb-1 text-dark">
+                                    <i class="fas fa-user me-2"></i>@pedido.NombreCliente
+                                </h6>
+                                <div class="small text-muted">
+                                    <div><i class="fas fa-phone me-2"></i>@pedido.Telefono</div>
+                                    <div><i class="fas fa-map-marker-alt me-2"></i>@pedido.Localidad</div>
+                                </div>
+                            </div>
+
+                            <!-- Productos -->
+                            <div class="mb-3">
+                                <div class="d-flex flex-wrap">
+                                    @foreach (var item in pedido.PedidoItems.Take(3))
+                                    {
+                                        <span class="producto-chip">
+                                            @item.ProductoNombre x@(item.Cantidad)
+                                        </span>
+                                    }
+                                    @if (pedido.PedidoItems.Count > 3)
+                                    {
+                                        <span class="producto-chip text-primary">
+                                            +@(pedido.PedidoItems.Count - 3) más
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                            <!-- NUEVA SECCIÓN: Colores y Talles seleccionados -->
+                            @if (!string.IsNullOrEmpty(pedido.Descripcion) && pedido.Descripcion.Contains("Color:"))
+                            {
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-palette me-1"></i>
+                                        <strong>Colores/Talles especificados</strong>
+                                    </small>
+                                    <!-- Tooltip con información detallada -->
+                                    <span class="ms-1" data-bs-toggle="tooltip"
+                                          title="@ObtenerTooltipColoresTalles(pedido.Descripcion)">
+                                        <i class="fas fa-info-circle text-info"></i>
+                                    </span>
+                                </div>
+                            }
+
+                            <!-- Información financiera -->
+                            <div class="border-top pt-3">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="fw-bold text-success">$@pedido.MontoTotal.ToString("N0")</div>
+                                        <small class="text-muted">Total</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="fw-bold @(pedido.SaldoPendiente > 0 ? "text-danger" : "text-success")">
+                                            $@pedido.SaldoPendiente.ToString("N0")
+                                        </div>
+                                        <small class="text-muted">Saldo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones Rápidas -->
+                        <div class="card-footer bg-transparent border-top-0 pt-0">
+                            <div class="btn-group-vertical w-100" role="group">
+                                <button class="btn btn-outline-primary action-btn text-start"
+                                        @onclick="() => VerDetalles(pedido.Id)">
+                                    <i class="fas fa-eye me-2"></i>Ver Detalles Completos
+                                </button>
+
+                                @if (pedido.EstadoPedidoId == 1) // Pendiente
+                                {
+                                    <button class="btn btn-success action-btn text-start"
+                                            @onclick="() => ConfirmarPedido(pedido)">
+                                        <i class="fas fa-check me-2"></i>Confirmar Pedido
+                                    </button>
+                                }
+
+                                @if (pedido.EstadoPedidoId == 2) // Confirmado
+                                {
+                                    <button class="btn btn-warning action-btn text-start"
+                                            @onclick="() => SolicitarProveedor(pedido)">
+                                        <i class="fas fa-truck me-2"></i>Solicitar a Proveedor
+                                    </button>
+                                }
+
+                                @if (pedido.EstadoPedidoId == 3) // En preparación (Solicitado a Proveedor)
+                                {
+                                    <button class="btn btn-info action-btn text-start"
+                                            @onclick="() => MarcarRecibidoProveedor(pedido)">
+                                        <i class="fas fa-check me-2"></i>Marcar Recibido
+                                    </button>
+                                }
+
+                                @if (pedido.EstadoPedidoId == 4) // Listo para retirar (Recibido de Proveedor)
+                                {
+                                    <button class="btn btn-success action-btn text-start"
+                                            @onclick="() => MarcarListoParaEntregar(pedido)">
+                                        <i class="fas fa-check-circle me-2"></i>Marcar Entregado
+                                    </button>
+                                }
+
+                                <button class="btn btn-outline-success action-btn text-start"
+                                        @onclick="() => RegistrarPago(pedido)">
+                                    <i class="fas fa-money-bill me-2"></i>Registrar Pago
+                                </button>
+
+                                @if (!string.IsNullOrEmpty(pedido.Telefono))
+                                {
+                                    <button class="btn btn-outline-info action-btn text-start"
+                                            @onclick="() => ContactarWhatsApp(pedido)">
+                                        <i class="fab fa-whatsapp me-2"></i>Contactar por WhatsApp
+                                    </button>
+                                }
+
+                                @if (pedido.EstadoPedidoId != 6 )// &&  pedido.EstadoPedidoId != 6) // No cancelado ni entregado
+                                {
+                                    <button class="btn btn-outline-danger action-btn text-start"
+                                            @onclick="() => CancelarPedido(pedido)">
+                                        <i class="fas fa-times me-2"></i>Cancelar Pedido
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+
+        <!-- Paginación -->
+        @if (totalPaginas > 1)
+        {
+            <div class="row mt-4">
+                <div class="col">
+                    <nav aria-label="Paginación de pedidos">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => CambiarPagina(paginaActual - 1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                            </li>
+
+                            @for (int i = Math.Max(1, paginaActual - 2); i <= Math.Min(totalPaginas, paginaActual + 2); i++)
+                            {
+                                <li class="page-item @(i == paginaActual ? "active" : "")">
+                                    <button class="page-link" @onclick="() => CambiarPagina(i)">@i</button>
+                                </li>
+                            }
+
+                            <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => CambiarPagina(paginaActual + 1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div class="text-center text-muted small mt-2">
+                        Mostrando @((paginaActual - 1) * tamanoPagina + 1)-@(Math.Min(paginaActual * tamanoPagina, pedidosFiltrados.Count)) de @pedidosFiltrados.Count pedidos
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</div> <!-- CIERRE DEL #lista-pedidos -->
+
 
 @code {
     private List<GetPedidosDTO> pedidos = new();
     private List<GetPedidosDTO> pedidosFiltrados = new();
-    private List<EstadoPedidoDTO> estadosPedido = new();
-    private GetPedidosDTO? pedidoSeleccionado;
-
-    private string filtroCliente = "";
-    private int? filtroEstadoId
-    {
-        get => _filtroEstadoId;
-        set
-        {
-            _filtroEstadoId = value;
-            AplicarFiltros();
-            StateHasChanged();
-        }
-    }
-    private int? _filtroEstadoId;
-
     private bool cargando = true;
+    private bool mostrarListaPedidos = false;
+    private bool dropdownOpen = false;
+    
+    // Filtros
+    private int filtroEstado = 0;
+    private string filtroBusqueda = "";
+    private string tipoBusqueda = "cliente";
+    private int filtroDias = 0;
+    private bool filtroPendientePago = false;
+
+    // Paginación
     private int paginaActual = 1;
-    private int tamanoPagina = 10;
+    private int tamanoPagina = 9;
+    private int totalPaginas = 1;
+
+    // Estadísticas
+    private EstadisticasPedidos estadisticas = new();
+
+    // Timer para búsqueda en tiempo real
+    private System.Threading.Timer timerBusqueda;
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarEstadosPedido();
         await CargarPedidos();
     }
 
-    private async Task CargarEstadosPedido()
+    private async Task NavegarASeccionPedidos()
     {
-        try
-        {
-            estadosPedido = await Http.GetFromJsonAsync<List<EstadoPedidoDTO>>("api/Pedidos/Estados") ?? new();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al cargar estados: {ex.Message}");
-            // Si hay error, inicializar con lista vacía
-            estadosPedido = new List<EstadoPedidoDTO>();
-        }
+        // Pequeña espera para asegurar que el DOM se actualice
+        await Task.Delay(100);
+
+        // Usamos JS Interop para hacer scroll suave
+        await JSRuntime.InvokeVoidAsync("scrollToElement", "lista-pedidos");
     }
+
 
     private async Task CargarPedidos()
     {
@@ -265,14 +1151,13 @@ else
 
         try
         {
-            var url = "api/Pedidos";
-            pedidos = await Http.GetFromJsonAsync<List<GetPedidosDTO>>(url) ?? new();
+            pedidos = await Http.GetFromJsonAsync<List<GetPedidosDTO>>("api/Pedidos") ?? new();
+            CalcularEstadisticas();
             AplicarFiltros();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar pedidos: {ex.Message}");
-            pedidos = new List<GetPedidosDTO>();
+            await MostrarError($"Error al cargar pedidos: {ex.Message}");
         }
         finally
         {
@@ -281,126 +1166,528 @@ else
         }
     }
 
+    private void CalcularEstadisticas()
+    {
+        estadisticas.Total = pedidos.Count;
+        estadisticas.Pendientes = pedidos.Count(p => p.EstadoPedidoId == 1);
+        estadisticas.Confirmados = pedidos.Count(p => p.EstadoPedidoId == 2);
+        estadisticas.SolicitadosProveedor = pedidos.Count(p => p.EstadoPedidoId == 3);
+        estadisticas.RecibidosProveedor = pedidos.Count(p => p.EstadoPedidoId == 4);
+        estadisticas.Entregados = pedidos.Count(p => p.EstadoPedidoId == 5);
+        estadisticas.Cancelados = pedidos.Count(p => p.EstadoPedidoId == 6);
+        estadisticas.PendientesPago = pedidos.Count(p => p.SaldoPendiente > 0);
+    }
+
+    private void AplicarFiltroEstado(int estadoId)
+    {
+        filtroEstado = estadoId;
+        paginaActual = 1;
+        mostrarListaPedidos = true;
+        AplicarFiltros();
+        StateHasChanged();
+    }
+
     private void AplicarFiltros()
     {
         var query = pedidos.AsEnumerable();
 
-        if (!string.IsNullOrEmpty(filtroCliente))
+        // Filtro por estado
+        if (filtroEstado > 0)
         {
-            query = query.Where(p => p.NombreCliente.Contains(filtroCliente, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(p => p.EstadoPedidoId == filtroEstado);
         }
 
-        if (_filtroEstadoId.HasValue)
+        // Filtro por búsqueda (cliente o número de pedido)
+        if (!string.IsNullOrEmpty(filtroBusqueda))
         {
-            query = query.Where(p => p.EstadoPedidoId == _filtroEstadoId.Value);
+            if (tipoBusqueda == "cliente")
+            {
+                query = query.Where(p =>
+                    p.NombreCliente.Contains(filtroBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                    p.Telefono.Contains(filtroBusqueda) ||
+                    (p.Localidad != null && p.Localidad.Contains(filtroBusqueda, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+            else if (tipoBusqueda == "pedido")
+            {
+                query = query.Where(p =>
+                    p.Id.ToString().Contains(filtroBusqueda) ||
+                    p.Id.ToString().StartsWith(filtroBusqueda)
+                );
+            }
+        }
+
+        // Filtro por tiempo
+        if (filtroDias > 0)
+        {
+            var fechaLimite = DateTime.Now.AddDays(-filtroDias);
+            query = query.Where(p => p.FechaGenerado >= fechaLimite);
+        }
+
+        // Filtro por pago pendiente
+        if (filtroPendientePago)
+        {
+            query = query.Where(p => p.SaldoPendiente > 0);
         }
 
         pedidosFiltrados = query.OrderByDescending(p => p.FechaGenerado).ToList();
-        paginaActual = 1;
+        CalcularPaginacion();
     }
 
-    private void LimpiarFiltros()
+    private void CalcularPaginacion()
     {
-        filtroCliente = "";
-        _filtroEstadoId = null;
+        totalPaginas = (int)Math.Ceiling(pedidosFiltrados.Count / (double)tamanoPagina);
+        paginaActual = Math.Max(1, Math.Min(paginaActual, totalPaginas));
+    }
+
+    // Métodos del dropdown corregidos
+    private void ToggleDropdown()
+    {
+        dropdownOpen = !dropdownOpen;
+        StateHasChanged();
+    }
+
+    private void OnDropdownBlur()
+    {
+        // Pequeño delay para permitir que el click en los items del dropdown se procese
+        Task.Delay(200).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                dropdownOpen = false;
+                StateHasChanged();
+            });
+        });
+    }
+
+    private void SeleccionarCliente()
+    {
+        tipoBusqueda = "cliente";
+        dropdownOpen = false;
+        LimpiarBusquedaSiEsNecesario();
+    }
+
+    private void SeleccionarPedido()
+    {
+        tipoBusqueda = "pedido";
+        dropdownOpen = false;
+        LimpiarBusquedaSiEsNecesario();
+    }
+
+    private void LimpiarBusquedaSiEsNecesario()
+    {
+        if (!string.IsNullOrEmpty(filtroBusqueda))
+        {
+            filtroBusqueda = "";
+            AplicarFiltros();
+        }
+        StateHasChanged();
+    }
+
+    private void OnFiltroBusquedaChange(ChangeEventArgs e)
+    {
+        filtroBusqueda = e.Value?.ToString() ?? "";
+
+        // Cancelar timer anterior
+        timerBusqueda?.Dispose();
+
+        // Nuevo timer para esperar 500ms antes de buscar
+        timerBusqueda = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                paginaActual = 1;
+                AplicarFiltros();
+                StateHasChanged();
+            });
+        }, null, 500, Timeout.Infinite);
+    }
+
+    private void LimpiarBusqueda()
+    {
+        filtroBusqueda = "";
+        paginaActual = 1;
         AplicarFiltros();
         StateHasChanged();
     }
+
+    private bool TieneFiltrosActivos()
+    {
+        return !string.IsNullOrEmpty(filtroBusqueda) || filtroDias > 0 || filtroPendientePago;
+    }
+
+    private void AplicarFiltroDias(int dias)
+    {
+        filtroDias = dias;
+        paginaActual = 1;
+        AplicarFiltros();
+        StateHasChanged();
+    }
+
+    private void ToggleFiltroPago()
+    {
+        filtroPendientePago = !filtroPendientePago;
+        paginaActual = 1;
+        AplicarFiltros();
+        StateHasChanged();
+    }
+
+    private void LimpiarTodosFiltros()
+    {
+        filtroBusqueda = "";
+        filtroDias = 0;
+        filtroPendientePago = false;
+        paginaActual = 1;
+        AplicarFiltros();
+        StateHasChanged();
+    }
+
+    // ========== MÉTODOS DE NOTIFICACIÓN ACTUALIZADOS (IGUAL QUE EN COLORES) ==========
+
+    private async Task<bool> ConfirmarAccion(string mensaje)
+    {
+        var result = await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmar",
+            Text = mensaje,
+            Icon = SweetAlertIcon.Question,
+            ShowCancelButton = true,
+            ConfirmButtonText = "Sí",
+            CancelButtonText = "Cancelar",
+            ConfirmButtonColor = "#3085d6",
+            CancelButtonColor = "#d33"
+        });
+
+        return result.IsConfirmed;
+    }
+
+    private async Task MostrarExito(string mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Éxito",
+            Text = mensaje,
+            Icon = SweetAlertIcon.Success,
+            ConfirmButtonText = "Aceptar",
+            ConfirmButtonColor = "#28a745"
+        });
+    }
+
+    private async Task MostrarError(string mensaje)
+    {
+        await Swal.FireAsync(new SweetAlertOptions
+        {
+            Title = "Error",
+            Text = mensaje,
+            Icon = SweetAlertIcon.Error,
+            ConfirmButtonText = "Aceptar",
+            ConfirmButtonColor = "#dc3545"
+        });
+    }
+    private async Task MostrarAdvertencia(string mensaje)
+    {
+        await Swal.FireAsync("Atención", mensaje, SweetAlertIcon.Warning);
+    }
+
+    // ========== ACCIONES DE PEDIDOS ACTUALIZADAS ==========
+
+    private async Task ConfirmarPedido(GetPedidosDTO pedido)
+    {
+        if (await ConfirmarAccion($"¿Confirmar el pedido #{pedido.Id}?"))
+        {
+            try
+            {
+                var cambiarEstadoDTO = new { EstadoPedidoId = 2 };
+                var response = await Http.PatchAsJsonAsync($"api/Pedidos/CambiarEstado/{pedido.Id}", cambiarEstadoDTO);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await MostrarExito($"Pedido #{pedido.Id} confirmado correctamente");
+                    await CargarPedidos();
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await MostrarError($"Error al confirmar pedido: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await MostrarError($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task SolicitarProveedor(GetPedidosDTO pedido)
+    {
+        if (await ConfirmarAccion($"¿Solicitar a proveedor(es) el pedido #{pedido.Id}?"))
+        {
+            try
+            {
+                var cambiarEstadoDTO = new { EstadoPedidoId = 3 };
+                var response = await Http.PatchAsJsonAsync($"api/Pedidos/CambiarEstado/{pedido.Id}", cambiarEstadoDTO);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await MostrarExito($"Pedido #{pedido.Id} enviado a proveedores");
+                    await CargarPedidos();
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await MostrarError($"Error al solicitar proveedor: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await MostrarError($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarcarRecibidoProveedor(GetPedidosDTO pedido)
+    {
+        if (await ConfirmarAccion($"¿Marcar como recibido de proveedor el pedido #{pedido.Id}?"))
+        {
+            try
+            {
+                var cambiarEstadoDTO = new { EstadoPedidoId = 4 };
+                var response = await Http.PatchAsJsonAsync($"api/Pedidos/CambiarEstado/{pedido.Id}", cambiarEstadoDTO);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await MostrarExito($"Pedido #{pedido.Id} marcado como recibido de proveedor");
+                    await CargarPedidos();
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await MostrarError($"Error al marcar como recibido: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await MostrarError($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarcarListoParaEntregar(GetPedidosDTO pedido)
+    {
+        if (await ConfirmarAccion($"¿Marcar como entregado el pedido #{pedido.Id}?"))
+        {
+            try
+            {
+                var cambiarEstadoDTO = new { EstadoPedidoId = 5 };
+                var response = await Http.PatchAsJsonAsync($"api/Pedidos/CambiarEstado/{pedido.Id}", cambiarEstadoDTO);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await MostrarExito($"Pedido #{pedido.Id} marcado como entregado");
+                    await CargarPedidos();
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await MostrarError($"Error al marcar como entregado: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await MostrarError($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task CancelarPedido(GetPedidosDTO pedido)
+    {
+        if (await ConfirmarAccion($"¿Cancelar el pedido #{pedido.Id}? Esta acción no se puede deshacer."))
+        {
+            try
+            {
+                var cambiarEstadoDTO = new { EstadoPedidoId = 6 };
+                var response = await Http.PatchAsJsonAsync($"api/Pedidos/CambiarEstado/{pedido.Id}", cambiarEstadoDTO);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await MostrarExito($"Pedido #{pedido.Id} cancelado correctamente");
+                    await CargarPedidos();
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await MostrarError($"Error al cancelar pedido: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await MostrarError($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task RecargarPedidos()
+    {
+        await CargarPedidos();
+        await MostrarExito("Pedidos actualizados correctamente");
+    }
+
+    // ========== MÉTODOS AUXILIARES ==========
 
     private void VerDetalles(int pedidoId)
     {
         Navigation.NavigateTo($"/pedido-detalle/{pedidoId}");
     }
 
-    private void VerItems(GetPedidosDTO pedido)
+    private void RegistrarPago(GetPedidosDTO pedido)
     {
-        pedidoSeleccionado = pedido;
-        StateHasChanged();
+        Navigation.NavigateTo($"/pedido-detalle/{pedido.Id}#pago");
     }
 
-    private async Task MarcarComoProveedor(int pedidoId)
+    private void ContactarWhatsApp(GetPedidosDTO pedido)
     {
-        try
+        if (!string.IsNullOrEmpty(pedido.Telefono))
         {
-            var response = await Http.PatchAsync($"api/Pedidos/MarcarProveedor/{pedidoId}", null);
-            if (response.IsSuccessStatusCode)
+            var mensaje = $"Hola {pedido.NombreCliente}! Te contactamos por tu pedido #{pedido.Id}.";
+            var url = $"https://wa.me/{pedido.Telefono}?text={Uri.EscapeDataString(mensaje)}";
+            JSRuntime.InvokeVoidAsync("open", url, "_blank");
+        }
+    }
+
+    //colores y talles
+    private string ObtenerTooltipColoresTalles(string descripcion)
+    {
+        if (string.IsNullOrEmpty(descripcion))
+            return "Sin detalles";
+
+        // Extraer solo las líneas de Color y Talle
+        var lineas = descripcion.Split('\n');
+        var detalles = new List<string>();
+
+        foreach (var linea in lineas)
+        {
+            if (linea.Contains("Color:") || linea.Contains("Talle:"))
             {
-                await CargarPedidos();
-                // Aquí podrías agregar una notificación de éxito
+                detalles.Add(linea.Trim());
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al marcar como pedido a proveedor: {ex.Message}");
-        }
+
+        return string.Join("\n", detalles.Take(5)); // Limitar a 5 líneas
     }
 
-    private void CerrarModal()
+    private void CambiarPagina(int pagina)
     {
-        pedidoSeleccionado = null;
+        paginaActual = pagina;
         StateHasChanged();
     }
 
-    private void PaginaAnterior()
+    private void VolverAInicio()
     {
-        if (paginaActual > 1)
-        {
-            paginaActual--;
-        }
+        mostrarListaPedidos = false;
+        filtroEstado = 0;
+        LimpiarTodosFiltros();
+        StateHasChanged();
     }
 
-    private void PaginaSiguiente()
+    // ========== MÉTODOS DE UI ==========
+
+    private string ObtenerNombreEstado(int estadoId)
     {
-        if (paginaActual * tamanoPagina < pedidosFiltrados.Count)
+        return estadoId switch
         {
-            paginaActual++;
-        }
+            1 => "Pendientes",
+            2 => "Confirmados",
+            3 => "Solicitados a Proveedor",
+            4 => "Recibidos de Proveedor",
+            5 => "Entregados",
+            6 => "Cancelados",
+            _ => "Todos los Pedidos"
+        };
     }
 
-    private string GetBadgeClass(string estadoNombre)
+    private string ObtenerNombreEstadoCorto(int estadoId)
     {
-        return estadoNombre?.ToLower() switch
+        return estadoId switch
         {
-            "pendiente" or "nuevo" => "bg-warning text-dark",
-            "confirmado" or "en proceso" => "bg-info",
-            "pedido a proveedor" or "en preparación" => "bg-primary",
-            "listo" or "completo" => "bg-success",
-            "entregado" => "bg-secondary",
-            "cancelado" => "bg-danger",
+            1 => "Pendiente",
+            2 => "Confirmado",
+            3 => "Solicitado",
+            4 => "Recibido",
+            5 => "Entregado",
+            6 => "Cancelado",
+            _ => "Todos"
+        };
+    }
+
+    private string GetCardClass(GetPedidosDTO pedido)
+    {
+        return pedido.EstadoPedidoId switch
+        {
+            1 => "pendiente",
+            2 => "confirmado",
+            3 => "solicitado",
+            4 => "recibido",
+            5 => "entregado",
+            6 => "cancelado",
+            _ => ""
+        };
+    }
+
+    private string GetBadgeClassEstado(int estadoId)
+    {
+        return estadoId switch
+        {
+            1 => "bg-warning text-dark",           // Amarillo - Pendiente
+            2 => "bg-primary text-white",          // Rosa Onlyou - Confirmado
+            3 => "bg-info text-white",             // Rosa claro - Solicitado
+            4 => "bg-warning text-dark",           // Naranja - Recibido
+            5 => "bg-success text-white",          // Verde - Entregado
+            6 => "bg-danger text-white",          // Rojo - Cancelado
+           // Rojo - Cancelado
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    private string GetBadgeClassPago(int estado)
+    {
+        return estado switch
+        {
+            0 => "bg-danger text-white",
+            1 => "bg-warning text-dark",
+            2 => "bg-success text-white",
             _ => "bg-light text-dark"
         };
     }
 
-    private string GetEntregaBadgeClass(int estado)
+    private string GetEstadoPagoText(int estado)
     {
         return estado switch
         {
-            0 => "bg-warning text-dark",    // NoEntregado
-            1 => "bg-info",                 // Parcial
-            2 => "bg-success",              // Completo
-            _ => "bg-light text-dark"
-        };
-    }
-
-    private string GetPagoBadgeClass(int estado)
-    {
-        return estado switch
-        {
-            0 => "bg-danger",               // NoPagado
-            1 => "bg-warning text-dark",    // Parcial
-            2 => "bg-success",              // Pagado
-            _ => "bg-light text-dark"
-        };
-    }
-
-    private string GetTextoEstadoEntrega(int estado)
-    {
-        return estado switch
-        {
-            0 => "No Entregado",
-            1 => "Parcial",
-            2 => "Completo",
+            0 => "No Pagado",
+            1 => "Pago Parcial",
+            2 => "Pagado",
             _ => "Desconocido"
         };
+    }
+
+    // ========== CLASE ESTADÍSTICAS ==========
+    public class EstadisticasPedidos
+    {
+        public int Total { get; set; }
+        public int Pendientes { get; set; }
+        public int Confirmados { get; set; }
+        public int SolicitadosProveedor { get; set; }
+        public int RecibidosProveedor { get; set; }
+        public int Entregados { get; set; }
+        public int Cancelados { get; set; }
+        public int PendientesPago { get; set; }
+    }
+
+    private IEnumerable<GetPedidosDTO> PedidosPaginaActual =>
+        pedidosFiltrados.Skip((paginaActual - 1) * tamanoPagina).Take(tamanoPagina);
+
+    public void Dispose()
+    {
+        timerBusqueda?.Dispose();
     }
 }

@@ -12,9 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="/img/logo-onlyou.png" />
-    <!--<link href="css/OnlyouLayout.css" rel="stylesheet" />-->
-
-
 
 </head>
 
@@ -34,6 +31,18 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
+    <script>
+        // Función esencial para scroll suave
+        window.scrollToElement = (elementId) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        };
+    </script>
 </body>
 
 </html>

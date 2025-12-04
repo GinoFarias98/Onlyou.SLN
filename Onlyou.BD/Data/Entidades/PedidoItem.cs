@@ -8,51 +8,77 @@ namespace Onlyou.BD.Data.Entidades
 {
     [Index(nameof(PedidoId))]
     [Index(nameof(ProductoId))]
-    [Index(nameof(PedidoId), nameof(ProductoId), IsUnique = true)]  // Índice único compuesto para evitar duplicados
+    [Index(nameof(PedidoId), nameof(ProductoId), IsUnique = false)]
+    // Nota: no lo dejo único porque un mismo producto puede comprarse varias veces 
+    // con diferentes combinaciones de color/talle.
+
     public class PedidoItem : EntidadBase
     {
-        // Cantidad -----------------------------------------------------------------
 
+        // CANTIDAD
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser al menos 1.")]
         [Display(Name = "Cantidad",
-                 Description = "Cantidad del producto en el pedido.")]
+                 Description = "Cantidad del producto comprada en este ítem.")]
         public int Cantidad { get; set; }
 
-        // Precio unitario ----------------------------------------------------------
 
+        // PRECIO UNITARIO (al momento del pedido)
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         [Column(TypeName = "decimal(18,2)")]
         [Range(0.01, double.MaxValue, ErrorMessage = "El precio unitario debe ser mayor que cero.")]
         [Display(Name = "Precio unitario",
-                 Description = "Precio de venta por unidad.")]
+                 Description = "Precio de venta por unidad en el momento del pedido.")]
         public decimal PrecioUnitarioVenta { get; set; }
 
-        // Subtotal calculado (no mapeado) -----------------------------------------
-
+        // Subtotal (no se guarda en BD)
         [NotMapped]
         [Display(Name = "Subtotal",
-                 Description = "Subtotal calculado (precio unitario x cantidad).")]
+                 Description = "Subtotal del ítem (Cantidad x PrecioUnitarioVenta).")]
         public decimal SubTotal => PrecioUnitarioVenta * Cantidad;
 
-        // FK: Pedido ---------------------------------------------------------------
 
-        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un pedido.")]
+        // RELACIÓN CON PEDIDO
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+        [Range(1, int.MaxValue, ErrorMessage = "Debe indicar un pedido.")]
         [ForeignKey(nameof(Pedido))]
-        [Display(Name = "Pedido",
-                 Description = "Pedido al que pertenece este ítem.")]
         public int PedidoId { get; set; }
         public Pedido Pedido { get; set; } = null!;
 
-        // FK: Producto -------------------------------------------------------------
-
+   
+        // RELACIÓN CON PRODUCTO
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un producto.")]
         [ForeignKey(nameof(Producto))]
-        [Display(Name = "Producto",
-                 Description = "Producto incluido en este ítem.")]
         public int ProductoId { get; set; }
         public Producto Producto { get; set; } = null!;
 
-        // Nota: Se podría agregar NombreItem si se quisiera almacenar el nombre del producto en el pedido
-        // [StringLength(100, MinimumLength = 3, ErrorMessage = "El nombre debe tener entre 3 y 100 caracteres.")]
-        // public string NombreItem { get; set; }
+
+        // COLOR (opcional)
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+        [Display(Name = "Color",
+                 Description = "Color seleccionado para este ítem del pedido.")]
+        public int? ColorId { get; set; }
+
+        public Color? Color { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Nombre del color",
+                 Description = "Texto del color tal como lo eligió el cliente (por si cambia luego).")]
+        public string? ColorNombre { get; set; }
+
+
+        // TALLE (opcional)
+        // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+        [Display(Name = "Talle",
+                 Description = "Talle seleccionado para este ítem del pedido.")]
+        public int? TalleId { get; set; }
+
+        public Talle? Talle { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Nombre del talle",
+                 Description = "Texto del talle tal como lo eligió el cliente (por si cambia luego).")]
+        public string? TalleNombre { get; set; }
     }
 }

@@ -149,6 +149,19 @@ namespace Onlyou.Server.Controllers
 
         }
 
+        [HttpGet("Opciones/{productoId:int}")]
+        public async Task<IActionResult> ObtenerOpcionesProducto(int productoId)
+        {
+            var opciones = await repositorioProducto.ObtenerOpcionesProducto(productoId);
+
+            if (opciones == null)
+                return NotFound("El producto no existe");
+
+            return Ok(opciones);
+        }
+
+
+
         [HttpPost("Filtrar")]
         public async Task<ActionResult<List<GetProductoDTO>>> Filtrar([FromBody] Dictionary<string, object?> filtros)
         {
@@ -173,12 +186,12 @@ namespace Onlyou.Server.Controllers
                     return Conflict($"Ya existe un producto registrado con el código '{postProductoDTO.Codigo}'.");
                 }
 
-                bool ExisteXNombre = await repositorioProducto.ExistePorCodigo(postProductoDTO.Codigo);
+                // ✅ CORREGIDO: Cambiar por ExistePorNombre (no ExistePorCodigo)
+                bool ExisteXNombre = await repositorioProducto.ExistePorNombre(postProductoDTO.Nombre);
                 if (ExisteXNombre)
                 {
                     return Conflict($"Ya existe un producto registrado con el nombre '{postProductoDTO.Nombre}'.");
                 }
-
 
                 // Validar y guardar imagen solo si existe
                 if (!string.IsNullOrWhiteSpace(postProductoDTO.Imagen) &&

@@ -38,8 +38,9 @@ namespace Onlyou.Shared.DTOS.Pedidos
         [Display(Name = "DNI")]
         public int DNI { get; set; }
 
-        //[Display(Name = "Teléfono")]
-        //public string Telefono { get; set; } = null!;
+        [Display(Name = "Teléfono")]
+        public string Telefono { get; set; } = string.Empty;
+
 
         // Estados - CAMBIAR A int
         [Display(Name = "Estado de entrega")]
@@ -64,7 +65,9 @@ namespace Onlyou.Shared.DTOS.Pedidos
         [Display(Name = "Estado del pedido")]
         public string EstadoPedidoNombre { get; set; } = null!;
 
+
         [Display(Name = "Items del pedido")]
         public List<GetPedidoItemDTO> PedidoItems { get; set; } = new List<GetPedidoItemDTO>();
+        //public List<PedidoItemconProveedorDTO> PedidoItemsconProveedor { get; set; } = new List<PedidoItemconProveedorDTO>();
     }
 }

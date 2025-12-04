@@ -69,12 +69,16 @@ namespace Onlyou.BD.Data.Entidades
 
 
 
-        [Required]
         [Range(1000000, 99999999, ErrorMessage = "Ingrese un DNI válido.")]
         [Display(Name = "DNI",
                  Description = "Documento Nacional de Identidad del cliente.")]
         public int DNI { get; set; }
 
+        [Required]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "La localidad debe tener entre 3 y 100 caracteres.")]
+        [Display(Name = "Telefono",
+         Description = "Telefono del cliente.")]
+        public string Telefono { get; set; } = string.Empty;
 
 
         // === Estado de Entrega ===
@@ -166,7 +170,7 @@ namespace Onlyou.BD.Data.Entidades
     public enum EstadoEntrega
     {
         NoEntregado = 0,
-        Parcial = 1,
+        ListoParaEntregar = 1,
         Completo = 2
     }
 

@@ -65,6 +65,8 @@ namespace Onlyou.Server.Helpers
 
             CreateMap<Producto, GetProductoDTO>()
                 .ForMember(dest => dest.ProveedorNombre, opt => opt.MapFrom(src => src.Proveedor.Nombre))
+                .ForMember(dest => dest.ProveedorTelefono, opt => opt.MapFrom(src => src.Proveedor.Telefono))
+                .ForMember(dest => dest.ProveedorEmail, opt => opt.MapFrom(src => src.Proveedor.Email))
                 .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(src => src.Categoria.Nombre))
                 .ForMember(dest => dest.TipoProductoNombre, opt => opt.MapFrom(src => src.TipoProducto.Nombre))
                 .ForMember(dest => dest.MarcaNombre, opt => opt.MapFrom(src => src.Marca.Nombre))
@@ -77,8 +79,6 @@ namespace Onlyou.Server.Helpers
                 .ForMember(dest => dest.ColoresDetalle, opt => opt.MapFrom(src => src.ProductosColores.Select(pc => pc.Color)))
                 .ForMember(dest => dest.TallesDetalle, opt => opt.MapFrom(src => src.ProductosTalles.Select(pt => pt.Talle)));
 
-
-
             CreateMap<PostProductoDTO, Producto>()
                 .ForMember(dest => dest.ProductosColores, opt => opt.MapFrom(src =>
                     src.Colores.Select(id => new ProductoColor { ColorId = id })))
@@ -90,35 +90,77 @@ namespace Onlyou.Server.Helpers
                 .ForMember(dest => dest.ProductosColores, opt => opt.Ignore())
                 .ForMember(dest => dest.ProductosTalles, opt => opt.Ignore());
 
-
             //// Mapeos para Pedidos
             CreateMap<Pedido, GetPedidosDTO>()
                 .ForMember(dest => dest.EstadoPedidoNombre, opt => opt.MapFrom(src => src.EstadoPedido.Nombre))
+                .ForMember(dest => dest.MontoTotal, opt => opt.MapFrom(src => src.PedidoItems.Sum(pi => pi.PrecioUnitarioVenta * pi.Cantidad)))
                 .ForMember(dest => dest.PedidoItems, opt => opt.MapFrom(src => src.PedidoItems));
 
-
             CreateMap<PostPedidoDTO, Pedido>()
-                .ForMember(dest => dest.EstadoEntrega, opt => opt.Ignore()) // Se setea manualmente
-                .ForMember(dest => dest.EstadoPago, opt => opt.Ignore())    // Se setea manualmente
-                .ForMember(dest => dest.FechaGenerado, opt => opt.Ignore()) // Se setea manualmente
-                .ForMember(dest => dest.FechaPedidoAProveedor, opt => opt.Ignore()) // Se setea manualmente
-                .ForMember(dest => dest.MontoEntregado, opt => opt.Ignore()) // Se setea manualmente
-                .ForMember(dest => dest.MontoPagado, opt => opt.Ignore());  // Se setea manualmente
+                // Campos que se ignoran (generalmente los maneja la BD o el backend)
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Movimientos, opt => opt.Ignore())
 
-            //esto no se
-            CreateMap<PutPedidoDTO, Producto>()
-                .ForMember(dest => dest.FecUltimaModificacion, opt => opt.MapFrom(src => DateTime.UtcNow));
+                // Campos que necesitan valores POR DEFECTO/INICIALES
+                .ForMember(dest => dest.FechaGenerado, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.FechaPedidoAProveedor, opt => opt.MapFrom(src => DateTime.Now)) // O la lógica que necesites
+                .ForMember(dest => dest.EstadoEntrega, opt => opt.MapFrom(src => EstadoEntrega.NoEntregado))
+                .ForMember(dest => dest.EstadoPago, opt => opt.MapFrom(src => EstadoPago.NoPagado))
+                .ForMember(dest => dest.MontoEntregado, opt => opt.MapFrom(src => 0))
+                .ForMember(dest => dest.MontoPagado, opt => opt.MapFrom(src => 0))
 
-            // Mapeos para PedidoItems
+                // ⚠️ ESTO ES CRÍTICO - EstadoPedidoId debe tener un valor válido
+                .ForMember(dest => dest.EstadoPedidoId, opt => opt.MapFrom(src => 1)); // id estado inicial
+
+           //GET
             CreateMap<PedidoItem, GetPedidoItemDTO>()
-                .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src => src.Producto.Nombre))
-                .ForMember(dest => dest.ProductoImagen, opt => opt.MapFrom(src => src.Producto.Imagen));
+               .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src => src.Producto.Nombre))
+               .ForMember(dest => dest.ProductoImagen, opt => opt.MapFrom(src => src.Producto.Imagen))
+               .ForMember(dest => dest.ProductoDescripcion, opt => opt.MapFrom(src => src.Producto.Descripcion))
 
-            CreateMap<PostPedidoItemDTO, PedidoItem>();
-            CreateMap<PutPedidoItemDTO, PedidoItem>();
+
+
+                // Color - CON FALLBACK AL CAMPO DIRECTO
+                .ForMember(dest => dest.ColorId, opt => opt.MapFrom(src => src.ColorId))
+                .ForMember(dest => dest.ColorNombre, opt => opt.MapFrom(src =>
+                    !string.IsNullOrEmpty(src.ColorNombre) ? src.ColorNombre : // 1. Usar campo directo primero
+                    src.Color != null ? src.Color.Nombre : null)) // 2. Si no, usar relación
+
+                // Talle - CON FALLBACK AL CAMPO DIRECTO
+                .ForMember(dest => dest.TalleId, opt => opt.MapFrom(src => src.TalleId))
+                .ForMember(dest => dest.TalleNombre, opt => opt.MapFrom(src =>
+                    !string.IsNullOrEmpty(src.TalleNombre) ? src.TalleNombre : // 1. Usar campo directo primero
+                    src.Talle != null ? src.Talle.Nombre : null)) // 2. Si no, usar relación
+
+
+               // Proveedor
+               .ForMember(dest => dest.ProveedorId, opt => opt.MapFrom(src => src.Producto.Proveedor.Id))
+               .ForMember(dest => dest.ProveedorNombre, opt => opt.MapFrom(src => src.Producto.Proveedor.Nombre))
+               .ForMember(dest => dest.ProveedorTelefono, opt => opt.MapFrom(src => src.Producto.Proveedor.Telefono))
+               .ForMember(dest => dest.ProveedorEmail, opt => opt.MapFrom(src => src.Producto.Proveedor.Email));
+
+
+            // POST
+            CreateMap<PostPedidoItemDTO, PedidoItem>()
+                .ForMember(dest => dest.ColorId, opt => opt.MapFrom(src => src.ColorId))
+                .ForMember(dest => dest.ColorNombre, opt => opt.MapFrom(src => src.ColorNombre))
+                .ForMember(dest => dest.TalleId, opt => opt.MapFrom(src => src.TalleId))
+                .ForMember(dest => dest.TalleNombre, opt => opt.MapFrom(src => src.TalleNombre));
+
+            // PUT
+            CreateMap<PutPedidoItemDTO, PedidoItem>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            // El resto de tus mapeos...
+            CreateMap<PedidoItem, PedidoItemconProveedorDTO>()
+                .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src => src.Producto.Nombre))
+                .ForMember(dest => dest.PrecioUnitario, opt => opt.MapFrom(src => src.Producto.Precio))
+                .ForMember(dest => dest.Subtotal, opt => opt.MapFrom(src => src.Producto.Precio * src.Cantidad))
+                .ForMember(dest => dest.Proveedor, opt => opt.MapFrom(src => src.Producto.Proveedor));
 
             // Mapeo para EstadoPedido
-            CreateMap<EstadoPedido, EstadoPedidoDTO>();
+            CreateMap<EstadoPedido, EstadoPedidoDTO>()
+                .ForMember(dest => dest.CantidadPedidos, opt => opt.MapFrom(src => src.Pedidos.Count));
             CreateMap<EstadoPedidoDTO, EstadoPedido>();
 
             //CreateMap<PutProductoDTO, Producto>()

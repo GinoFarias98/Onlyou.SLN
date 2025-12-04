@@ -1,4 +1,5 @@
 ﻿using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.Producto;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -15,5 +16,9 @@ namespace Onlyou.Server.Repositorio
         Task<Producto?> SelectConRelacionesXId(int id);
         Task<List<Producto>> SelectPaginado(int skip, int take);
         Task<List<Talle>> SelectTallesDisponibles(int productoId);
+        Task<ProductoOpcionesDTO?> ObtenerOpcionesProducto(int productoId);
+
+
+
     }
 }

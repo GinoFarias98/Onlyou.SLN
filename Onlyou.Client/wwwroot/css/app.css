@@ -1249,3 +1249,87 @@ code {
         background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
     }
 }
+
+
+
+/* ===== SOBRESCRITURA DE VARIABLES BOOTSTRAP ===== */
+:root {
+    /* Sobrescribir variables de Bootstrap con tus colores */
+    --bs-primary: #8a4c76;
+    --bs-primary-rgb: 138, 76, 118;
+    --bs-primary-dark: #6b3c5b;
+    --bs-primary-light: #b07ca0;
+    --bs-secondary: #6c757d;
+    --bs-success: #28a745;
+    --bs-info: #17a2b8;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+}
+
+/* ===== SWEETALERT2 CON TEMA ONLYOU ===== */
+.swal2-popup {
+    background: var(--bg-card) !important;
+    border-radius: 12px !important;
+}
+
+.swal2-title {
+    color: var(--primary-color) !important;
+    font-weight: 600 !important;
+}
+
+.swal2-confirm {
+    background: var(--gradient-primary) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+    .swal2-confirm:hover {
+        background: var(--primary-dark) !important;
+        transform: translateY(-2px) !important;
+    }
+
+.swal2-cancel {
+    background: transparent !important;
+    border: 2px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+    .swal2-cancel:hover {
+        background: var(--primary-color) !important;
+        color: white !important;
+    }
+
+/* ===== BOTONES BOOTSTRAP PERSONALIZADOS ===== */
+.btn-primary {
+    background: var(--gradient-primary);
+    border-color: var(--primary-dark);
+    font-weight: 600;
+}
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 600;
+}
+
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+
+/* Badges con colores Onlyou */
+.badge.bg-primary {
+    background: var(--gradient-primary) !important;
+}
+
+

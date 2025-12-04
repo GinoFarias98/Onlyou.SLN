@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Onlyou.Shared.DTOS.Pedidos.PedidoItem;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -31,7 +32,12 @@ namespace Onlyou.Shared.DTOS.Pedidos
         [Required(ErrorMessage = "El DNI es obligatorio")]
         [Range(1000000, 99999999, ErrorMessage = "Ingrese un DNI válido")]
         public int DNI { get; set; }
-        
+
+        [Required(ErrorMessage = "El telefono es obligatoria")]
+        [StringLength(20, MinimumLength = 3, ErrorMessage = "El telefono debe tener entre 3 y 20 caracteres")]
+        public string Telefono { get; set; } = string.Empty;
+
+
         [Required(ErrorMessage = "El estado del pedido es obligatorio")]
         public int EstadoPedidoId { get; set; }
         
@@ -39,5 +45,9 @@ namespace Onlyou.Shared.DTOS.Pedidos
         public int EstadoEntrega { get; set; }
         public int EstadoPago { get; set; }
         public decimal MontoPagado { get; set; }
+
+        //para editar pedidoItem - Colores y Talles 
+        public List<PutPedidoItemDTO> PedidoItems { get; set; }
+
     }
 }

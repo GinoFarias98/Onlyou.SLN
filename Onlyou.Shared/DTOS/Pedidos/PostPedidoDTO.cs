@@ -33,6 +33,11 @@ namespace Onlyou.Shared.DTOS.Pedidos
         [Range(1000000, 99999999, ErrorMessage = "Ingrese un DNI válido")]
         public int DNI { get; set; }
 
+        [Required(ErrorMessage = "El telefono es obligatoria")]
+        [StringLength(20, MinimumLength = 3, ErrorMessage = "El telefono debe tener entre 3 y 20 caracteres")]
+        public string Telefono { get; set; } = string.Empty;
+
+
         [Required(ErrorMessage = "El estado del pedido es obligatorio")]
         public int EstadoPedidoId { get; set; }
 

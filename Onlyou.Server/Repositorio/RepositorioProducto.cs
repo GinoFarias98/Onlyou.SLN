@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Shared.DTOS.Producto;
 
 namespace Onlyou.Server.Repositorio
 {
@@ -217,6 +218,40 @@ namespace Onlyou.Server.Repositorio
             entidad.PublicadoWeb = publicado; 
             await context.SaveChangesAsync();
             return true;
+        }
+
+
+
+        public async Task<ProductoOpcionesDTO?> ObtenerOpcionesProducto(int productoId)
+        {
+            var producto = await context.Productos
+                .Include(p => p.ProductosColores)
+                    .ThenInclude(pc => pc.Color)
+                .Include(p => p.ProductosTalles)
+                    .ThenInclude(pt => pt.Talle)
+                .FirstOrDefaultAsync(p => p.Id == productoId);
+
+            if (producto == null)
+                return null;
+
+            return new ProductoOpcionesDTO
+            {
+                Colores = producto.ProductosColores
+                    .Select(pc => new OpcionColorDTO
+                    {
+                        Id = pc.Color.Id,
+                        Nombre = pc.Color.Nombre
+                    })
+                    .ToList(),
+
+                Talles = producto.ProductosTalles
+                    .Select(pt => new OpcionTalleDTO
+                    {
+                        Id = pt.Talle.Id,
+                        Nombre = pt.Talle.Nombre
+                    })
+                    .ToList()
+            };
         }
     }
 }
