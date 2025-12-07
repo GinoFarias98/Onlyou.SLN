@@ -17,13 +17,13 @@ namespace Onlyou.Shared.DTOS.Caja
         public decimal SaldoInicial { get; set; }
         public EstadoCajaDto EstadoCaja { get; set; }
         public bool Estado { get; set; }
-
+        public decimal SaldoActual { get; set; }
 
         // ============================
         // movimientos y obs asociados
         // ============================
 
-         public List<GetMovimientoDTO>? Movimientos { get; set; }
+        public List<GetMovimientoDTO>? Movimientos { get; set; }
         public List<GetObservacionCajaDTO>? Observaciones { get; set; }
 
 

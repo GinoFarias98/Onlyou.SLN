@@ -165,7 +165,7 @@ namespace Onlyou.Server.Controllers
                 entidad.Monto = dto.Monto * (int)tipo.signo;
 
                 // 4️⃣ Guardar
-                var id = await repositorioMovimiento.Insert(entidad);
+                var id = await repositorioMovimiento.InsertMovimientoConObservacionAsync(entidad);
 
                 // 5️⃣ Recalcular estado por pagos
                 await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(id);

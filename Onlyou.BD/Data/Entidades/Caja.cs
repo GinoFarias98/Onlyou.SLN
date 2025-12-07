@@ -33,6 +33,12 @@ namespace Onlyou.BD.Data.Entidades
                  Description = "Monto con el que se inicia la caja.")]
         public decimal SaldoInicial { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
+        [Display(Name = "Saldo actual",
+                 Description = "Saldo en tiempo real después de los movimientos.")]
+        public decimal SaldoActual { get; set; }
+
+
         // Estado --------------------------------------------------------------------
 
         [Required]

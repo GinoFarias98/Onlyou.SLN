@@ -21,6 +21,39 @@ namespace Onlyou.Server.Repositorio
         // ============================
 
 
+
+        public async Task<Caja> RecalcularSaldoAsync(int cajaId)
+        {
+            var caja = await context.Cajas
+                .FirstOrDefaultAsync(c => c.Id == cajaId);
+
+            if (caja == null)
+                throw new KeyNotFoundException($"No existe la caja con ID {cajaId}");
+
+            // ✅ SOLO PAGOS REALES IMPACTAN EL SALDO
+            var pagos = await context.Pagos
+                .Include(p => p.Movimiento)
+                .ThenInclude(m => m.TipoMovimiento)
+                .Where(p => p.CajaId == cajaId
+                    && p.Estado == true
+                    && p.Situacion != Situacion.Anulado)
+                .ToListAsync();
+
+            decimal totalReal = pagos.Sum(p =>
+                p.Movimiento.TipoMovimiento.signo == Signo.Suma ? p.Monto :
+                p.Movimiento.TipoMovimiento.signo == Signo.Resta ? -p.Monto : 0
+            );
+
+            caja.SaldoActual = caja.SaldoInicial + totalReal;
+
+            await context.SaveChangesAsync();
+
+            return caja;
+        }
+
+
+
+
         public async Task ValidarCajaHabilitadaParaOperar(int cajaId)
         {
             var caja = await context.Cajas
@@ -45,6 +78,7 @@ namespace Onlyou.Server.Repositorio
             {
                 return await context.Cajas
                     .Include(c => c.Movimientos)
+                    .Include(c => c.Observaciones)
                     .FirstOrDefaultAsync(c => c.estadoCaja == Caja.EstadoCaja.Abierta);
             }
             catch (Exception ex)
@@ -73,15 +107,14 @@ namespace Onlyou.Server.Repositorio
         public async Task<Caja> AbrirNuevaCajaAsync(decimal saldoInicial)
         {
             await ValidarNoExisteCajaAbiertaAsync();
-
             var nuevaCaja = new Caja
             {
                 FechaInicio = DateTime.UtcNow,
                 FechaFin = null,
                 estadoCaja = Caja.EstadoCaja.Abierta,
                 SaldoInicial = saldoInicial,
+                SaldoActual = saldoInicial,   // 🔥 CLAVE
                 Estado = true
-
             };
             nuevaCaja.Observaciones.Add(new ObservacionCaja
             {

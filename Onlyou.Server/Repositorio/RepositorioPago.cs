@@ -129,8 +129,8 @@ namespace Onlyou.Server.Repositorio
                 if (movimiento == null)
                     throw new InvalidOperationException("El movimiento no existe.");
 
-                // 2️⃣ Validar caja donde impacta el PAGO
-                await repositorioCaja.ValidarCajaHabilitadaParaOperar(pagoNuevo.CajaId);
+                // 2️⃣ Validar caja habilitada (usa la caja del movimiento, NO la del pago enviado)
+                await repositorioCaja.ValidarCajaHabilitadaParaOperar(movimiento.CajaId);
 
                 // 3️⃣ Validar que no se pague de más
                 var totalPagado = movimiento.Pagos
@@ -142,22 +142,38 @@ namespace Onlyou.Server.Repositorio
 
                 // 4️⃣ Crear el pago
                 pagoNuevo.FechaRealizado = DateTime.UtcNow;
-                pagoNuevo.Situacion = totalPagado + pagoNuevo.Monto == Math.Abs(movimiento.Monto)
-                    ? Situacion.Completo
-                    : Situacion.Parcial;
+                pagoNuevo.CajaId = movimiento.CajaId; // ✅ SIEMPRE impacta la caja del movimiento
+
+                pagoNuevo.Situacion =
+                    totalPagado + pagoNuevo.Monto == Math.Abs(movimiento.Monto)
+                        ? Situacion.Completo
+                        : Situacion.Parcial;
 
                 await context.Pagos.AddAsync(pagoNuevo);
 
-                // 5️⃣ Impactar el saldo en la caja correctamente según signo
-                var caja = await context.Cajas.FirstAsync(c => c.Id == pagoNuevo.CajaId);
+                // 5️⃣ Impactar el saldo de caja según signo del movimiento
+                await repositorioMovimiento.RegistrarImpactoEnCajaPorPagoAsync(
+                    movimiento,
+                    pagoNuevo.Monto
+                );
 
-                // ✅ Para egresos, restamos del saldo; para ingresos, sumamos
-                caja.SaldoInicial += (movimiento.TipoMovimiento.signo == Signo.Suma ? 1 : -1) * pagoNuevo.Monto;
-
-                // 6️⃣ Recalcular el estado del movimiento usando método central
+                // 6️⃣ Recalcular el estado del movimiento por pagos
                 await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(movimiento.Id);
 
-                // 7️⃣ Guardar TODO
+                // ✅ 7️⃣ REGISTRAR OBSERVACIÓN EN CAJA
+                var caja = await context.Cajas
+                    .Include(c => c.Observaciones)
+                    .FirstAsync(c => c.Id == movimiento.CajaId);
+
+                var tipo = movimiento.TipoMovimiento?.Nombre ?? "Movimiento";
+
+                caja.Observaciones.Add(new ObservacionCaja
+                {
+                    Texto = $"Pago registrado: ${pagoNuevo.Monto} para {tipo} (Movimiento #{movimiento.Id}).",
+                    FechaCreacion = DateTime.UtcNow
+                });
+
+                // 8️⃣ Guardar TODO junto
                 await context.SaveChangesAsync();
 
                 return pagoNuevo;
@@ -172,56 +188,51 @@ namespace Onlyou.Server.Repositorio
 
 
 
-
-
-
         public async Task<Pago> CambiarSituacionPagoAsync(int idPago, Situacion nuevaSituacion, string? observacion = null)
         {
-            try
+            var pago = await context.Pagos
+                .Include(p => p.Movimiento)
+                .FirstOrDefaultAsync(p => p.Id == idPago);
+
+            if (pago == null)
+                throw new KeyNotFoundException($"No se encontró un Pago con ID {idPago}");
+
+            await repositorioCaja.ValidarCajaHabilitadaParaOperar(pago.Movimiento.CajaId);
+
+            ValidarTransicionSituacionPago(pago, nuevaSituacion);
+
+            pago.Situacion = nuevaSituacion;
+            pago.Estado = nuevaSituacion != Situacion.Anulado;
+
+            // Observación correcta
+            if (!string.IsNullOrWhiteSpace(observacion))
             {
-                var pago = await context.Pagos
-                    .Include(p => p.Movimiento)
-                    .FirstOrDefaultAsync(p => p.Id == idPago);
+                pago.Descripcion += $" | Nota: {observacion.Trim()}";
+            }
 
-                if (pago == null)
-                    throw new KeyNotFoundException($"No se encontró un Pago con ID {idPago}");
+            if (nuevaSituacion == Situacion.Anulado)
+            {
+                await context.ObservacionPagos
+                    .Where(o => o.PagoId == idPago && o.Estado == true)
+                    .ExecuteUpdateAsync(u => u.SetProperty(o => o.Estado, false));
 
-                // VALIDACIÓN CRÍTICA → usar CajaId del movimiento padre
-                await repositorioCaja.ValidarCajaHabilitadaParaOperar(pago.Movimiento.CajaId);
+                // Registrar observación en caja
+                var caja = await context.Cajas
+                    .Include(c => c.Observaciones)
+                    .FirstAsync(c => c.Id == pago.Movimiento.CajaId);
 
-                ValidarTransicionSituacionPago(pago, nuevaSituacion);
-
-                pago.Situacion = nuevaSituacion;
-
-                pago.Estado = nuevaSituacion switch
+                caja.Observaciones.Add(new ObservacionCaja
                 {
-                    Situacion.Anulado => false,
-                    Situacion.Completo => true,
-                    Situacion.Parcial => true,
-                    _ => pago.Estado
-                };
-
-
-                if (!string.IsNullOrWhiteSpace(observacion))
-                {
-                    pago.Descripcion += " | | PAGOS ANULADOS AUTOMÁTICAMENTE AL ANULAR EL MOVIMIENTO. | |";
-                }
-
-                if (nuevaSituacion == Situacion.Anulado)
-                {
-                    await context.ObservacionPagos
-                        .Where(o => o.PagoId == idPago && o.Estado == true)
-                        .ExecuteUpdateAsync(u => u.SetProperty(o => o.Estado, false));
-                }
+                    Texto = $"Pago ANULADO: ${pago.Monto} del Movimiento #{pago.MovimientoId}. Motivo: {observacion}",
+                    FechaCreacion = DateTime.UtcNow
+                });
 
                 await context.SaveChangesAsync();
-                return pago;
+                await repositorioCaja.RecalcularSaldoAsync(pago.Movimiento.CajaId);
             }
-            catch (Exception ex)
-            {
-                ImprimirError(ex);
-                throw;
-            }
+
+            await context.SaveChangesAsync();
+            return pago;
         }
 
 
