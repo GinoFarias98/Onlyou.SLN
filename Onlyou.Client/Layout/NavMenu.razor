@@ -132,6 +132,12 @@
                 <a class="nav-link" href="movimientosCaja">
                     <i class="bi bi-graph-up"></i> Reportes
                 </a>
+<<<<<<< HEAD
+=======
+                <a class="nav-link" href="/CrearPedido">
+                    <i class="bi bi-graph-up"></i> Reportes
+                </a>
+>>>>>>> Styles(Cambios en el FrontEND)
 
             </Authorized>
         </AuthorizeView>
@@ -152,9 +158,21 @@
     <!-- Footer -->
     <div class="navmenu-footer">
         <AuthorizeView>
+<<<<<<< HEAD
             <Authorized>
                 <div class="logout-container">
                     <ControlAutorizacion AbrirModal="AbrirModal" />
+=======
+            <Authorized Context="authContext">
+                <!-- Información del usuario -->
+                <!-- Acciones del usuario -->
+                <div class="user-actions ">
+                    <!-- Control de autorización -->
+                    <div class="logout-container">
+                        <ControlAutorizacion AbrirModal="AbrirModal" />
+                    </div>
+
+>>>>>>> Styles(Cambios en el FrontEND)
                 </div>
             </Authorized>
 
@@ -174,6 +192,7 @@
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+<<<<<<< HEAD
 
 
 
@@ -186,6 +205,83 @@
 	private RenderFragment? contenidoModal;
 
 	/* ------------------------- MENÚS ------------------------- */
+=======
+
+<!-- Modal Container -->
+@if (mostrarModal)
+{
+    <div class="modal-backdrop show" @onclick="CerrarModal"></div>
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@tituloModal</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    @contenidoModal
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private bool showCatalogMenu = false;
+    private bool showCajaMenu = false;
+
+    private bool mostrarModal = false;
+    private string tituloModal = "";
+    private RenderFragment? contenidoModal;
+
+    /* ------------------------- MENÚS ------------------------- */
+
+    private void ToggleCatalogMenu()
+    {
+        showCatalogMenu = !showCatalogMenu;
+        showCajaMenu = false;
+        StateHasChanged();
+    }
+
+    private void ToggleCajaMenu()
+    {
+        showCajaMenu = !showCajaMenu;
+        showCatalogMenu = false;
+        StateHasChanged();
+    }
+
+    private void CloseAllMenus()
+    {
+        showCatalogMenu = false;
+        showCajaMenu = false;
+        StateHasChanged();
+    }
+
+    /* ------------------------- MODALES ------------------------- */
+
+    private void AbrirModal(string tipoModal)
+    {
+        mostrarModal = true;
+
+        switch (tipoModal.ToLower())
+        {
+            case "login":
+                tituloModal = "Iniciar Sesión - Onlyou";
+                contenidoModal = RenderLogin;
+                break;
+
+            case "registrar":
+                tituloModal = "Registrarse - Onlyou";
+                contenidoModal = RenderRegistro;
+                break;
+
+            case "logout":
+                tituloModal = "Cerrar Sesión";
+                contenidoModal = RenderLogout;
+                break;
+        }
+>>>>>>> Styles(Cambios en el FrontEND)
 
 	private void ToggleCatalogMenu()
 	{
@@ -201,12 +297,17 @@
 		StateHasChanged();
 	}
 
+<<<<<<< HEAD
 	private void CloseAllMenus()
 	{
 		showCatalogMenu = false;
 		showCajaMenu = false;
 		StateHasChanged();
 	}
+=======
+    private void AbrirLoginModal() => AbrirModal("login");
+    private void AbrirRegistroModal() => AbrirModal("registrar");
+>>>>>>> Styles(Cambios en el FrontEND)
 
 	/* ------------------------- MODALES ------------------------- */
 
@@ -221,6 +322,7 @@
 				contenidoModal = RenderLogin;
 				break;
 
+<<<<<<< HEAD
 			case "registrar":
 				tituloModal = "Registrarse - Onlyou";
 				contenidoModal = RenderRegistro;
@@ -270,3 +372,10 @@
 		Navigation.LocationChanged += (sender, args) => CloseAllMenus();
 	}
 }
+=======
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += (sender, args) => CloseAllMenus();
+    }
+}
+>>>>>>> Styles(Cambios en el FrontEND)

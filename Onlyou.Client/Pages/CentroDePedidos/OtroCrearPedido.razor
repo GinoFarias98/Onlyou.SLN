@@ -1,0 +1,1738 @@
+﻿@page "/CrearPedido"
+@using Onlyou.Shared.DTOS.Categorias
+@using Onlyou.Shared.DTOS.Marca
+@using Onlyou.Shared.DTOS.Color
+@using Onlyou.Shared.DTOS.Pedidos
+@using Onlyou.Shared.DTOS.Producto
+@using Onlyou.Shared.DTOS.Proveedor
+@using Onlyou.Shared.DTOS.Talle
+@using Onlyou.Shared.DTOS.TipoProducto
+@inject HttpClient Http
+@inject IHttpServicios http
+@inject SweetAlertService swal
+@inject NavigationManager nav
+
+<!-- Header mejorado con gradiente -->
+<style>
+    /* ===== VARIABLES Y ESTILOS BASE ===== */
+    :root {
+        --primary-color: #667eea;
+        --secondary-color: #764ba2;
+        --success-color: #20c997;
+        --light-color: #f8f9fa;
+        --dark-color: #2d3748;
+        --border-radius: 12px;
+        --transition-speed: 0.3s;
+    }
+
+    /* ===== COMPONENTES REUTILIZABLES ===== */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--border-radius);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    .badge-modern {
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .action-btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all var(--transition-speed) ease;
+        border: none;
+    }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* ===== ESTILOS DE LA PÁGINA PRINCIPAL ===== */
+    /* Header */
+    .header-modern {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: var(--border-radius);
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Productos */
+    .product-master-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+        height: 100%;
+        border: 1px solid #e9ecef;
+    }
+
+        .product-master-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+    .product-image-container {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        background: linear-gradient(135deg, var(--light-color), #e9ecef);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .product-master-card:hover .product-image {
+        transform: scale(1.05);
+    }
+
+    .product-badge-overlay {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .product-price-badge {
+        background: linear-gradient(135deg, #28a745, var(--success-color));
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .product-category-badge {
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .product-content {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 180px);
+    }
+
+    .product-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-code {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .product-specs {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+    }
+
+    .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .spec-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        min-width: 60px;
+    }
+
+    .spec-content {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .color-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+
+    .talle-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .product-footer {
+        border-top: 1px solid #e9ecef;
+        padding-top: 1rem;
+        margin-top: auto;
+    }
+
+    .product-action-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all var(--transition-speed) ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .product-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+/* 
+    ////carrito */
+    .cart-container-desktop {
+        position: sticky;
+        top: 1rem;
+        height: fit-content;
+    }
+
+    .cart-container-mobile {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: white;
+        border-top: 1px solid #dee2e6;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+    }
+
+        .cart-container-mobile.active {
+            transform: translateY(0);
+        }
+
+    .cart-toggle-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1001;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+        .cart-toggle-button .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+    .cart-header-mobile {
+        padding: 1rem;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        position: sticky;
+        top: 0;
+        z-index: 1002;
+    }
+
+    .cart-body-mobile {
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    .close-cart-mobile {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #6c757d;
+    }
+
+    /* Modificar breakpoints para el carrito */
+    @@media (max-width: 992px) {
+        .cart-container-desktop {
+            display: none !important;
+        }
+
+        .cart-toggle-button {
+            display: flex !important;
+        }
+    }
+
+    @@media (min-width: 993px) {
+        .cart-container-mobile,
+        .cart-toggle-button {
+            display: none !important;
+        }
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .quantity-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
+        background: white;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: all var(--transition-speed) ease;
+    }
+
+        .quantity-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+    .quantity-display {
+        font-size: 1.25rem;
+        font-weight: 600;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    /* ===== ESTILOS DE MODALES ===== */
+    .modal-dialog.modal-dialog-centered {
+        max-width: 450px;
+    }
+
+    .modal-content {
+        border-radius: var(--border-radius) !important;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+       /*  .modal-header h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1rem 1.25rem;
+    } */
+
+    /* Opciones en modales */
+    .color-option {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+    }
+
+        .color-option.selected {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        }
+
+    .talle-option {
+        min-width: 45px;
+        padding: 0.4rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+        background: white;
+        font-size: 0.9rem;
+    }
+
+        .talle-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+    /* ===== ESTADOS Y UTILIDADES ===== */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    /* Loading skeleton */
+    .product-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 12px;
+        height: 320px;
+    }
+
+    @@keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 1200px) {
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .cart-container {
+            position: static;
+            margin-top: 2rem;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .header-modern {
+            padding: 1.5rem;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .modal-dialog.modal-dialog-centered {
+            max-width: 95%;
+            margin: 0.5rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .header-modern {
+            padding: 1rem;
+        }
+
+        .header-modern h1 {
+            font-size: 1.5rem;
+        }
+
+        .product-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image-container {
+            height: 200px;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 0.75rem;
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+        }
+
+        .talle-option {
+            min-width: 40px;
+            font-size: 0.85rem;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        .product-grid {
+            gap: 0.75rem;
+        }
+
+        .product-content {
+            padding: 1rem;
+        }
+    }
+
+
+    .modal-header {
+        border-top-left-radius: inherit !important;
+        border-top-right-radius: inherit !important;
+    }
+
+    /* Asegurar que el contenedor padre tenga bordes y herede correctamente */
+    .glass-card {
+        border-radius: 12px !important; /* o 16px, según lo que uses */
+        overflow: hidden !important;
+    }
+
+    /*Separar productos en el pedido*/
+    .cart-item-card {
+        margin-bottom: 1.25rem; /* Un poco más de espacio */
+        border: 1px solid #dee2e6; /* Borde un poco más visible */
+        border-radius: 10px; /* Esquinas más redondeadas */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra muy sutil */
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+        /* Asegurar que el texto no se desborde */
+        .cart-item-card .flex-grow-1 {
+            min-width: 0; /* Esto permite que el contenedor flexible se encoja */
+        }
+
+        .cart-item-card h6 {
+            word-wrap: break-word; /* Rompe palabras largas */
+            overflow-wrap: break-word;
+        }
+        /* Solo achicar los controles */
+        .cart-item-card .quantity-btn {
+            width: 25px;
+            height: 25px;
+            padding: 0;
+        }
+
+
+/*Estilos boton que elije tipo de pedido si cliente o para el local*/
+    /* Estilos para las opciones de tipo de pedido */
+    .card-option {
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        overflow: hidden;
+        text-align: center;
+    }
+
+        .card-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .card-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+
+    .card-option-content {
+        transition: all 0.3s ease;
+        
+    }
+
+    .card-option.selected .card-option-content {
+        color: var(--primary-color);
+    }
+
+    /* Animación para mostrar/ocultar formulario */
+    .cliente-form-section {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+</style>
+
+<div class="container-fluid py-4 fade-in">
+    <!-- HEADER MODERNO -->
+    <div class="header-modern">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center flex-wrap gap-3">
+                    <div>
+                        <h1 class="h3 fw-bold mb-2">
+                            <i class="fas fa-cart-plus me-2"></i>Crear Nuevo Pedido
+                        </h1>
+                        <p class="mb-0 opacity-90">
+                            <i class="fas fa-box me-1"></i>
+                            Selecciona productos, especifica variantes y completa la información del cliente
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                    <button class="btn btn-light btn-sm action-btn mt-3" @onclick="IrAPanelPedidos">
+                        <i class="fas fa-arrow-left me-2"></i>Gestion de Pedidos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLUMNA IZQUIERDA: CATÁLOGO DE PRODUCTOS -->
+        <div class="col-lg-8">
+            <!-- FILTRO DE PRODUCTOS -->
+            <div class="glass-card p-4 mb-4">
+                <h5 class="section-title">
+@*                     <i class="fas fa-filter text-primary"></i> *@
+                    Busca tus Productos
+                </h5>
+                <FiltroGenerico TEntidad="GetProductoDTO"
+                                UrlBase="productos"
+                                Campos="@campos"
+                                OnResultadosActualizados="ActualizarResultados" />
+            </div>
+
+            <!-- LISTA DE PRODUCTOS -->
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="section-title mb-0">
+                        <i class="fas fa-boxes text-primary"></i>
+                        Catálogo de Productos
+                    </h5>
+                    <span class="badge bg-primary badge-modern">
+                        @productos.Count encontrados
+                    </span>
+                </div>
+
+                @if (productos == null)
+                {
+                    <!-- LOADING -->
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Cargando productos...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Cargando catálogo de productos...</p>
+                    </div>
+                }
+                else if (!productos.Any())
+                {
+                    <!-- EMPTY STATE -->
+                    <div class="empty-state">
+                        <i class="fas fa-box-open empty-state-icon"></i>
+                        <h5>No hay productos disponibles</h5>
+                        <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+                    </div>
+                }
+                else
+                {
+                    <!-- GRID DE PRODUCTOS MEJORADO -->
+                    <div class="product-grid">
+                        @foreach (var prod in productos)
+                        {
+                            <div class="product-master-card">
+                                <!-- IMAGEN DEL PRODUCTO -->
+                                <div class="product-image-container">
+                                    <img src="@prod.Imagen"
+                                         alt="@prod.Nombre"
+                                         class="product-image"
+                                         onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200/667eea/ffffff?text=Producto';" />
+
+                                    <!-- BADGES SUPERPUESTOS -->
+                                    <div class="product-badge-overlay">
+                                        <div class="product-price-badge">
+                                            $@prod.Precio.ToString("N0")
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(prod.CategoriaNombre))
+                                        {
+                                            <div class="product-category-badge">
+                                                @prod.CategoriaNombre
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- CONTENIDO DE LA TARJETA -->
+                                <div class="product-content">
+                                    <!-- TÍTULO Y CÓDIGO -->
+                                    <h5 class="product-title" title="@prod.Nombre">@prod.Nombre</h5>
+                                    <div class="product-code">
+                                        <i class="fas fa-barcode"></i>
+                                        <span>@prod.Codigo</span>
+                                    </div>
+
+                                    <!-- ESPECIFICACIONES -->
+                                    <div class="product-specs">
+                                        <!-- COLORES -->
+                                        @if (prod.ColoresDetalle.Any())
+                                        {
+                                            <div class="spec-item">
+                                                <span class="spec-label">
+                                                    <i class="fas fa-palette me-1"></i>Colores:
+                                                </span>
+                                                <div class="spec-content">
+                                                    @foreach (var color in prod.ColoresDetalle.Take(5))
+                                                    {
+                                                        <div class="color-dot"
+                                                             style="background-color: @color.Hexadecimal;"
+                                                             title="@color.Nombre"></div>
+                                                    }
+                                                    @if (prod.ColoresDetalle.Count > 5)
+                                                    {
+                                                        <span class="small text-muted">+@(prod.ColoresDetalle.Count - 5)</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- TALLES -->
+                                        @if (prod.TallesDetalle.Any())
+                                        {
+                                            <div class="spec-item">
+                                                <span class="spec-label">
+                                                    <i class="fas fa-ruler me-1"></i>Talles:
+                                                </span>
+                                                <div class="spec-content">
+                                                    @foreach (var talle in prod.TallesDetalle.Take(5))
+                                                    {
+                                                        <span class="talle-tag" title="@talle.Nombre">@talle.Nombre</span>
+                                                    }
+                                                    @if (prod.TallesDetalle.Count > 5)
+                                                    {
+                                                        <span class="small text-muted">+@(prod.TallesDetalle.Count - 5)</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        <!-- MARCA (SI EXISTE) -->
+                                        @if (!string.IsNullOrEmpty(prod.MarcaNombre))
+                                        {
+                                            <div class="spec-item">
+                                                <span class="spec-label">
+                                                    <i class="fas fa-tag me-1"></i>Marca:
+                                                </span>
+                                                <span class="spec-content">@prod.MarcaNombre</span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- FOOTER DE LA TARJETA -->
+                                    <div class="product-footer">
+                                        <!-- INFORMACIÓN DE STOCK (OPCIONAL) -->
+@*                                         <div class="stock-info">
+                                            <span class="stock-label">Disponibilidad:</span>
+                                            <span class="stock-value">En stock</span>
+                                        </div> *@
+
+                                        <!-- BOTÓN DE ACCIÓN -->
+                                        <button class=" btn btn-primary w-100 py-2 shadow-sm"
+                                                @onclick="() => SeleccionarProducto(prod)">
+                                            <i class="fas fa-plus-circle"></i>
+                                            Agregar al Pedido
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: CARRITO DE COMPRAS -->
+        <div class="col-lg-4">
+            <div class="cart-container ">
+                <div class="glass-card h-100">
+                    <!-- HEADER DEL CARRITO -->
+                    <div class="modal-header  border-0" style="background-color: var(--primary-color); border-color: var(--primary-dark);">
+                        <div class="d-flex w-100 align-items-center">
+                            <h5 class="section-title mb-0 text-white flex-grow-1">
+                                <i class="fas fa-shopping-cart text-white me-2 "></i>
+                                Tu Pedido
+                            </h5>
+                            <span class="badge bg-primary badge-modern ms-3">
+                                @productosSeleccionados.Count items
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- CUERPO DEL CARRITO -->
+                    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                        @if (!productosSeleccionados.Any())
+                        {
+                            <!-- EMPTY CART -->
+                            <div class="empty-state">
+                                <i class="fas fa-shopping-basket empty-state-icon"></i>
+                                <h5>Carrito vacío</h5>
+                                <p class="text-muted">Selecciona productos para comenzar</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- ITEMS DEL CARRITO -->
+                            <div class="space-y-3">
+                                @foreach (var item in productosSeleccionados)
+                                {
+                                    <div class="cart-item-card p-3">
+                                        <div class="d-flex">
+                                            <!-- IMAGEN MINIATURA -->
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="bg-light rounded" style="width: 60px; height: 60px; overflow: hidden;">
+                                                    <img src="@item.Producto.Imagen" alt="@item.Producto.Nombre"
+                                                         class="w-100 h-100 object-fit-cover"
+                                                         onerror="this.src='https://via.placeholder.com/60x60?text=Imagen'">
+                                                </div>
+                                            </div>
+
+                                            <!-- INFO DEL ITEM -->
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <h6 class="fw-semibold mb-1 text-dark" style="font-size: 0.9rem;">
+                                                            @item.Producto.Nombre
+                                                        </h6>
+                                                        <div class="small text-muted">
+                                                            @if (item.TalleSeleccionado != null)
+                                                            {
+                                                                <span class="me-2">
+                                                                    <i class="fas fa-ruler me-1"></i>@item.TalleSeleccionado.Nombre
+                                                                </span>
+                                                            }
+                                                            @if (item.ColorSeleccionado != null)
+                                                            {
+                                                                <span>
+                                                                    <i class="fas fa-palette me-1"></i>@item.ColorSeleccionado.Nombre
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-danger btn-icon"
+                                                            @onclick="() => EliminarProducto(item)"
+                                                            title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+
+                                                <!-- CANTIDAD Y PRECIO -->
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="quantity-control">
+                                                        <button class="quantity-btn"
+                                                                @onclick="() => CambiarCantidad(item, -1)">
+                                                            -
+                                                        </button>
+                                                        <span class="quantity-display">@item.Cantidad</span>
+                                                        <button class="quantity-btn"
+                                                                @onclick="() => CambiarCantidad(item, 1)">
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="text-success fw-bold" style="font-size: 1.1rem;">
+                                                            $@((item.Producto.Precio * item.Cantidad).ToString("N0"))
+                                                        </div>
+                                                        <div class="text-muted small">
+                                                            $@item.Producto.Precio.ToString("N0") c/u
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- FOOTER DEL CARRITO -->
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <!-- RESUMEN DE TOTAL -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Subtotal:</span>
+                                <span class="fw-semibold">$@TotalPedido.ToString("N0")</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Env&iacute;o:</span>
+                                <span class="fw-semibold">$0</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fs-5 fw-bold">Total:</span>
+                                <span class="fs-4 fw-bold text-success">$@TotalPedido.ToString("N0")</span>
+                            </div>
+                        </div>
+
+                        <!-- BOTÓN DE ACCIÓN -->
+                        @if (productosSeleccionados.Any())
+                        {
+                            <button class="btn btn-success w-100 action-btn py-3"
+                                    @onclick="MostrarFormularioCliente"
+                                    style="background: linear-gradient(135deg, #00b09b, #96c93d);">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Continuar con el Pedido
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-primary w-100 action-btn py-3" disabled>
+                                <i class="fas fa-shopping-basket me-2"></i>
+                                Agrega productos primero
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="cart-toggle-button" @onclick="ToggleCarritoMovil">
+            <i class="fas fa-shopping-cart"></i>
+            @if (productosSeleccionados.Any())
+            {
+                <span class="badge">@productosSeleccionados.Count</span>
+            }
+        </button>
+
+        <!-- CARRITO PARA MÓVIL (OFFCANVAS) -->
+        <div class="cart-container-mobile @(carritoMovilAbierto ? "active" : "")">
+            <div class="cart-header-mobile">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-cart text-primary me-2"></i>
+                        Tu Pedido (@productosSeleccionados.Count items)
+                    </h5>
+                    <button class="close-cart-mobile" @onclick="ToggleCarritoMovil">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cart-body-mobile">
+                <!-- CONTENIDO DEL CARRITO (MÓVIL) -->
+                @if (!productosSeleccionados.Any())
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-basket fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Carrito vacío</p>
+                    </div>
+                }
+                else
+                {
+                    <!-- Versión simplificada para móvil -->
+                    @foreach (var item in productosSeleccionados)
+                    {
+                        <div class="card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0">
+                                        <img src="@item.Producto.Imagen"
+                                             class="rounded"
+                                             style="width: 50px; height: 50px; object-fit: cover;"
+                                             onerror="this.src='https://via.placeholder.com/50x50?text=IMG'" />
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1" style="font-size: 0.85rem;">@item.Producto.Nombre</h6>
+                                            <button class="btn btn-sm btn-link text-danger p-0"
+                                                    @onclick="() => EliminarProducto(item)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="small text-muted">
+                                            @if (item.TalleSeleccionado != null)
+                                            {
+                                                <span class="me-2">T: @item.TalleSeleccionado.Nombre</span>
+                                            }
+                                            @if (item.ColorSeleccionado != null)
+                                            {
+                                                <span>C: @item.ColorSeleccionado.Nombre</span>
+                                            }
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <div class="d-flex align-items-center">
+                                                <button class="btn btn-sm btn-outline-secondary p-0"
+                                                        style="width: 24px; height: 24px;"
+                                                        @onclick="() => CambiarCantidad(item, -1)">
+                                                    -
+                                                </button>
+                                                <span class="mx-2">@item.Cantidad</span>
+                                                <button class="btn btn-sm btn-outline-secondary p-0"
+                                                        style="width: 24px; height: 24px;"
+                                                        @onclick="() => CambiarCantidad(item, 1)">
+                                                    +
+                                                </button>
+                                            </div>
+                                            <span class="fw-bold">$@((item.Producto.Precio * item.Cantidad).ToString("N0"))</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- RESUMEN -->
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span class="fw-bold">$@TotalPedido.ToString("N0")</span>
+                        </div>
+                        <button class="btn btn-success w-100 action-btn py-3"
+                                @onclick="MostrarFormularioCliente"
+                                style="background: linear-gradient(135deg, #00b09b, #96c93d);">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Continuar ($@TotalPedido.ToString("N0"))
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL PARA SELECCIONAR COLOR/TALLE/CANTIDAD -->
+@if (productoModal != null)
+{
+    <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+    <div class="modal fade show d-block" tabindex="-1" style="z-index: 1050;" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <!-- Header más simple -->
+                <div class="modal-header  border-0" style="background-color: var(--primary-color); border-color: var(--primary-dark);">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="flex-shrink-0">
+                            <img src="@productoModal.Imagen" alt="@productoModal.Nombre"
+                                 class="rounded" style="width: 60px; height: 60px; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/60x60/667eea/ffffff?text=IMG'" />
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="modal-title fw-bold mb-1 text-truncate" style="max-width: 200px;">@productoModal.Nombre</h6>
+                            <div class="text-muted small">
+                                <span class="badge bg-secondary me-2">Código: @productoModal.Codigo</span>
+                                <span class="text-success fw-bold">$@productoModal.Precio.ToString("N0")</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" @onclick="CerrarModalProducto"></button>
+                    </div>
+                </div>
+
+                <!-- Body simplificado -->
+                <div class="modal-body py-4">
+                    <!-- Colores - Versión más simple -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-2">
+                            <i class="fas fa-palette me-1 text-primary"></i>
+                            Color @(productoModal.ColoresDetalle.Any() ? "*" : "")
+                            @if (!productoModal.ColoresDetalle.Any())
+                            {
+                                <span class="text-muted small">(No aplica)</span>
+                            }
+                        </label>
+
+                        @if (productoModal.ColoresDetalle.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var color in productoModal.ColoresDetalle)
+                                {
+                                    <div class="position-relative" style="cursor: pointer;"
+                                         @onclick="() => SeleccionarColor(color)">
+                                        <div class="rounded-circle border @(colorSeleccionado?.Id == color.Id ? "border-primary border-3" : "border-2")"
+                                             style="width: 40px; height: 40px; background-color: @color.Hexadecimal;">
+                                        </div>
+                                        @if (colorSeleccionado?.Id == color.Id)
+                                        {
+                                            <div class="position-absolute top-0 start-50 translate-middle">
+                                                <i class="fas fa-check text-white" style="font-size: 0.8rem; text-shadow: 0 0 3px #000;"></i>
+                                            </div>
+                                        }
+                                        <div class="text-center mt-1 small">@color.Nombre</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Talles - Versión más simple -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-2">
+                            <i class="fas fa-ruler me-1 text-primary"></i>
+                            Talle @(productoModal.TallesDetalle.Any() ? "*" : "")
+                            @if (!productoModal.TallesDetalle.Any())
+                            {
+                                <span class="text-muted small">(No aplica)</span>
+                            }
+                        </label>
+
+                        @if (productoModal.TallesDetalle.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach (var talle in productoModal.TallesDetalle)
+                                {
+                                    <button type="button"
+                                            class="btn @(talleSeleccionado?.Id == talle.Id ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                            style="min-width: 45px;"
+                                            @onclick="() => SeleccionarTalle(talle)">
+                                        @talle.Nombre
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Cantidad - Versión más simple -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold mb-2">
+                            <i class="fas fa-hashtag me-1 text-primary"></i>
+                            Cantidad
+                        </label>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <button class="btn btn-outline-secondary rounded-circle"
+                                    style="width: 40px; height: 40px;"
+                                    @onclick="() => { if (cantidadModal > 1) cantidadModal--; }">
+                                <i class="fas fa-minus"></i>
+                            </button>
+
+                            <div class="mx-4 text-center">
+                                <div class="fs-3 fw-bold text-primary">@cantidadModal</div>
+                                <div class="small text-muted">unidades</div>
+                            </div>
+
+                            <button class="btn btn-outline-secondary rounded-circle"
+                                    style="width: 40px; height: 40px;"
+                                    @onclick="() => cantidadModal++">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Resumen del precio -->
+                    <div class="alert alert-light border text-center py-3">
+                        <div class="small text-muted">Total parcial:</div>
+                        <div class="h4 fw-bold text-success mb-0">
+                            $@((cantidadModal * productoModal.Precio).ToString("N0"))
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer simplificado -->
+                <div class="modal-footer border-top py-3">
+                    <div class="w-100">
+                        <!-- Botón para agregar otra variante -->
+@*                         <button class="btn btn-outline-secondary w-100 mb-2"
+                                @onclick="AgregarOtraVariante">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Agregar otra combinación (mismo producto)
+                        </button> *@
+
+                        <!-- Botones principales -->
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-danger flex-grow-1"
+                                    @onclick="CerrarModalProducto">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </button>
+                            <button class="btn btn-success flex-grow-1"
+                                    @onclick="AgregarAlCarrito"
+                                    disabled="@(!PuedeAgregarAlCarrito())">
+                                <i class="fas fa-cart-plus me-2"></i>
+                                Agregar al pedido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- MODAL PARA DATOS DEL CLIENTE -->
+@if (mostrarFormularioCliente)
+{
+    <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-16">
+                <!-- Header simple -->
+                <div class="modal-header text-white border-0" style="background-color: var(--primary-color); border-color: var(--primary-dark);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user me-2 text-white"></i>Datos del pedido
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => mostrarFormularioCliente = false"></button>
+                </div>
+
+                <!-- Formulario simple -->
+                <div class="modal-body">
+                    <!-- Selector de tipo de pedido -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Tipo de pedido *</label>
+                        <div class="row g-3">
+                            <div class="col-6 ">
+                                <div class="form-check card-option @(esParaLocal ? "" : "selected")"
+                                     @onclick="() => SeleccionarTipoPedido(false)">
+                                    <div class="form-check-input" style="display: none;"></div>
+                                    <div class="card-option-content text-center p-3">
+                                        <i class="fas fa-user fa-2x mb-text-primary"></i>
+                                        <h6 class="fw-bold mb-1">Para Cliente</h6>
+                                        <p class="small text-muted mb-0">Completar datos del cliente</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check card-option @(esParaLocal ? "selected" : "")"
+                                     @onclick="() => SeleccionarTipoPedido(true)">
+                                    <div class="form-check-input" style="display: none;"></div>
+                                    <div class="card-option-content text-center p-3">
+                                        <i class="fas fa-store fa-2x mb-2 text-primary"></i>
+                                        <h6 class="fw-bold mb-1">Para Local</h6>
+                                        <p class="small text-muted mb-0">Pedido en stock local</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario del cliente (solo visible si NO es para local) -->
+                    @if (!esParaLocal)
+                    {
+                        <div class="cliente-form-section">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nombre completo *</label>
+                                <input type="text" class="form-control"
+                                       @bind="datosCliente.NombreCliente"
+                                       placeholder="Ej: Juan Pérez" />
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">DNI *</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           @bind="datosCliente.DNI"
+                                           min="1000000"
+                                           max="99999999"
+                                           pattern="\d{8}"
+                                           title="Debe tener exactamente 8 dígitos"
+                                           placeholder="8 dígitos" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Teléfono *</label>
+                                    <input type="tel" class="form-control"
+                                           @bind="datosCliente.Telefono"
+                                           placeholder="Ej: 3416123456" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Dirección *</label>
+                                <input type="text" class="form-control"
+                                       @bind="datosCliente.Direccion"
+                                       placeholder="Ej: Calle Falsa 123" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Localidad *</label>
+                                <input type="text" class="form-control"
+                                       @bind="datosCliente.Localidad"
+                                       placeholder="Ej: Rosario" />
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Información para pedido local -->
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle me-3 fa-lg mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-2">Pedido para el local</h6>
+                                    <p class="mb-2">Se utilizarán los datos predeterminados del local:</p>
+                                    <ul class="mb-0 small">
+                                        <li><strong>Nombre:</strong> Administración - Onlyou</li>
+                                        <li><strong>Teléfono:</strong> 0000000000</li>
+                                        <li><strong>Dirección:</strong> Sold. Carrascull</li>
+                                        <li><strong>Localidad:</strong> Hernando </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Resumen del pedido simple -->
+                    <div class="alert alert-light border mt-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@productosSeleccionados.Count productos</strong>
+                                <div class="small text-muted">@productosSeleccionados.Sum(p => p.Cantidad) unidades</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="h5 fw-bold text-success mb-0">$@TotalPedido.ToString("N0")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer simple -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger"
+                            @onclick="() => mostrarFormularioCliente = false">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                            @onclick="CrearPedido"
+                            disabled="@(!DatosClienteValidos())">
+                        <i class="fas fa-check me-2"></i>@(esParaLocal ? "Crear pedido local" : "Crear pedido")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    private List<GetProductoDTO> productos = new();
+    private List<ProductoSeleccionado> productosSeleccionados = new();
+
+    // Variables para el modal de selección
+    private GetProductoDTO productoModal = null;
+    private GetColorDTO colorSeleccionado = null;
+    private TallesDTO talleSeleccionado = null;
+    private int cantidadModal = 1;
+
+    // Variables para el formulario del cliente
+    private bool mostrarFormularioCliente = false;
+    private PedidoClienteModel datosCliente = new();
+    //datos del local""
+    private bool esParaLocal = false;
+    private readonly string nombreLocal = "Administración - Onlyou";
+    private readonly string telefonoLocal = "3534022365";
+    private readonly string direccionLocal = "Sold Carrascull";
+    private readonly string localidadLocal = "Hernando";
+    private readonly int dniLocal = 10000000;
+
+    // Listas de datos
+    private List<GetCategoriasDTO> categorias = new();
+    private List<GetProveedorDTO> proveedores = new();
+    private List<GetTipoProductoDTO> tiposProducto = new();
+    private List<GetMarcaDTO> marcas = new();
+    private List<GetColorDTO> coloresDisponibles = new();
+    private List<TallesDTO> tallesDisponibles = new();
+
+    private List<FiltroGenerico<GetProductoDTO>.CampoFiltro> campos = new();
+    private Dictionary<string, object?> filtros = new();
+
+    // Modelos
+    private class ProductoSeleccionado
+    {
+        public GetProductoDTO Producto { get; set; }
+        public GetColorDTO ColorSeleccionado { get; set; }
+        public TallesDTO TalleSeleccionado { get; set; }
+        public int Cantidad { get; set; } = 1;
+        public decimal Subtotal => Producto.Precio * Cantidad;
+        // Para identificar variantes únicas del mismo producto
+        public string VarianteId => $"{Producto.Id}_{ColorSeleccionado?.Id ?? 0}_{TalleSeleccionado?.Id ?? 0}";
+    }
+
+    private class PedidoClienteModel
+    {
+        public string NombreCliente { get; set; } = "";
+        public string Telefono { get; set; } = "";
+        public string Localidad { get; set; } = "";
+        public string Descripcion { get; set; } = "";
+        public int EstadoPedidoId { get; set; } = 1;
+        public int DNI { get; set; }
+        public string Direccion { get; set; } = "";
+    }
+
+    // Propiedades calculadas
+    private decimal TotalPedido => productosSeleccionados.Sum(p => p.Subtotal);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosRelacionados();
+        ConfigurarCamposFiltro();
+        await CargarProductos();
+    }
+
+    private async Task CargarProductos()
+    {
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta ?? new();
+    }
+
+    private async Task CargarDatosRelacionados()
+    {
+        proveedores = (await http.Get<List<GetProveedorDTO>>("api/Proveedores")).Respuesta ?? new();
+        categorias = (await http.Get<List<GetCategoriasDTO>>("api/Categorias")).Respuesta ?? new();
+        tiposProducto = (await http.Get<List<GetTipoProductoDTO>>("api/TipoProducto")).Respuesta ?? new();
+        marcas = (await http.Get<List<GetMarcaDTO>>("api/Marca")).Respuesta ?? new();
+        coloresDisponibles = (await http.Get<List<GetColorDTO>>("api/ManageColor")).Respuesta ?? new();
+        tallesDisponibles = (await http.Get<List<TallesDTO>>("api/Talle")).Respuesta ?? new();
+    }
+
+    private void ConfigurarCamposFiltro()
+    {
+        campos = new()
+        {
+            new() { Nombre = "Nombre", Label = "Buscar producto", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Texto, Placeholder = "Ej: Nike" },
+            new() { Nombre = "CategoriaId", Label = "Categoría", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Select, Opciones = categorias.Select(c => new FiltroGenerico<GetProductoDTO>.OpcionSelect { Id = c.Id, Nombre = c.Nombre }).ToList() },
+        };
+
+        filtros.Clear();
+        foreach (var campo in campos)
+            filtros[campo.Nombre] = null;
+    }
+
+    // Métodos para selección de productos
+    private void SeleccionarProducto(GetProductoDTO producto)
+    {
+        productoModal = producto;
+        colorSeleccionado = null;
+        talleSeleccionado = null;
+        cantidadModal = 1;
+    }
+
+    private void CerrarModalProducto()
+    {
+        productoModal = null;
+        colorSeleccionado = null;
+        talleSeleccionado = null;
+        cantidadModal = 1;
+    }
+
+    private void SeleccionarColor(GetColorDTO color)
+    {
+        colorSeleccionado = color;
+    }
+
+    private void SeleccionarTalle(TallesDTO talle)
+    {
+        talleSeleccionado = talle;
+    }
+
+    private bool PuedeAgregarAlCarrito()
+    {
+        if (productoModal == null || cantidadModal < 1)
+            return false;
+
+        // Validar color si el producto tiene colores
+        if (productoModal.ColoresDetalle.Any() && colorSeleccionado == null)
+            return false;
+
+        // Validar talle si el producto tiene talles
+        if (productoModal.TallesDetalle.Any() && talleSeleccionado == null)
+            return false;
+
+        return true;
+    }
+
+    private void AgregarAlCarrito()
+    {
+        // Verificar si ya existe esta variante del producto
+        var varianteId = $"{productoModal.Id}_{colorSeleccionado?.Id ?? 0}_{talleSeleccionado?.Id ?? 0}";
+        var existente = productosSeleccionados.FirstOrDefault(p => p.VarianteId == varianteId);
+
+        if (existente != null)
+        {
+            // Si ya existe, aumentar la cantidad
+            existente.Cantidad += cantidadModal;
+        }
+        else
+        {
+            // Si no existe, agregar nuevo
+            var nuevoProducto = new ProductoSeleccionado
+            {
+                Producto = productoModal,
+                ColorSeleccionado = colorSeleccionado,
+                TalleSeleccionado = talleSeleccionado,
+                Cantidad = cantidadModal
+            };
+
+            productosSeleccionados.Add(nuevoProducto);
+        }
+
+        CerrarModalProducto();
+    }
+
+    private void AgregarOtraVariante()
+    {
+        // Agregar la selección actual
+        if (PuedeAgregarAlCarrito())
+        {
+            AgregarAlCarrito();
+        }
+
+        // Mantener el mismo producto abierto para seleccionar otra variante
+        productoModal = productoModal; // Reactivar el modal
+        colorSeleccionado = null;
+        talleSeleccionado = null;
+        cantidadModal = 1;
+    }
+
+    private void CambiarCantidad(ProductoSeleccionado producto, int cambio)
+    {
+        var nuevaCantidad = producto.Cantidad + cambio;
+        if (nuevaCantidad >= 1)
+        {
+            producto.Cantidad = nuevaCantidad;
+        }
+    }
+
+    private void EliminarProducto(ProductoSeleccionado producto)
+    {
+        productosSeleccionados.Remove(producto);
+    }
+
+    // Métodos para el formulario del cliente
+    // Método para seleccionar tipo de pedido
+    private void SeleccionarTipoPedido(bool paraLocal)
+    {
+        esParaLocal = paraLocal;
+
+        // Si es para local, cargar datos predeterminados
+        if (paraLocal)
+        {
+            datosCliente.NombreCliente = nombreLocal;
+            datosCliente.Telefono = telefonoLocal;
+            datosCliente.Direccion = direccionLocal;
+            datosCliente.Localidad = localidadLocal;
+            datosCliente.DNI = dniLocal;
+        }
+        else
+        {
+            // Limpiar datos si vuelve a seleccionar "Cliente"
+            datosCliente.NombreCliente = "";
+            datosCliente.Telefono = "";
+            datosCliente.Direccion = "";
+            datosCliente.Localidad = "";
+            datosCliente.DNI = 0;
+        }
+    }
+
+    // Modifica el método MostrarFormularioCliente
+    private void MostrarFormularioCliente()
+    {
+        if (productosSeleccionados.Any())
+        {
+            datosCliente = new PedidoClienteModel
+            {
+                EstadoPedidoId = 1
+            };
+            esParaLocal = false; // Por defecto, no es para local
+            mostrarFormularioCliente = true;
+        }
+    }
+
+    // Modifica el método DatosClienteValidos
+    private bool DatosClienteValidos()
+    {
+        // Si es para local, los datos ya están cargados, solo validar productos
+        if (esParaLocal)
+        {
+            return productosSeleccionados.Any();
+        }
+
+        // Validar que el DNI no sea 0 y tenga la longitud correcta
+        bool dniValido = datosCliente.DNI != 0;
+
+        if (dniValido)
+        {
+            string dniString = datosCliente.DNI.ToString();
+            dniValido = (dniString.Length == 7 || dniString.Length == 8);
+        }
+
+
+        // Si es para cliente, validar todos los campos
+        return !string.IsNullOrWhiteSpace(datosCliente.NombreCliente) &&
+               !string.IsNullOrWhiteSpace(datosCliente.Telefono) &&
+               !string.IsNullOrWhiteSpace(datosCliente.Localidad) &&
+               !string.IsNullOrWhiteSpace(datosCliente.Direccion) &&
+               dniValido &&
+               productosSeleccionados.Any();
+    }
+
+    private async Task CrearPedido()
+    {
+        try
+        {
+            // Construir el DTO para enviar al backend
+            var pedidoDTO = new
+            {
+                NombreCliente = datosCliente.NombreCliente,
+                Telefono = datosCliente.Telefono,
+                Localidad = datosCliente.Localidad,
+                Descripcion = datosCliente.Descripcion,
+                EstadoPedidoId = 1,
+
+                DNI = datosCliente.DNI,
+                DireccionCliente = datosCliente.Direccion,
+
+                // EstadoPago = 0, // NoPagado
+                // MontoPagado = 0,
+                // SaldoPendiente = TotalPedido,
+                MontoTotal = TotalPedido,
+                PedidoItems = productosSeleccionados.Select(item => new
+                {
+                    ProductoId = item.Producto.Id,
+                    ProductoNombre = item.Producto.Nombre,
+                    Cantidad = item.Cantidad,
+                    PrecioUnitarioVenta = item.Producto.Precio,
+                    ColorId = item.ColorSeleccionado?.Id,
+                    ColorNombre = item.ColorSeleccionado?.Nombre,
+                    TalleId = item.TalleSeleccionado?.Id,
+                    TalleNombre = item.TalleSeleccionado?.Nombre,
+                }).ToList()
+            };
+
+            // Enviar al endpoint POST
+            var response = await Http.PostAsJsonAsync("api/Pedidos", pedidoDTO);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var pedidoCreado = await response.Content.ReadFromJsonAsync<GetPedidosDTO>();
+
+                await swal.FireAsync("¡Pedido creado!", $"Pedido #{pedidoCreado.Id} generado exitosamente", SweetAlertIcon.Success);
+                // Redirigir al panel de pedidos
+                nav.NavigateTo("/Pedidos1");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+               
+                await swal.FireAsync("Error", $"No se pudo crear el pedido: {error}", SweetAlertIcon.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error", $"Ocurrió un error: {ex.Message}", SweetAlertIcon.Error);
+        }
+        finally
+        {
+            mostrarFormularioCliente = false;
+        }
+    }
+
+
+    private bool carritoMovilAbierto = false;
+
+    private void ToggleCarritoMovil()
+    {
+        carritoMovilAbierto = !carritoMovilAbierto;
+    }
+
+    private void IrAPanelPedidos()
+    {
+        nav.NavigateTo("/Pedidos1");
+    }
+
+    // Métodos existentes
+    private void ActualizarResultados(List<GetProductoDTO> nuevos) => productos = nuevos;
+}

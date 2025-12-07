@@ -446,12 +446,12 @@
 @*                     <button class="btn btn-light btn-sm action-btn" @onclick="RecargarPedido">
                         <i class="fas fa-sync-alt me-2"></i>Actualizar
                     </button> *@
-                    @if (!string.IsNullOrEmpty(pedido?.Telefono))
+                   @*  @if (!string.IsNullOrEmpty(pedido?.Telefono))
                     {
                         <button class="btn btn-success btn-sm action-btn whatsapp-btn" @onclick="ContactarWhatsApp">
                             <i class="fab fa-whatsapp me-2"></i>Contactar Cliente
                         </button>
-                    }
+                    } *@
                 </div>
             </div>
         </div>
@@ -540,6 +540,8 @@
                         <div class="info-item">
                             <small class="text-muted fw-bold">NOMBRE COMPLETO</small>
                             <div class="h6 mb-0 text-dark">@pedido.NombreCliente</div>
+                            <small class="text-muted fw-bold">DNI</small>
+                            <div class="h6 mb-0 text-dark">@pedido.DNI</div>
                         </div>
                         <div class="info-item">
                             <small class="text-muted fw-bold">TELÉFONO</small>

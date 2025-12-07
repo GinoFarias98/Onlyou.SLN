@@ -652,26 +652,45 @@
             min-width: 120px;
         }
     }
+
+    /* HEADER*/
+    .header-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
 </style>
 
 
     <!-- Header Mejorado -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-flex justify-content-between align-items-center header-mobile">
-                <div class="flex-grow-1">
-                    <h1 class="titulo-responsive text-primary mb-1">📦 Panel de Pedidos</h1>
-@*                     <p class="subtitulo-responsive text-muted">Gestión simplificada para administración</p> *@
-                </div>
-                <div class="d-flex gap-2 flex-shrink-0">
-@*                     <button class="btn btn-outline-primary" @onclick="RecargarPedidos">
-                        <i class="fas fa-sync-alt me-2"></i>Actualizar
-                    </button> *@
+<!-- HEADER MODERNO -->
+<div class="header-modern slide-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">
+                        <i class="fas fa-cart-plus me-2"></i>📦 Panel de Pedidos
+                    </h1>
+                    <p class="mb-0 opacity-90">
+                        <i class="fas fa-box me-1"></i>
+                        Revisa, gestiona y crea tus pedidos...
+                    </p>
                 </div>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                <NavLink class="btn btn-light btn-sm action-btn mt-3" href="/CrearPedido">
+                    <i class="fas fa-shopping-cart me-2"></i> Nuevo Pedido
+                </NavLink>
+            </div>
+        </div>
     </div>
-
+</div>
     <!-- Tarjetas de Estados Principales -->
     <div class="row mb-4">
         <div class="col-xl-2 col-md-4 col-6 mb-3">
@@ -777,7 +796,7 @@
                                     <span class="filter-text">
                                         @(tipoBusqueda == "cliente" ? "Cliente: " : "Pedido: ")@filtroBusqueda
                                     </span>
-                                    <button class="filter-remove" @onclick="LimpiarBusqueda">
+                                    <button class="filter-remove" @onclick="LimpiarBusquedaSiEsNecesario">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -845,7 +864,7 @@
                                @oninput="OnFiltroBusquedaChange" />
                         @if (!string.IsNullOrEmpty(filtroBusqueda))
                         {
-                            <button class="clear-search" @onclick="LimpiarBusqueda">
+                            <button class="clear-search" @onclick="LimpiarBusquedaSiEsNecesario">
                                 <i class="fas fa-times"></i>
                             </button>
                         }
@@ -1126,6 +1145,10 @@
     // Estadísticas
     private EstadisticasPedidos estadisticas = new();
 
+    // Modal que crea el pedido manual
+    private bool mostrarModalCrear = false;
+    private bool creandoPedido = false;
+
     // Timer para búsqueda en tiempo real
     private System.Threading.Timer timerBusqueda;
 
@@ -1303,13 +1326,13 @@
         }, null, 500, Timeout.Infinite);
     }
 
-    private void LimpiarBusqueda()
-    {
-        filtroBusqueda = "";
-        paginaActual = 1;
-        AplicarFiltros();
-        StateHasChanged();
-    }
+    // private void LimpiarBusqueda()
+    // {
+    //     filtroBusqueda = "";
+    //     paginaActual = 1;
+    //     AplicarFiltros();
+    //     StateHasChanged();
+    // }
 
     private bool TieneFiltrosActivos()
     {
@@ -1690,4 +1713,10 @@
     {
         timerBusqueda?.Dispose();
     }
+
+
+    //modal que crea pedidos
+
+
+
 }

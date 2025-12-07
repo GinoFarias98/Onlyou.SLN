@@ -10,7 +10,427 @@
 @inject SweetAlertService swal
 @inject NavigationManager nav
 
-<h3 class="titulo-seccion">Productos</h3>
+
+<style>
+
+
+    /* HEADER*/
+    .header-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Productos */
+    .product-master-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+        height: 100%;
+        border: 1px solid #e9ecef;
+    }
+
+        .product-master-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+    .product-image-container {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        background: linear-gradient(135deg, var(--light-color), #e9ecef);
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .product-master-card:hover .product-image {
+        transform: scale(1.05);
+    }
+
+    .product-badge-overlay {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        z-index: 2;
+        max-width: 60%; /* Limita el ancho máximo */
+    }
+
+    .product-publication-badge {
+        padding: 3px 6px;
+        border-radius: 10px;
+        font-size: 9px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .product-price-badge {
+        background: linear-gradient(135deg, #28a745, var(--success-color));
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        max-width: 60%;
+    }
+
+    .product-category-badge {
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        max-width: 60%;
+    }
+
+    .product-content {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 180px);
+    }
+
+    .product-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-code {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .product-specs {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+    }
+
+    .spec-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .spec-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        min-width: 60px;
+    }
+
+    .spec-content {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .color-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+
+    .talle-tag {
+        background: #e9ecef;
+        color: #495057;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .product-footer {
+        border-top: 1px solid #e9ecef;
+        padding-top: 1rem;
+        margin-top: auto;
+    }
+
+    .product-action-btn {
+        width: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all var(--transition-speed) ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .product-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 1200px) {
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+    /* Estilos para los badges de publicación */
+    .product-publication-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .product-publication-badge.published {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .product-publication-badge.unpublished {
+            background-color: rgba(108, 117, 125, 0.15);
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.3);
+        }
+
+    /* Ajuste para el overlay de badges */
+    .product-badge-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        z-index: 2;
+    }
+
+    /* Mantener el cursor pointer solo cuando no es modoEnviarWeb */
+    .producto-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Ajuste para el checkbox en modo enviar web */
+    .product-master-card .form-check-input {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Estilos para el grid de productos */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 10px;
+    }
+
+    /* Tarjeta de producto */
+    .product-master-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Contenedor de imagen */
+    .product-image-container {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 15px;
+    }
+
+    /* Contenido de la tarjeta */
+    .product-content {
+        padding: 16px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-code {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Especificaciones */
+    .product-specs {
+        margin-bottom: 15px;
+        flex-grow: 1;
+    }
+
+    .spec-item {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .spec-label {
+        font-size: 11px;
+        color: #666;
+        min-width: 60px;
+        display: flex;
+        align-items: center;
+    }
+
+    .spec-content {
+        flex-grow: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Puntos de color */
+    .color-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 1px solid #dee2e6;
+        cursor: default;
+    }
+
+    /* Tags de talles */
+    .talle-tag {
+        padding: 2px 6px;
+        background: #f1f3f5;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    /* Footer de producto */
+    .product-footer {
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
+    }
+
+    /* Estados vacío y loading */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        color: #dee2e6;
+        margin-bottom: 16px;
+    }
+    /*///////////////////////////////////modale ver detalle producto*/
+
+</style>
+
+<div class="header-modern slide-in">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h3 fw-bold mb-2">
+                        <i class="fas fa-cart-plus me-2"></i> Productos
+                    </h1>
+                    <p class="mb-0 opacity-90">
+                        <i class="fas fa-box me-1"></i>
+                        Revisa, gestiona tus Productos
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="d-flex flex-column gap-2">
+                <button class="btn btn-secondary mt-3" @onclick="ToggleModoWeb">
+                    @(modoEnviarWeb ? "Cancelar modo web" : "Modo enviar a web")
+                </button>
+                @if (modoEnviarWeb)
+                {
+                    <button class="btn btn-success" @onclick="EnviarSeleccionadosWeb">
+                        @(Seleccionados.Count > 0
+                                            ? $"Aplicar publicación a {Seleccionados.Count} producto(s)"
+                                            : "Aplicar despublicación a todos")
+                </button>
+                                }
+                <button class="btn btn-primary" @onclick="IrACrearProducto">+ Agregar producto</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- 🔹 FILTRO Y BOTONES -->
 <div class="d-flex justify-content-between align-items-start mb-4">
@@ -20,125 +440,324 @@
                         Campos="@campos"
                         OnResultadosActualizados="ActualizarResultados" />
     </div>
-
-    <div class="d-flex flex-column gap-2">
-        <button class="btn btn-secondary" @onclick="ToggleModoWeb">
-            @(modoEnviarWeb ? "Cancelar modo web" : "Modo enviar a web")
-        </button>
-        @if (modoEnviarWeb)
-        {
-            <button class="btn btn-success" @onclick="EnviarSeleccionadosWeb">
-                @(Seleccionados.Count > 0
-                            ? $"Aplicar publicación a {Seleccionados.Count} producto(s)"
-                            : "Aplicar despublicación a todos")
-        </button>
-        }
-        <button class="btn btn-primary" @onclick="IrACrearProducto">+ Agregar producto</button>
-    </div>
 </div>
 
 @if (productos == null)
 {
-    <p>Cargando productos...</p>
+    <!-- LOADING -->
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Cargando productos...</span>
+        </div>
+        <p class="mt-3 text-muted">Cargando catálogo de productos...</p>
+    </div>
 }
 else if (!productos.Any())
 {
-    <p>No hay productos disponibles.</p>
+    <!-- EMPTY STATE -->
+    <div class="empty-state">
+        <i class="fas fa-box-open empty-state-icon"></i>
+        <h5>No hay productos disponibles</h5>
+        <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+    </div>
 }
 else
 {
-    <div class="row g-4">
+    <!-- GRID DE PRODUCTOS MEJORADO -->
+    <div class="product-grid">
         @foreach (var prod in productos)
         {
-            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                <div class="card h-100 shadow-sm position-relative @(modoEnviarWeb ? "" : "producto-hover")">
+            <div class="product-master-card @(modoEnviarWeb ? "" : "producto-hover") position-relative">
 
-                    @if (modoEnviarWeb)
+                <!-- CHECKBOX PARA MODO ENVIAR WEB -->
+                @if (modoEnviarWeb)
+                {
+                    <input type="checkbox"
+                           class="form-check-input position-absolute m-2"
+                           style="z-index:1000; top:8px; left:8px; width:20px; height:20px;"
+                           checked="@Seleccionados.Contains(prod.Id)"
+                           @onchange="(e) => ToggleSeleccionado(prod.Id, e.Value as bool?)" />
+                }
+
+                <!-- IMAGEN DEL PRODUCTO -->
+                <div class="product-image-container"
+                     @onclick="() => { if (!modoEnviarWeb) VerDetalle(prod); }"
+                     style="@(modoEnviarWeb ? "" : "cursor: pointer;")">
+                    <img src="@prod.Imagen"
+                         alt="@prod.Nombre"
+                         class="product-image"
+                         onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200/667eea/ffffff?text=Producto';" />
+
+                    <!-- BADGES SUPERPUESTOS -->
+                    <div class="product-badge-overlay">
+                        <div class="product-price-badge">
+                            $@prod.Precio.ToString("N0")
+                        </div>
+
+                        <!-- BADGE DE PUBLICACIÓN -->
+                        <div class="product-publication-badge @(prod.PublicadoWeb ? "published" : "unpublished")">
+                            @(prod.PublicadoWeb ? "Publicado" : "No publicado")
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(prod.CategoriaNombre))
+                        {
+                            <div class="product-category-badge">
+                                @prod.CategoriaNombre
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- CONTENIDO DE LA TARJETA -->
+                <div class="product-content"
+                     @onclick="() => { if (!modoEnviarWeb) VerDetalle(prod); }"
+                     style="@(modoEnviarWeb ? "" : "cursor: pointer;")">
+
+                    <!-- TÍTULO Y CÓDIGO -->
+                    <h5 class="product-title" title="@prod.Nombre">@prod.Nombre</h5>
+                    <div class="product-code">
+                        <i class="fas fa-barcode"></i>
+                        <span>@prod.Codigo</span>
+                    </div>
+
+                    <!-- ESPECIFICACIONES -->
+                    <div class="product-specs">
+                        <!-- COLORES -->
+                        @if (prod.ColoresDetalle.Any())
+                        {
+                            <div class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-palette me-1"></i>Colores:
+                                </span>
+                                <div class="spec-content">
+                                    @foreach (var color in prod.ColoresDetalle.Take(5))
+                                    {
+                                        <div class="color-dot"
+                                             style="background-color: @color.Hexadecimal;"
+                                             title="@color.Nombre"></div>
+                                    }
+                                    @if (prod.ColoresDetalle.Count > 5)
+                                    {
+                                        <span class="small text-muted">+@(prod.ColoresDetalle.Count - 5)</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- TALLES -->
+                        @if (prod.TallesDetalle.Any())
+                        {
+                            <div class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-ruler me-1"></i>Talles:
+                                </span>
+                                <div class="spec-content">
+                                    @foreach (var talle in prod.TallesDetalle.Take(5))
+                                    {
+                                        <span class="talle-tag" title="@talle.Nombre">@talle.Nombre</span>
+                                    }
+                                    @if (prod.TallesDetalle.Count > 5)
+                                    {
+                                        <span class="small text-muted">+@(prod.TallesDetalle.Count - 5)</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- MARCA (SI EXISTE) -->
+                        @if (!string.IsNullOrEmpty(prod.MarcaNombre))
+                        {
+                            <div class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-tag me-1"></i>Marca:
+                                </span>
+                                <span class="spec-content">@prod.MarcaNombre</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- FOOTER DE LA TARJETA - SOLO SE MUESTRA SI NO ES MODO ENVIAR WEB -->
+                    @if (!modoEnviarWeb)
                     {
-                        <input type="checkbox" class="form-check-input position-absolute m-2" style="z-index:1000;"
-                               checked="@Seleccionados.Contains(prod.Id)"
-                               @onchange="(e) => ToggleSeleccionado(prod.Id, e.Value as bool?)" />
+                        <div class="product-footer">
+                            <button class="btn btn-primary w-100 py-2 shadow-sm"
+                                    @onclick="() => VerDetalle(prod)">
+                                <i class="fas fa-eye"></i>
+                                Ver Detalle
+                            </button>
+                        </div>
                     }
-
-                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:150px; overflow:hidden;"
-                         @onclick="() => { if (!modoEnviarWeb) VerDetalle(prod); }">
-                        <img src="@prod.Imagen" alt="@prod.Nombre" style="max-height:100%; max-width:100%; object-fit:contain;" />
-                    </div>
-
-                    <div class="card-body p-2" @onclick="() => { if (!modoEnviarWeb) VerDetalle(prod); }">
-                        <h5 class="card-title mb-1">@prod.Nombre</h5>
-                        <p class="card-text text-muted mb-1">Código: @prod.Codigo</p>
-                        <p class="card-text fw-bold mb-1">$@prod.Precio</p>
-
-                        <!-- Label publicación -->
-                        <p class="mb-1">
-                            <span class="badge @(prod.PublicadoWeb ? "bg-success" : "bg-secondary")">
-                                @(prod.PublicadoWeb ? "Publicado" : "No publicado")
-                            </span>
-                        </p>
-
-                        <div class="d-flex mb-1">
-                            @foreach (var c in prod.ColoresDetalle)
-                            {
-                                <span class="rounded-circle border me-1" style="width:16px; height:16px; background-color:@c.Hexadecimal;"></span>
-                            }
-                        </div>
-
-                        <div class="text-muted small">
-                            Talles: @string.Join(", ", prod.TallesDetalle.Select(t => t.Nombre))
-                        </div>
-                    </div>
                 </div>
             </div>
         }
     </div>
 }
 
-<!-- Modal detalle -->
 @if (productoSeleccionado != null)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content rounded-4 shadow">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">@productoSeleccionado.Nombre</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <img src="@productoSeleccionado.Imagen" class="img-fluid rounded mb-3" style="max-height:300px; object-fit:contain;" />
-                    </div>
-                    <p><strong>Código:</strong> @productoSeleccionado.Codigo</p>
-                    <p><strong>Precio:</strong> $@productoSeleccionado.Precio</p>
-                    <p><strong>Costo:</strong> $@productoSeleccionado.Costo</p>
-                    <p><strong>Marca:</strong> @productoSeleccionado.MarcaNombre</p>
-                    <p><strong>Proveedor:</strong> @productoSeleccionado.ProveedorNombre</p>
-                    <p><strong>Categoría:</strong> @productoSeleccionado.CategoriaNombre</p>
-
-                    <p>
-                        <strong>Estado publicación:</strong>
-                        <span class="badge @(productoSeleccionado.PublicadoWeb ? "bg-success" : "bg-secondary")">
-                            @(productoSeleccionado.PublicadoWeb ? "Publicado" : "No publicado")
-                        </span>
-                    </p>
-
-                    <div class="d-flex align-items-center mb-2">
-                        <strong class="me-2">Colores:</strong>
-                        @foreach (var c in productoSeleccionado.ColoresDetalle)
-                        {
-                            <span class="rounded-circle border me-1" style="width:20px; height:20px; background-color:@c.Hexadecimal;"></span>
-                        }
-                    </div>
-
-                    <div class="mb-2">
-                        <strong>Talles:</strong> @string.Join(", ", productoSeleccionado.TallesDetalle.Select(t => t.Nombre))
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog" @onclick="CerrarModal">
+        <div class="modal-dialog modal-dialog-centered modal-lg" @onclick:stopPropagation>
+            <div class="modal-content rounded-3 shadow">
+                
+                <!-- HEADER SIMPLE -->
+                <div class="modal-header bg-light border-bottom px-4 py-3">
+                    <div class="d-flex align-items-center justify-content-between w-100">
+                        <h5 class="modal-title mb-0">
+                            <i class="fas fa-box text-primary me-2"></i>
+                            @productoSeleccionado.Nombre
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button class="btn btn-primary" @onclick="EditarProducto">Editar</button>
-                    <button class="btn btn-danger" @onclick="ArchivarProducto">Archivar</button>
-                    <button class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button>
+
+                <!-- CONTENIDO PRINCIPAL -->
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <!-- IMAGEN -->
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <div class="card border h-100">
+                                <div class="card-body d-flex align-items-center justify-content-center p-4" style="min-height: 300px;">
+                                    <img src="@productoSeleccionado.Imagen" 
+                                         class="img-fluid"
+                                         style="max-width: 300% max-height: 100px; object-fit: contain;"
+                                         alt="@productoSeleccionado.Nombre"
+                                         onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300/e9ecef/6c757d?text=Sin+Imagen';" />
+                                </div>
+                                <div class="card-footer bg-white border-top d-flex justify-content-between">
+                                    <div>
+                                        <span class="badge bg-success fs-6">
+                                            $@productoSeleccionado.Precio.ToString("N0")
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge @(productoSeleccionado.PublicadoWeb ? "bg-success" : "bg-secondary")">
+                                            <i class="fas fa-globe me-1"></i>
+                                            @(productoSeleccionado.PublicadoWeb ? "Publicado" : "No publicado")
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN -->
+                        <div class="col-md-6">
+                            <div class="producto-info">
+                                
+                                <!-- CÓDIGO Y CATEGORÍA -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-muted small">
+                                            <i class="fas fa-barcode me-1"></i>
+                                            Código: @productoSeleccionado.Codigo
+                                        </span>
+                                        <span class="badge bg-primary">
+                                            @productoSeleccionado.CategoriaNombre
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- PRECIOS -->
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 text-center bg-light">
+                                            <div class="text-muted small mb-1">Precio Venta</div>
+                                            <div class="h5 text-success fw-bold">$@productoSeleccionado.Precio.ToString("N0")</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded p-3 text-center bg-light">
+                                            <div class="text-muted small mb-1">Costo</div>
+                                            <div class="h6 text-muted">$@productoSeleccionado.Costo.ToString("N0")</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- DETALLES -->
+                                <div class="mb-3">
+                                    <div class="row">
+                                        <div class="col-6 mb-2">
+                                            <div class="text-muted small">Marca</div>
+                                            <div class="fw-medium">@productoSeleccionado.MarcaNombre</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <div class="text-muted small">Proveedor</div>
+                                            <div class="fw-medium">@productoSeleccionado.ProveedorNombre</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- COLORES -->
+                                <div class="mb-3">
+                                    <div class="text-muted small mb-2">Colores</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var c in productoSeleccionado.ColoresDetalle)
+                                        {
+                                            <div class="d-flex flex-column align-items-center" title="@c.Nombre">
+                                                <div class="rounded-circle border" 
+                                                     style="width: 24px; height: 24px; background-color: @c.Hexadecimal;"></div>
+                                                <div class="small text-muted mt-1" style="font-size: 10px;">@c.Nombre</div>
+                                            </div>
+                                        }
+                                        @if (!productoSeleccionado.ColoresDetalle.Any())
+                                        {
+                                            <span class="text-muted small">Sin colores</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- TALLES -->
+                                <div class="mb-3">
+                                    <div class="text-muted small mb-2">Talles</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var t in productoSeleccionado.TallesDetalle)
+                                        {
+                                            <span class="border rounded px-2 py-1 small bg-white">@t.Nombre</span>
+                                        }
+                                        @if (!productoSeleccionado.TallesDetalle.Any())
+                                        {
+                                            <span class="text-muted small">Sin talles</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- MARGEN -->
+                                <div class="mt-3 pt-3 border-top">
+                                    @{
+                                        var margen = productoSeleccionado.Precio - productoSeleccionado.Costo;
+                                        var margenPorcentaje = productoSeleccionado.Costo > 0 
+                                            ? Math.Round((margen / productoSeleccionado.Costo * 100), 1) 
+                                            : 0;
+                                    }
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="text-muted small">Margen de ganancia</div>
+                                        <div class="fw-bold @(margen >= 0 ? "text-success" : "text-danger")">
+                                            $@margen.ToString("N0")
+                                            <span class="small ms-1">(@margenPorcentaje%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- FOOTER SIMPLE -->
+                <div class="modal-footer border-top px-4 py-3">
+                    <button class="btn btn-danger " @onclick="ArchivarProducto">
+                        <i class="fas fa-archive me-2"></i>
+                        Archivar
+                    </button>
+@*                     <button class="btn btn-secondary" @onclick="CerrarModal">
+                        <i class="fas fa-times me-2"></i>
+                        Cerrar
+                    </button> *@
+                    <button class="btn btn-primary" @onclick="EditarProducto">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>

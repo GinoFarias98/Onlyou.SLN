@@ -1,0 +1,172 @@
+﻿@page "/CrearPedidoBuscador"
+@using Onlyou.Shared.DTOS.Producto
+@using Onlyou.Shared.DTOS.Categorias
+@using Onlyou.Shared.DTOS.Proveedor
+@using Onlyou.Shared.DTOS.Marca
+@using Onlyou.Shared.DTOS.Color
+@using Onlyou.Shared.DTOS.Talle
+@using Onlyou.Shared.DTOS.TipoProducto
+@inject IHttpServicios http
+@inject SweetAlertService swal
+@inject NavigationManager nav
+
+
+<!-- 🔹 FILTRO Y BOTONES -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="flex-grow-1 me-3">
+        <FiltroGenerico TEntidad="GetProductoDTO"
+                        UrlBase="productos"
+                        Campos="@campos"
+                        OnResultadosActualizados="ActualizarResultados" />
+    </div>
+</div>
+
+@if (productos == null)
+{
+    <p>Cargando productos...</p>
+}
+else if (!productos.Any())
+{
+    <p>No hay productos disponibles.</p>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var prod in productos)
+        {
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="card h-100 shadow-sm position-relative">
+
+
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:150px; overflow:hidden;"
+                        @onclick="() => { VerDetalle(prod); }">
+                        <img src="@prod.Imagen" alt="@prod.Nombre" style="max-height:100%; max-width:100%; object-fit:contain;" />
+                    </div>
+
+                    <div class="card-body p-2" @onclick="() => { VerDetalle(prod); }">
+                        <h5 class="card-title mb-1">@prod.Nombre</h5>
+                        <p class="card-text text-muted mb-1">Código: @prod.Codigo</p>
+                        <p class="card-text fw-bold mb-1">$@prod.Precio</p>
+                        <div class="d-flex mb-1">
+                            @foreach (var c in prod.ColoresDetalle)
+                            {
+                                <span class="rounded-circle border me-1" style="width:16px; height:16px; background-color:@c.Hexadecimal;"></span>
+                            }
+                        </div>
+
+                        <div class="text-muted small">
+                            Talles: @string.Join(", ", prod.TallesDetalle.Select(t => t.Nombre))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+<!-- Modal detalle -->
+@if (productoSeleccionado != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">@productoSeleccionado.Nombre</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img src="@productoSeleccionado.Imagen" class="img-fluid rounded mb-3" style="max-height:300px; object-fit:contain;" />
+                    </div>
+                    <p><strong>Código:</strong> @productoSeleccionado.Codigo</p>
+                    <p><strong>Precio:</strong> $@productoSeleccionado.Precio</p>
+                    <p><strong>Costo:</strong> $@productoSeleccionado.Costo</p>
+                    <p><strong>Marca:</strong> @productoSeleccionado.MarcaNombre</p>
+                    <p><strong>Proveedor:</strong> @productoSeleccionado.ProveedorNombre</p>
+                    <p><strong>Categoría:</strong> @productoSeleccionado.CategoriaNombre</p>
+
+                    <p>
+                        <strong>Estado publicación:</strong>
+                        <span class="badge @(productoSeleccionado.PublicadoWeb ? "bg-success" : "bg-secondary")">
+                            @(productoSeleccionado.PublicadoWeb ? "Publicado" : "No publicado")
+                        </span>
+                    </p>
+
+                    <div class="d-flex align-items-center mb-2">
+                        <strong class="me-2">Colores:</strong>
+                        @foreach (var c in productoSeleccionado.ColoresDetalle)
+                        {
+                            <span class="rounded-circle border me-1" style="width:20px; height:20px; background-color:@c.Hexadecimal;"></span>
+                        }
+                    </div>
+
+                    <div class="mb-2">
+                        <strong>Talles:</strong> @string.Join(", ", productoSeleccionado.TallesDetalle.Select(t => t.Nombre))
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+@*                     <button class="btn btn-primary" @onclick="EditarProducto">Editar</button>
+                    <button class="btn btn-danger" @onclick="ArchivarProducto">Archivar</button>
+                    <button class="btn btn-secondary" @onclick="CerrarModal">Cerrar</button> *@
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@code {
+    private List<GetProductoDTO> productos = new();
+    private GetProductoDTO? productoSeleccionado;
+    private List<GetCategoriasDTO> categorias = new();
+    private List<GetProveedorDTO> proveedores = new();
+    private List<GetTipoProductoDTO> tiposProducto = new();
+    private List<GetMarcaDTO> marcas = new();
+    private List<GetColorDTO> coloresDisponibles = new();
+    private List<TallesDTO> tallesDisponibles = new();
+
+    private List<FiltroGenerico<GetProductoDTO>.CampoFiltro> campos = new();
+    private Dictionary<string, object?> filtros = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosRelacionados();
+        ConfigurarCamposFiltro();
+        await CargarProductos();
+    }
+
+    private async Task CargarProductos()
+    {
+        productos = (await http.Get<List<GetProductoDTO>>("Productos")).Respuesta ?? new();
+        // Inicializamos Seleccionados según PublicadoWeb
+        // Seleccionados = productos.Where(p => p.PublicadoWeb).Select(p => p.Id).ToHashSet();
+    }
+
+    private async Task CargarDatosRelacionados()
+    {
+        proveedores = (await http.Get<List<GetProveedorDTO>>("api/Proveedores")).Respuesta ?? new();
+        categorias = (await http.Get<List<GetCategoriasDTO>>("api/Categorias")).Respuesta ?? new();
+        tiposProducto = (await http.Get<List<GetTipoProductoDTO>>("api/TipoProducto")).Respuesta ?? new();
+        marcas = (await http.Get<List<GetMarcaDTO>>("api/Marca")).Respuesta ?? new();
+        coloresDisponibles = (await http.Get<List<GetColorDTO>>("api/ManageColor")).Respuesta ?? new();
+        tallesDisponibles = (await http.Get<List<TallesDTO>>("api/Talle")).Respuesta ?? new();
+    }
+
+    private void ConfigurarCamposFiltro()
+    {
+        campos = new()
+        {
+            new() { Nombre = "Nombre", Label = "Buscar producto", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Texto, Placeholder = "Ej: Nike" },
+            new() { Nombre = "CategoriaId", Label = "Categoría", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Select, Opciones = categorias.Select(c => new FiltroGenerico<GetProductoDTO>.OpcionSelect { Id = c.Id, Nombre = c.Nombre }).ToList() },
+            // new() { Nombre = "ProveedorId", Label = "Proveedor", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Select, Opciones = proveedores.Select(p => new FiltroGenerico<GetProductoDTO>.OpcionSelect { Id = p.Id, Nombre = p.Nombre }).ToList() },
+            // new() { Nombre = "MarcaId", Label = "Marca", Tipo = FiltroGenerico<GetProductoDTO>.TipoCampo.Select, Opciones = marcas.Select(m => new FiltroGenerico<GetProductoDTO>.OpcionSelect { Id = m.Id, Nombre = m.Nombre }).ToList() }
+        };
+
+        filtros.Clear();
+        foreach (var campo in campos)
+            filtros[campo.Nombre] = null;
+    }
+    private void CerrarModal() => productoSeleccionado = null;
+    private void ActualizarResultados(List<GetProductoDTO> nuevos) => productos = nuevos;
+    private void VerDetalle(GetProductoDTO prod) => productoSeleccionado = prod;
+
+}
+}
