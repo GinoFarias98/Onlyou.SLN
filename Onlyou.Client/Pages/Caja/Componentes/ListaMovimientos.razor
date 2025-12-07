@@ -1,0 +1,31 @@
+﻿@using Onlyou.Shared.DTOS.Movimiento
+
+@if (Movimientos == null)
+{
+    <p>Cargando movimientos...</p>
+}
+else if (!Movimientos.Any())
+{
+    <p class="text-muted">No hay movimientos registrados en esta caja.</p>
+}
+else
+{
+    <div class="movimientos-container">
+        @foreach (var mov in Movimientos)
+        {
+            <ItemMovimiento Movimiento="mov"
+                            OnEditar="OnEditar"
+                            OnCambiarEstado="OnCambiarEstado"
+                            OnEliminar="OnEliminar"
+                            OnAgregarPago="OnAgregarPago" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<GetMovimientoDTO> Movimientos { get; set; } = new();
+    [Parameter] public EventCallback<GetMovimientoDTO> OnEditar { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnCambiarEstado { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnEliminar { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnAgregarPago { get; set; }
+}

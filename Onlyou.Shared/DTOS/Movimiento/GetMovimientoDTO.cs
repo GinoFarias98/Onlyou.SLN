@@ -32,6 +32,9 @@ namespace Onlyou.Shared.DTOS.Movimiento
         public int? PedidoId { get; set; }
         public string? PedidoDescripcion { get; set; }
 
+        public decimal TotalPagado { get; set; }
+        public decimal SaldoPendiente { get; set; }
+
         // Pagos
         public List<GetPagoDTO> Pagos { get; set; } = new();
     }

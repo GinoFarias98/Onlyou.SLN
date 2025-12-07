@@ -40,12 +40,9 @@ namespace Onlyou.BD.Data.Entidades
                  Description = "Estado actual del pago (Ej: Completo, Parcial, Anulado).")]
         public Situacion Situacion { get; set; }
 
+        [StringLength(500)]
+        public string? Descripcion { get; set; }
 
-        // Es pago de cliente ---------------------------------------------------------
-
-        [Display(Name = "¿Es pago de cliente?",
-                 Description = "Indica si este pago fue realizado por un cliente.")]
-        public bool EsPagoCliente { get; set; }
 
         // FK: Movimiento -------------------------------------------------------------
 
@@ -70,7 +67,7 @@ namespace Onlyou.BD.Data.Entidades
         public int CajaId { get; set; }
         public Caja Caja { get; set; } = null!;
 
-        public ICollection<ObservacionPago> Observaciones { get; set; } = new List<ObservacionPago>();
+        //public ICollection<ObservacionPago> Observaciones { get; set; } = new List<ObservacionPago>();
 
 
 
@@ -79,6 +76,7 @@ namespace Onlyou.BD.Data.Entidades
     public enum Situacion
     {
         Completo,
+        Pendiente,
         Parcial, 
         Anulado
     }

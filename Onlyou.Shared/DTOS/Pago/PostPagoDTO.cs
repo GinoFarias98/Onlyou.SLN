@@ -11,7 +11,7 @@ namespace Onlyou.Shared.DTOS.Pago
     public class PostPagoDTO
     {
         [Required]
-        public DateTime FechaRealizado { get; set; }
+        public DateTime FechaRealizado { get; set; } = DateTime.Now;
 
         [Required]
         [Range(0.01, double.MaxValue)]

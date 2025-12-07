@@ -112,46 +112,35 @@ namespace Onlyou.Server.Controllers
         }
 
         // ==========================================
-        // POST — REGISTRA PAGO (AHORA POR SERVICE)
+        // POST — REGISTRA PAGO (por SERVICE)
         // ==========================================
         [HttpPost]
         public async Task<ActionResult<GetPagoDTO>> Post(PostPagoDTO postPagoDTO)
         {
+            if (postPagoDTO == null)
+                return BadRequest("El cuerpo de la solicitud está vacío.");
+
             try
             {
-                if (postPagoDTO == null)
-                    return BadRequest("El cuerpo de la solicitud está vacío.");
-
-                // ---- Validaciones actuales ----
-                var mov = await repositorioMovimiento.SelectMovimientoPorIdAsync(postPagoDTO.MovimientoId);
-                if (mov == null)
-                    return NotFound($"No existe un movimiento con ID {postPagoDTO.MovimientoId}.");
-
-                var tipoPago = await repositorioTipoPago.SelectTipoPagosxId(postPagoDTO.TipoPagoId);
-                if (tipoPago == null)
-                    return NotFound($"No existe un tipo de pago con ID {postPagoDTO.TipoPagoId}.");
-
-                if (!Enum.IsDefined(typeof(SituacionPagoDto), postPagoDTO.Situacion))
-                    return BadRequest("La situación del pago no es válida.");
-
-                decimal totalPagado = await repositorioPago.SelectTotalPagosPorMovimientoAsync(postPagoDTO.MovimientoId);
-                decimal saldo = mov.Monto - totalPagado;
-
-                if (postPagoDTO.Monto > saldo && !postPagoDTO.EsPagoCliente)
-                    return BadRequest($"El monto ({postPagoDTO.Monto}) excede el saldo ({saldo}).");
-
-                if (!string.IsNullOrWhiteSpace(postPagoDTO.Descripcion))
-                    postPagoDTO.Descripcion = postPagoDTO.Descripcion.Trim();
-
-                // ---- Mapear ----
+                // Mapear DTO → entidad
                 var pago = mapper.Map<Pago>(postPagoDTO);
                 pago.Situacion = (Situacion)postPagoDTO.Situacion;
 
-                // ⚡ NUEVO → Guardar usando SERVICE (impacta caja y recalcula movimiento)
+                if (!string.IsNullOrWhiteSpace(postPagoDTO.Descripcion))
+                    pago.Descripcion = postPagoDTO.Descripcion.Trim();
+
+                // Guardar usando el service (impacta caja y recalcula estado de movimiento)
                 var pagoRegistrado = await pagoService.RegistrarPagoAsync(pago);
 
+                // Mapear a DTO para respuesta
                 var dto = mapper.Map<GetPagoDTO>(pagoRegistrado);
+
                 return Ok(dto);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Captura los errores de lógica del service (pago supera total, caja cerrada, etc.)
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

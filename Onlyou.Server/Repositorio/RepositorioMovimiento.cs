@@ -157,7 +157,7 @@ namespace Onlyou.Server.Repositorio
                 var ids = movimientosFiltrados.Select(p => p.Id).ToList();
 
                 var productosConRelaciones = await context.Movimientos
-                    .Where(m => ids.Contains(m.Id)) // Ojo: sin AsQueryable()
+                    .Where(m => ids.Contains(m.Id)) 
                     .Include(m => m.TipoMovimiento)
                     .Include(m => m.Proveedor)
                     .Include(m => m.Pedido)
@@ -237,7 +237,7 @@ namespace Onlyou.Server.Repositorio
                 throw new InvalidOperationException("Movimiento inexistente.");
 
             var totalPagado = movimiento.Pagos
-                .Where(p => p.Situacion == Situacion.Completo)
+                .Where(p => p.Estado == true && p.Situacion != Situacion.Anulado)
                 .Sum(p => p.Monto);
 
             if (totalPagado == 0)
@@ -252,10 +252,13 @@ namespace Onlyou.Server.Repositorio
 
 
 
+
         public async Task<decimal> SelectTotalRealPorPagosCajaAsync(int cajaId, Signo signo)
         {
             var pagos = await context.Pagos
-                .Where(p => p.CajaId == cajaId && p.Situacion == Situacion.Completo)
+                .Where(p => p.CajaId == cajaId
+                    && p.Estado == true
+                    && p.Situacion != Situacion.Anulado)
                 .Include(p => p.Movimiento)
                 .ThenInclude(m => m.TipoMovimiento)
                 .ToListAsync();
@@ -264,6 +267,7 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.Movimiento.TipoMovimiento.signo == signo)
                 .Sum(p => p.Monto);
         }
+
 
 
 

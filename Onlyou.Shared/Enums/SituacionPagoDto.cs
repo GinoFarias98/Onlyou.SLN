@@ -9,6 +9,7 @@ namespace Onlyou.Shared.Enums
     public enum SituacionPagoDto
     {
         Completo,
+        Pendiente,
         Parcial,
         Anulado
     }

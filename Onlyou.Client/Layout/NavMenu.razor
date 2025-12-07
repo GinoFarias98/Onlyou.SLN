@@ -3,181 +3,11 @@
 @using System.Security.Claims
 @inject NavigationManager Navigation
 
-<div class="navmenu-onlyou">
-    <!-- Contenedor principal del menú -->
-    <div class="navmenu-content">
-        <!-- Siempre visible -->
-        <a class="nav-link" href="/" Match="NavLinkMatch.All">
-            <i class="bi bi-house-door-fill"></i> Inicio
-        </a>
-
-        <!-- Menú condicional para usuarios autenticados -->
-        <AuthorizeView>
-            <Authorized Context="authContext">
-                <!-- Administrar Catálogo con submenú -->
-                <div class="nav-item">
-                    <div class="nav-link catalog-toggle"
-                         @onclick="ToggleCatalogMenu">
-                        <div class="toggle-content">
-                            <i class="bi bi-grid-1x2-fill"></i>
-                            <span>Administrar Catálogo</span>
-                            <i class="bi bi-chevron-@(showCatalogMenu ? "down" : "right") toggle-arrow @(showCatalogMenu ? "rotated" : "")"></i>
-                        </div>
-                    </div>
-
-                    @if (showCatalogMenu)
-                    {
-                        <div class="submenu">
-                            <a class="submenu-link" href="productosV2" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-box-fill"></i> Productos
-                            </a>
-                            <a class="submenu-link" href="categorias" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-tags-fill"></i> Categorías
-                            </a>
-                            <a class="submenu-link" href="colores" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-palette-fill"></i> Colores
-                            </a>
-                            <a class="submenu-link" href="tipo-productos" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-box-seam"></i> Tipo Productos
-                            </a>
-                            <a class="submenu-link" href="talles" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-rulers"></i> Talles
-                            </a>
-                            <a class="submenu-link" href="marcas" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-star-fill"></i> Marcas
-                            </a>
-                            <a class="submenu-link" href="proveedores" @onclick="CloseCatalogMenu">
-                                <i class="bi bi-people"></i> Proveedores
-                            </a>
-                        </div>
-                    }
-                </div>
-            </div>
-            <!-- === Administrar Caja === -->
-            <div class="nav-item">
-
-                <div class="nav-link catalog-toggle"
-                     @onclick="ToggleCajaMenu">
-                    <div class="toggle-content">
-                        <i class="bi bi-grid-1x2-fill"></i>
-                        <span>Administrar Caja</span>
-                        <i class="bi bi-chevron-@(showCajaMenu ? "down" : "right")"></i>
-                    </div>
-                </div>
-
-                @if (showCajaMenu)
-                {
-                    <div class="submenu">
-
-                        <a class="submenu-link" href="caja" @onclick="CloseAllMenus">
-                            <i class="bi bi-currency-dollar"></i> Caja
-                        </a>
-                        <a class="submenu-link" href="TipoMovimientos" @onclick="CloseAllMenus">
-                            <i class="bi bi-tags-fill"></i> Tipo de Movimientos
-                        </a>
-                        <a class="submenu-link" href="TipoPagos" @onclick="CloseAllMenus">
-                            <i class="bi bi-tags-fill"></i> Tipo de Pagos
-                        </a>
-                    </div>
-                }
-            </div>
-
-            <!-- Independientes -->
-            <a class="nav-link" href="caja">
-                <i class="bi bi-currency-dollar"></i> Caja
-            </a>
-
-            <a class="nav-link" href="Pedidos1">
-                <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
-            </a>
-                <!-- Centro de Pedidos -->
-                <a class="nav-link" href="Pedidos1">
-                    <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
-                </a>
-            </a>
-                <!-- Reportes -->
-                <a class="nav-link" href="movimientosCaja">
-                    <i class="bi bi-graph-up"></i> Reportes
-                </a>
-            </Authorized>
-        </AuthorizeView>
-            </a>
-        <!-- Siempre visible - Swagger -->
-        <a href="http://localhost:5258/swagger" target="_blank" rel="noopener noreferrer" class="nav-link">
-            <i class="bi bi-file-code-fill"></i> Swagger API
-        </a>
-        <div class="user-actions ">
-            <a class="nav-link papelera-link"  href="Papelera">
-                <i class="bi bi-trash-fill"></i> Papelera
-            </a>
-        </div>
-            </div>
-
-    </div>
-
-    <!-- Footer del menú -->
-    <div class="navmenu-footer">
-        <AuthorizeView>
-            <Authorized Context="authContext">
-                <!-- Información del usuario -->
-
-                <!-- Acciones del usuario -->
-                <div class="user-actions ">
-                        <!-- Control de autorización -->
-                    <div class="logout-container">
-                        <ControlAutorizacion AbrirModal="AbrirModal" />
-                    </div>
-                    
-                </div>
-            </Authorized>
-
-            <NotAuthorized>
-                <!-- Opciones para usuarios no autenticados -->
-                <div class="guest-actions">
-                    <button class="btn btn-primary btn-sm w-100 mb-2" @onclick="AbrirLoginModal">
-                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm w-100" @onclick="AbrirRegistroModal">
-                        <i class="bi bi-person-plus-fill"></i> Crear Cuenta
-                    </button>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </div>
-</div>
-    </AuthorizeView>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    <a href="http://localhost:5258/swagger"
-       target="_blank"
-       rel="noopener noreferrer"
-       class="nav-link">
-        <span class="oi oi-document"></span> Swagger
-    </a>
-    </a>
-<!-- Modal Container -->
-@if (mostrarModal)
-{
-    <div class="modal-backdrop show" @onclick="CerrarModal"></div>
-    <div class="modal show d-block" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@tituloModal</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
-                </div>
-                <div class="modal-body">
-                    @contenidoModal
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
 <style>
     .navmenu-content {
         flex: 1;
-/*         overflow-y: hidden; */
-/*         padding-bottom: 120px; /* Espacio para el footer */ */
+        /*         overflow-y: hidden; */
+        /*         padding-bottom: 120px; /* Espacio para el footer */ */
     }
     /* Estilo para el logout centrado */
     .logout-container {
@@ -192,9 +22,9 @@
         bottom: 0;
         left: 0;
         right: 0;
-/*         border-top: 1px solid #e9ecef; */
+        /*         border-top: 1px solid #e9ecef; */
         padding: 20px 15px;
-/*         background-color: #f8f9fa; */
+        /*         background-color: #f8f9fa; */
         text-align: center;
         z-index: 100;
     }
@@ -210,93 +40,233 @@
             background-color: rgba(220, 53, 69, 0.1) !important;
             color: #bd2130 !important;
         }
-</div>
-</div>
 
 </style>
 
+
+<div class="navmenu-onlyou">
+    <div class="navmenu-content">
+
+        <!-- Inicio siempre visible -->
+        <a class="nav-link" href="/" Match="NavLinkMatch.All">
+            <i class="bi bi-house-door-fill"></i> Inicio
+        </a>
+
+        <AuthorizeView>
+            <Authorized Context="authContext">
+
+                <!-- === Administrar Catálogo === -->
+                <div class="nav-item">
+                    <div class="nav-link catalog-toggle"
+                         @onclick="ToggleCatalogMenu">
+                        <div class="toggle-content">
+                            <i class="bi bi-grid-1x2-fill"></i>
+                            <span>Administrar Catálogo</span>
+                            <i class="bi bi-chevron-@(showCatalogMenu ? "down" : "right")"></i>
+                        </div>
+                    </div>
+
+                    @if (showCatalogMenu)
+                    {
+                        <div class="submenu">
+                            <a class="submenu-link" href="productosV2" @onclick="CloseAllMenus">
+                                <i class="bi bi-box-fill"></i> Productos
+                            </a>
+                            <a class="submenu-link" href="categorias" @onclick="CloseAllMenus">
+                                <i class="bi bi-tags-fill"></i> Categorías
+                            </a>
+                            <a class="submenu-link" href="colores" @onclick="CloseAllMenus">
+                                <i class="bi bi-palette-fill"></i> Colores
+                            </a>
+                            <a class="submenu-link" href="tipo-productos" @onclick="CloseAllMenus">
+                                <i class="bi bi-box-seam"></i> Tipo Productos
+                            </a>
+                            <a class="submenu-link" href="talles" @onclick="CloseAllMenus">
+                                <i class="bi bi-rulers"></i> Talles
+                            </a>
+                            <a class="submenu-link" href="marcas" @onclick="CloseAllMenus">
+                                <i class="bi bi-star-fill"></i> Marcas
+                            </a>
+                            <a class="submenu-link" href="proveedores" @onclick="CloseAllMenus">
+                                <i class="bi bi-people"></i> Proveedores
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- === Administrar Caja === -->
+                <div class="nav-item">
+
+                    <div class="nav-link catalog-toggle"
+                         @onclick="ToggleCajaMenu">
+                        <div class="toggle-content">
+                            <i class="bi bi-cash-stack"></i>
+                            <span>Administrar Caja</span>
+                            <i class="bi bi-chevron-@(showCajaMenu ? "down" : "right")"></i>
+                        </div>
+                    </div>
+
+                    @if (showCajaMenu)
+                    {
+                        <div class="submenu">
+
+                            <a class="submenu-link" href="caja" @onclick="CloseAllMenus">
+                                <i class="bi bi-currency-dollar"></i> Caja
+                            </a>
+                            <a class="submenu-link" href="TipoMovimientos" @onclick="CloseAllMenus">
+                                <i class="bi bi-tags-fill"></i> Tipo de Movimientos
+                            </a>
+                            <a class="submenu-link" href="TipoPagos" @onclick="CloseAllMenus">
+                                <i class="bi bi-tags-fill"></i> Tipo de Pagos
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Centro de pedidos -->
+                <a class="nav-link" href="Pedidos1">
+                    <i class="bi bi-cart-check-fill"></i> Centro de Pedidos
+                </a>
+
+                <!-- Reportes -->
+                <a class="nav-link" href="movimientosCaja">
+                    <i class="bi bi-graph-up"></i> Reportes
+                </a>
+
+            </Authorized>
+        </AuthorizeView>
+
+        <!-- Swagger -->
+        <a href="http://localhost:5258/swagger" target="_blank" class="nav-link">
+            <i class="bi bi-file-code-fill"></i> Swagger API
+        </a>
+
+        <div class="user-actions">
+            <a class="nav-link papelera-link" href="Papelera">
+                <i class="bi bi-trash-fill"></i> Papelera
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="navmenu-footer">
+        <AuthorizeView>
+            <Authorized>
+                <div class="logout-container">
+                    <ControlAutorizacion AbrirModal="AbrirModal" />
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="guest-actions">
+                    <button class="btn btn-primary btn-sm w-100 mb-2" @onclick="AbrirLoginModal">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    </button>
+
+                    <button class="btn btn-outline-primary btn-sm w-100" @onclick="AbrirRegistroModal">
+                        <i class="bi bi-person-plus-fill"></i> Crear Cuenta
+                    </button>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+
+
 @code {
-    private bool mostrarModal = false;
-    private string tituloModal = "";
-    private RenderFragment? contenidoModal;
+	private bool showCatalogMenu = false;
+	private bool showCajaMenu = false;
 
-    private void AbrirModal(string tipoModal)
-    {
-        mostrarModal = true;
+	private bool mostrarModal = false;
+	private string tituloModal = "";
+	private RenderFragment? contenidoModal;
 
-        switch (tipoModal.ToLower())
-        {
-            case "login":
-                tituloModal = "Iniciar Sesión - Onlyou";
-                contenidoModal = RenderLogin;
-                break;
-            case "registrar":
-                tituloModal = "Registrarse - Onlyou";
-                contenidoModal = RenderRegistro;
-                break;
-            case "logout":
-                tituloModal = "Cerrar Sesión";
-                contenidoModal = RenderLogout;
-                break;
-        }
+	/* ------------------------- MENÚS ------------------------- */
 
-        StateHasChanged();
-    }
+	private void ToggleCatalogMenu()
+	{
+		showCatalogMenu = !showCatalogMenu;
+		showCajaMenu = false;
+		StateHasChanged();
+	}
 
-    private void CerrarModal()
-    {
-        mostrarModal = false;
-        StateHasChanged();
-    }
+	private void ToggleCajaMenu()
+	{
+		showCajaMenu = !showCajaMenu;
+		showCatalogMenu = false;
+		StateHasChanged();
+	}
 
-    // Métodos específicos para abrir modales
-    private void AbrirLoginModal() => AbrirModal("login");
-    private void AbrirRegistroModal() => AbrirModal("registrar");
+	private void CloseAllMenus()
+	{
+		showCatalogMenu = false;
+		showCajaMenu = false;
+		StateHasChanged();
+	}
 
-    private void RenderLogin(RenderTreeBuilder builder)
-    {
-        builder.OpenComponent<Login>(0);
-        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
-        builder.CloseComponent();
-    }
+	/* ------------------------- MODALES ------------------------- */
 
-    private void RenderRegistro(RenderTreeBuilder builder)
-    {
-        builder.OpenComponent<Registrar>(0);
-        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
-        builder.CloseComponent();
-    }
+	private void AbrirModal(string tipoModal)
+	{
+		mostrarModal = true;
 
-    private void RenderLogout(RenderTreeBuilder builder)
-    {
-        builder.OpenComponent<Logout>(0);
-        builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
-        builder.CloseComponent();
-    }
+		switch (tipoModal.ToLower())
+		{
+			case "login":
+				tituloModal = "Iniciar Sesión - Onlyou";
+				contenidoModal = RenderLogin;
+				break;
 
-    private bool showCajaMenu = false;
-    private bool showCatalogMenu = false;
+			case "registrar":
+				tituloModal = "Registrarse - Onlyou";
+				contenidoModal = RenderRegistro;
+				break;
 
-    private void ToggleCatalogMenu()
-    {
-        showCatalogMenu = !showCatalogMenu;
-        showCajaMenu = false; // se cierra el otro menú
-    }
+			case "logout":
+				tituloModal = "Cerrar Sesión";
+				contenidoModal = RenderLogout;
+				break;
+		}
 
-    private void ToggleCajaMenu()
-    {
-        showCajaMenu = !showCajaMenu;
-        showCatalogMenu = false; // se cierra el otro menú
-    }
+		StateHasChanged();
+	}
 
-    private void CloseAllMenus()
-    {
-        showCatalogMenu = false;
-        showCajaMenu = false;
-    }
+	private void CerrarModal()
+	{
+		mostrarModal = false;
+		StateHasChanged();
+	}
 
-    protected override void OnInitialized()
-    {
-        Navigation.LocationChanged += (sender, args) => CloseAllMenus();
-    }
+	private void AbrirLoginModal() => AbrirModal("login");
+	private void AbrirRegistroModal() => AbrirModal("registrar");
+
+	private void RenderLogin(RenderTreeBuilder builder)
+	{
+		builder.OpenComponent<Login>(0);
+		builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+		builder.CloseComponent();
+	}
+
+	private void RenderRegistro(RenderTreeBuilder builder)
+	{
+		builder.OpenComponent<Registrar>(0);
+		builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+		builder.CloseComponent();
+	}
+
+	private void RenderLogout(RenderTreeBuilder builder)
+	{
+		builder.OpenComponent<Logout>(0);
+		builder.AddAttribute(1, "OnClose", EventCallback.Factory.Create(this, CerrarModal));
+		builder.CloseComponent();
+	}
+
+	protected override void OnInitialized()
+	{
+		Navigation.LocationChanged += (sender, args) => CloseAllMenus();
+	}
 }

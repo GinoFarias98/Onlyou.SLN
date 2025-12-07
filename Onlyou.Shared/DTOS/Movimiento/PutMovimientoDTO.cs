@@ -1,4 +1,5 @@
-﻿using Onlyou.Shared.Enums;
+﻿using Onlyou.Shared.DTOS.Pago;
+using Onlyou.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,6 +11,9 @@ namespace Onlyou.Shared.DTOS.Movimiento
 {
     public class PutMovimientoDTO
     {
+
+        public int Id { get; set; }
+
         [Required]
         public DateTime FechaDelMovimiento { get; set; }
 
@@ -40,6 +44,6 @@ namespace Onlyou.Shared.DTOS.Movimiento
         public int? PedidoId { get; set; }
 
         // Pagos (si permitís edición)
-       // public List<PutPagoDTO> Pagos { get; set; } = new();
+       public List<PutPagoDTO> Pagos { get; set; } = new();
     }
 }

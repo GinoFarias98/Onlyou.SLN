@@ -3,12 +3,16 @@
 @inject IHttpServicios httpServicio
 @inject SweetAlertService swal
 @inject NavigationManager Navigation
+@using Onlyou.Client.Pages.Caja.Componentes
 @using Onlyou.Client.Shared.ObservacionesCaja
 @using Onlyou.Shared.DTOS.Caja
 @using Onlyou.Shared.DTOS.ObservacionCaja
+@using Onlyou.Shared.DTOS.Movimiento
+@using Onlyou.Shared.DTOS.Pago
 @using Onlyou.Shared.DTOS.TipoMovimento
 @using Onlyou.Shared.DTOS.TipoPago
 @using Onlyou.Shared.Enums
+@using Onlyou.Client.Pages.Caja
 
 <h2 class="titulo-seccion mb-4">Gestión de Caja</h2>
 
@@ -96,7 +100,8 @@
 			<h5 class="mb-3">Acciones rápidas</h5>
 
 			<div class="d-flex gap-3">
-				<button class="btn btn-outline-secondary">
+
+				<button type="button" class="btn btn-outline-secondary" @onclick="MostrarModalNuevoMovimiento">
 					<i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
 				</button>
 
@@ -150,6 +155,20 @@
 		</div>
 	}
 
+	<!-- =====================  MOVIMIENTOS ASOCIADOS A LA CAJA ===================== -->
+	@if (caja != null)
+	{
+		<div class="card card-dash sombra p-4">
+			<h5 class="mb-3">Movimientos</h5>
+
+			<ListaMovimientos Movimientos="@caja.Movimientos"
+							  OnEditar="EditarMovimiento"
+							  OnCambiarEstado="CambiarEstadoMovimiento"
+
+							  OnAgregarPago="AgregarPago" />
+		</div>
+	}
+
 	<!-- =====================  OBSERVACIONES ===================== -->
 	@if (caja != null)
 	{
@@ -179,13 +198,21 @@
 	}
 </div>
 
-<!-- ===================== MODAL REUTILIZABLE ===================== -->
+<!-- ===================== MODAL REUTILIZABLE GENÉRICO ===================== -->
 <MostrarEntidad @bind-Mostrar="mostrarModal"
 				Titulo="@modalTitulo"
 				Campos="camposModal"
 				EntidadCreada="OnEntidadCreada" />
 
+<MostrarEntidad @bind-Mostrar="mostrarModalPago"
+				Titulo="Registrar Pago"
+				Campos="CamposPago"
+				EntidadCreada="OnPagoConfirmado" />
+
+
 @code {
+	private bool mostrarModalPago = false;
+
 	private GetCajaDTO? caja;
 	private PostCajaDTO nuevaCaja = new();
 	private PutEstadoCajaDTO putEstado = new();
@@ -193,10 +220,255 @@
 	private bool panelCambiarEstado = false;
 	private ModalObservacion modalObs;
 
+	#region Nuevo Movimiento (Modal)
+	private List<GetTipoMovimeintoDTO> tiposMovimientos = new();
+	private List<TipoPagoDTO> tiposPago = new();
+	private GetMovimientoDTO? movimientoEditando = null;
+
+	private async Task CambiarEstadoMovimiento(GetMovimientoDTO mov)
+	{
+		var result = await swal.FireAsync(new SweetAlertOptions
+		{
+			Title = $"Estado de Movimiento #{mov.Id}",
+			Input = "select",
+			InputOptions = Enum.GetNames(typeof(EstadoMovimientoDto))
+				.ToDictionary(x => x, x => x),
+			InputValue = mov.EstadoMovimiento.ToString(),
+			ShowCancelButton = true
+		});
+
+		if (result.IsConfirmed)
+		{
+			var nuevoEstado = Enum.Parse<EstadoMovimientoDto>(result.Value);
+
+			var dto = new PutEstadoMovimientoDTO
+			{
+				EstadoMovimiento = nuevoEstado
+			};
+
+			var resp = await httpServicio.Put<PutEstadoMovimientoDTO, bool>(
+				$"/Movimientos/{mov.Id}/cambiar-estado", dto);
+
+			if (!resp.Error)
+				await swal.FireAsync("Estado actualizado", "", SweetAlertIcon.Success);
+
+			await CargarCaja();
+		}
+	}
+
+	private async Task EditarMovimiento(GetMovimientoDTO mov)
+	{
+		// Cargar tipos (ya lo hacías en Crear)
+		tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos")).Respuesta ?? new();
+		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new();
+
+		// Crear los campos con valores precargados
+		camposModal = new()
+			{
+				new() { Label = "Monto", Valor = mov.Monto.ToString() },
+				new() { Label = "Descripción", Valor = mov.Descripcion },
+
+				new()
+				{
+					Label = "Estado del Movimiento",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
+					Valor = mov.EstadoMovimiento.ToString()
+				},
+
+				new()
+				{
+					Label = "TipoMovimientoId",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
+					Valor = $"{mov.TipoMovimientoId}|{mov.TipoMovimientoNombre}"
+				},
+
+				new()
+				{
+					Label = "Tipo De Pago",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
+					Valor = mov.Pagos.Any() ? $"{mov.Pagos.First().TipoPagoId}|{mov.Pagos.First().TipoPagoNombre}" : ""
+				}
+			};
+
+		modalTitulo = $"Editar Movimiento #{mov.Id}";
+		movimientoEditando = mov; // ← Guardamos el movimiento actual
+		mostrarModal = true;
+	}
+
+	private List<MostrarEntidad.CampoModal> CamposPago = new();
+
+	private void ConstruirCamposModalPago()
+	{
+		CamposPago = new()
+		{
+			new MostrarEntidad.CampoModal
+			{
+				Label = "FechaRealizado",
+				Valor = FechaPago.ToString("yyyy-MM-dd HH:mm"),
+				Placeholder = "Fecha",
+				TipoCampo = MostrarEntidad.TipoCampo.Texto
+			},
+
+			new MostrarEntidad.CampoModal
+			{
+				Label = "Monto",
+				Valor = "",
+				Placeholder = "Monto del pago"
+			},
+
+			new MostrarEntidad.CampoModal
+			{
+				Label = "Descripcion",
+				Valor = "",
+				Placeholder = "Descripción (opcional)"
+			},
+
+			new MostrarEntidad.CampoModal
+			{
+				Label = "Tipo De Pago",
+				Valor = "", // o setear a $"{tiposPago.First().Id}|{tiposPago.First().Nombre}" para preseleccionar
+				TipoCampo = MostrarEntidad.TipoCampo.Select,
+				Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+			},
+
+			new MostrarEntidad.CampoModal
+			{
+				Label = "Saldo Restante",
+				Valor = SaldoPendienteMovimiento.ToString("0.00"),
+				Placeholder = "Saldo restante",
+				TipoCampo = MostrarEntidad.TipoCampo.Texto,
+				SoloLectura = true
+			},
+
+		};
+	}
+
+	private async Task MostrarModalNuevoMovimiento()
+	{
+		if (caja == null)
+		{
+			await swal.FireAsync("Error", "Debes abrir una caja primero.", SweetAlertIcon.Error);
+			return;
+		}
+
+		tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos"))
+			.Respuesta ?? new();
+
+		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago"))
+			.Respuesta ?? new();
+
+		camposModal = new()
+			{
+				new() { Label = "Monto", Placeholder = "Ej: 1500.00" },
+				new() { Label = "Descripción", Placeholder = "Descripción del movimiento" },
+
+				new()
+				{
+					Label = "Estado del Movimiento",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
+					Valor = EstadoMovimientoDto.Pendiente.ToString()
+				},
+
+				new()
+				{
+					Label = "TipoMovimientoId",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+				},
+
+				new()
+				{
+					Label = "Tipo De Pago",
+					TipoCampo = MostrarEntidad.TipoCampo.Select,
+					Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+				}
+		};
+
+		modalTitulo = "Nuevo Movimiento";
+		mostrarModal = true;
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+
+	private DateTime FechaPago { get; set; } = DateTime.Now;
+	private decimal MontoPago { get; set; }
+	private string DescripcionPago { get; set; } = "";
+	private int TipoPagoIdSeleccionado { get; set; }
+	private int MovimientoId { get; set; }
+	private int CajaIdSeleccionada { get; set; }
+	private bool modoPago = false;
+	private decimal SaldoPendienteMovimiento;
+
+
+	private async Task AgregarPago(GetMovimientoDTO mov)
+	{
+		modoPago = true;
+
+		MovimientoId = mov.Id;
+		CajaIdSeleccionada = caja!.Id;
+		SaldoPendienteMovimiento = mov.SaldoPendiente;
+
+		// traer tipos de pago actualizados
+		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new List<TipoPagoDTO>();
+
+		if (!tiposPago.Any())
+		{
+			await swal.FireAsync("Atención", "No se encontraron tipos de pago. Crea uno o recarga la página.", SweetAlertIcon.Warning);
+			// igual permitir abrir modal si querés, o cancelar:
+			// return;
+		}
+
+		FechaPago = DateTime.Now;
+		MontoPago = SaldoPendienteMovimiento;
+		MontoPago = 0;
+		DescripcionPago = "";
+		TipoPagoIdSeleccionado = 0;
+
+		ConstruirCamposModalPago();
+
+		mostrarModal = false;
+		mostrarModalPago = true;
+	}
+
+
+	private async Task CrearMovimiento(Dictionary<string, string> datos)
+	{
+		var dto = new PostMovimientoDTO
+		{
+			Monto = decimal.Parse(datos["Monto"]),
+			Descripcion = datos["Descripción"],
+			EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado del Movimiento"]),
+			CajaId = caja!.Id,
+			TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0]),
+			//CajaId = caja!.Id
+		};
+
+		var resp = await httpServicio.Post<PostMovimientoDTO, GetMovimientoDTO>("/Movimientos", dto);
+
+		if (!resp.Error)
+		{
+			await swal.FireAsync("Éxito", "Movimiento creado correctamente", SweetAlertIcon.Success);
+			await CargarCaja();
+		}
+		else
+		{
+			await swal.FireAsync("Error",
+				await resp.ObtenerErrorAsync(),
+				SweetAlertIcon.Error);
+		}
+	}
+	#endregion
+
 	#region Modal Crear Entidad
 	private bool mostrarModal = false;
 	private string modalTitulo = "";
 	private List<MostrarEntidad.CampoModal> camposModal = new();
+
 
 	private void AbrirModalEntidad(string entidad)
 	{
@@ -204,37 +476,181 @@
 
 		camposModal = entidad switch
 		{
-			"Tipo de Pago" => new List<MostrarEntidad.CampoModal>
-			{
-				new() { Label = "Nombre", Placeholder = "Ej: Tarjeta, Efectivo, Transferencia" }
-			},
+			"Tipo de Pago" => new()
+				{
+					new() { Label = "Nombre", Placeholder = "Ej: Tarjeta, Efectivo, Transferencia" }
+				},
 
-			"Tipo de Movimiento" => new List<MostrarEntidad.CampoModal>
-			{
-				new() { Label = "Nombre", Placeholder = "Nombre del movimiento" },
-				new() { Label = "Descripción", Placeholder = "Opcional" },
-				new() { Label = "Tipo", TipoCampo = MostrarEntidad.TipoCampo.Select, Opciones = new List<string>{ "Ingreso", "Egreso" } }
-			},
+			"Tipo de Movimiento" => new()
+				{
+					new() { Label = "Nombre", Placeholder = "Nombre del movimiento" },
+					new() { Label = "Descripción", Placeholder = "Opcional" },
+					new()
+					{
+						Label = "Tipo",
+						TipoCampo = MostrarEntidad.TipoCampo.Select,
+						Opciones = new List<string> { "Ingreso", "Egreso" }
+					}
+				},
 
-			_ => new List<MostrarEntidad.CampoModal>()
+			_ => new()
 		};
 
 		mostrarModal = true;
 	}
 
+	private async Task OnPagoConfirmado(Dictionary<string, string> datos)
+	{
+		try
+		{
+			// 1️⃣ PARSEOS SEGUROS
+			FechaPago = DateTime.Parse(datos["FechaRealizado"]);
+			MontoPago = decimal.Parse(datos["Monto"]);
+			DescripcionPago = datos.ContainsKey("Descripcion") ? datos["Descripcion"] : "";
+
+			// ✅ VIENE COMO "ID|NOMBRE"
+			TipoPagoIdSeleccionado = int.Parse(datos["Tipo De Pago"].Split('|')[0]);
+
+			// 2️⃣ VALIDACIONES FUNCIONALES
+			if (MontoPago <= 0)
+			{
+				await swal.FireAsync("Error", "El monto del pago debe ser mayor a 0.", SweetAlertIcon.Error);
+				return;
+			}
+
+			if (TipoPagoIdSeleccionado == 0)
+			{
+				await swal.FireAsync("Error", "Debe seleccionar un tipo de pago válido.", SweetAlertIcon.Error);
+				return;
+			}
+
+
+			if (MontoPago > SaldoPendienteMovimiento)
+			{
+				await swal.FireAsync(
+					"Error",
+					$"El monto supera el saldo pendiente.\nRestante: ${SaldoPendienteMovimiento}",
+					SweetAlertIcon.Error);
+
+				return;
+			}
+
+			// 3️⃣ ARMADO FINAL DEL DTO
+			var dto = new PostPagoDTO
+			{
+				FechaRealizado = FechaPago,
+				Monto = MontoPago,
+				Situacion = SituacionPagoDto.Pendiente,
+				Descripcion = string.IsNullOrWhiteSpace(DescripcionPago) ? null : DescripcionPago.Trim(),
+				MovimientoId = MovimientoId,
+				TipoPagoId = TipoPagoIdSeleccionado,
+				CajaId = CajaIdSeleccionada
+			};
+
+
+			// 4️⃣ POST AL BACKEND
+			var resp = await httpServicio.Post("/Pagos", dto);
+
+			if (resp.HttpResponseMessage.IsSuccessStatusCode)
+			{
+				await swal.FireAsync("Éxito", "Pago registrado correctamente", SweetAlertIcon.Success);
+				await CargarCaja();
+			}
+			else
+			{
+				var error = await resp.HttpResponseMessage.Content.ReadAsStringAsync();
+				await swal.FireAsync("Error", error, SweetAlertIcon.Error);
+			}
+
+
+		}
+		catch (Exception ex)
+		{
+			await swal.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+		}
+	}
+
+
+
+
 	private async Task OnEntidadCreada(Dictionary<string, string> datos)
 	{
+		if (modoPago)
+		{
+			modoPago = false;
+			await OnPagoConfirmado(datos);
+			return;
+		}
+
+		// 🟦 1) ESTAMOS EDITANDO UN MOVIMIENTO
+		if (movimientoEditando != null)
+		{
+			var dto = new PutMovimientoDTO
+			{
+				Id = movimientoEditando.Id,
+				Monto = decimal.Parse(datos["Monto"]),
+				Descripcion = datos["Descripción"],
+				EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado del Movimiento"]),
+				TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0])
+			};
+
+			var resp = await httpServicio.Put<PutMovimientoDTO, GetMovimientoDTO>(
+				$"/Movimientos/{movimientoEditando.Id}", dto);
+
+			movimientoEditando = null;      // limpiar modo edición
+			mostrarModal = false;
+
+			if (!resp.Error)
+			{
+				await swal.FireAsync(
+					"Movimiento actualizado",
+					"Se guardaron los cambios.",
+					SweetAlertIcon.Success);
+
+				await CargarCaja();         // refrescar datos
+			}
+			else
+			{
+				await swal.FireAsync(
+					"Error",
+					await resp.ObtenerErrorAsync(),
+					SweetAlertIcon.Error);
+			}
+
+			return;                         // 🔥 IMPORTANTE: NO SIGUE AL SWITCH
+		}
+
+
+		// 🟩 2) NUEVO MOVIMIENTO
+		if (modalTitulo == "Nuevo Movimiento")
+		{
+			await CrearMovimiento(datos);
+			mostrarModal = false;
+			return;
+		}
+
+
+		// 🟨 3) NUEVAS ENTIDADES (TIPO PAGO / TIPO MOVIMIENTO)
 		switch (modalTitulo)
 		{
 			case "Tipo de Pago":
-				var dtoPago = new TipoPagoDTO { Nombre = datos["Nombre"] };
-				var respPago = await httpServicio.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dtoPago);
+				var dtoPago = new TipoPagoDTO
+				{
+					Nombre = datos["Nombre"]
+				};
+
+				var respPago =
+					await httpServicio.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dtoPago);
 
 				if (!respPago.Error)
 				{
-					await swal.FireAsync("Éxito", $"Tipo de Pago '{respPago.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+					await swal.FireAsync(
+						"Éxito",
+						$"Tipo de Pago '{respPago.Respuesta!.Nombre}' creado correctamente",
+						SweetAlertIcon.Success);
 				}
 				break;
+
 
 			case "Tipo de Movimiento":
 				var dtoMov = new PostTipoMovimientoDTO
@@ -242,20 +658,28 @@
 					Nombre = datos["Nombre"],
 					Descripcion = datos.ContainsKey("Descripción") ? datos["Descripción"] : null,
 					Signo = datos["Tipo"] == "Egreso"
-								? SignoTipoMovimientoDto.Resta
-								: SignoTipoMovimientoDto.Suma
+						? SignoTipoMovimientoDto.Resta
+						: SignoTipoMovimientoDto.Suma
 				};
-				var respMov = await httpServicio.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>("/TipoMovimientos", dtoMov);
+
+				var respMov =
+					await httpServicio.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>(
+						"/TipoMovimientos", dtoMov);
 
 				if (!respMov.Error)
 				{
-					await swal.FireAsync("Éxito", $"Tipo de Movimiento '{respMov.Respuesta!.Nombre}' creado correctamente", SweetAlertIcon.Success);
+					await swal.FireAsync(
+						"Éxito",
+						$"Tipo de Movimiento '{respMov.Respuesta!.Nombre}' creado correctamente",
+						SweetAlertIcon.Success);
 				}
 				break;
 		}
 
+		// 🟥 CERRAR EL MODAL SIEMPRE AL FINAL
 		mostrarModal = false;
 	}
+
 	#endregion
 
 	protected override async Task OnInitializedAsync()
@@ -270,18 +694,27 @@
 
 		if (cajaTemp != null)
 		{
+			// Observaciones
 			var obsResp = await httpServicio.Get<List<GetObservacionCajaDTO>>(
 				$"Cajas/{cajaTemp.Id}/Observaciones");
-
 			cajaTemp.Observaciones = obsResp.Error ? new() : obsResp.Respuesta;
+
+			// MOVIMIENTOS 
+			var movResp = await httpServicio.Get<List<GetMovimientoDTO>>(
+				$"Movimientos/por-caja/{cajaTemp.Id}");
+
+			cajaTemp.Movimientos = movResp.Error ? new() : movResp.Respuesta;
 		}
 
 		caja = cajaTemp;
 	}
 
+
 	private async Task AbrirCaja()
 	{
-		var resp = await httpServicio.Post<PostCajaDTO, GetCajaDTO>("Cajas/abrir", nuevaCaja);
+		var resp =
+			await httpServicio.Post<PostCajaDTO, GetCajaDTO>("Cajas/abrir", nuevaCaja);
+
 		if (!resp.Error)
 			caja = resp.Respuesta;
 	}
@@ -294,15 +727,17 @@
 
 	private async Task CambiarEstado()
 	{
-		if (caja == null) return;
+		if (caja == null)
+			return;
 
-		var resp = await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
-			$"Cajas/{caja.Id}/cambiar-estado", putEstado);
+		var resp =
+			await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
+				$"Cajas/{caja.Id}/cambiar-estado", putEstado);
 
 		if (!resp.Error)
 		{
 			panelCambiarEstado = false;
-			await CargarCaja(); // Siempre refresca
+			await CargarCaja();
 		}
 	}
 

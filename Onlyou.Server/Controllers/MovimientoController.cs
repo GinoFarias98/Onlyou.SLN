@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Onlyou.BD.Data.Entidades;
 using Onlyou.Server.Repositorio;
 using Onlyou.Shared.DTOS.Movimiento;
+using Onlyou.Shared.DTOS.Pago;
 using Onlyou.Shared.DTOS.Producto;
 
 namespace Onlyou.Server.Controllers
@@ -12,11 +13,19 @@ namespace Onlyou.Server.Controllers
     public class MovimientoController : ControllerBase
     {
         private readonly IRepositorioMovimiento repositorioMovimiento;
+        private readonly IRepositorioTipoMovimiento repositorioTipoMovimiento;
+        private readonly IRepositorioPago repositorioPago;
         private readonly IMapper mapper;
 
-        public MovimientoController(IRepositorioMovimiento repositorioMovimiento, IMapper mapper)
+        public MovimientoController(
+            IRepositorioMovimiento repositorioMovimiento,
+            IRepositorioTipoMovimiento repositorioTipoMovimiento,
+            IRepositorioPago repositorioPago,
+            IMapper mapper)
         {
             this.repositorioMovimiento = repositorioMovimiento;
+            this.repositorioTipoMovimiento = repositorioTipoMovimiento;
+            this.repositorioPago = repositorioPago;
             this.mapper = mapper;
         }
 
@@ -62,7 +71,25 @@ namespace Onlyou.Server.Controllers
             try
             {
                 var lista = await repositorioMovimiento.SelectMovimientosPorCajaAsync(cajaId);
+
                 var dto = mapper.Map<List<GetMovimientoDTO>>(lista);
+
+                
+                foreach (var mov in dto)
+                {
+                    var totalPagado = await repositorioPago
+                        .SelectTotalPagosPorMovimientoAsync(mov.Id);
+
+                    mov.TotalPagado = totalPagado;
+
+                    mov.SaldoPendiente = Math.Abs(mov.Monto) - totalPagado;
+
+                    var pagos = await repositorioPago
+                        .SelectPagosPorMovimientoAsync(mov.Id);
+
+                    mov.Pagos = mapper.Map<List<GetPagoDTO>>(pagos);
+                }
+
                 return Ok(dto);
             }
             catch (Exception ex)
@@ -71,6 +98,7 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
 
         [HttpGet("por-fecha")]
         public async Task<ActionResult<List<GetMovimientoDTO>>> GetPorFecha([FromQuery] DateTime fecha)
@@ -125,10 +153,21 @@ namespace Onlyou.Server.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                // 1️⃣ Buscar tipo movimiento
+                var tipo = await repositorioTipoMovimiento.SelectById(dto.TipoMovimientoId);
+                if (tipo == null)
+                    return BadRequest("Tipo de movimiento inválido.");
+
+                // 2️⃣ Mapear DTO → Entidad
                 var entidad = mapper.Map<Movimiento>(dto);
+
+                // 3️⃣ Aplicar signo (+1 o -1)
+                entidad.Monto = dto.Monto * (int)tipo.signo;
+
+                // 4️⃣ Guardar
                 var id = await repositorioMovimiento.Insert(entidad);
 
-                // 🔥 Recalcular estado después de crearlo
+                // 5️⃣ Recalcular estado por pagos
                 await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(id);
 
                 var creado = await repositorioMovimiento.SelectMovimientoPorIdAsync(id);
@@ -155,9 +194,14 @@ namespace Onlyou.Server.Controllers
 
                 mapper.Map(dto, mov);
 
+                // 🔥 Obtener el tipoMovimiento para recuperar el signo correcto
+                var tipo = await repositorioTipoMovimiento.SelectById(mov.TipoMovimientoId);
+
+                // 🔥 Asegurar que el monto aplica signo
+                mov.Monto = dto.Monto * (int)tipo.signo;
+
                 await repositorioMovimiento.UpdateEntidad(id, mov);
 
-                // 🔥 Recalcular estado después de editarlo
                 await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(id);
 
                 return Ok(mapper.Map<GetMovimientoDTO>(mov));
@@ -168,6 +212,7 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
 
         [HttpPut("{id:int}/cambiar-estado")]
         public async Task<ActionResult<GetMovimientoDTO>> CambiarEstado(int id, [FromBody] PutEstadoMovimientoDTO dto)

@@ -1,0 +1,120 @@
+﻿@using Onlyou.Shared.DTOS.Movimiento
+@using Onlyou.Shared.Enums
+
+<div class="mov-item">
+    <div class="mov-header" @onclick="Toggle">
+        <div class="left">
+            <i class="bi @(Movimiento.TipoMovimientoSigno == SignoTipoMovimientoDto.Suma
+                                              ? "bi-arrow-up-circle text-success"
+                                              : "bi-arrow-down-circle text-danger")"></i>
+
+            <span class="mov-titulo">
+                @Movimiento.TipoMovimientoNombre (@Movimiento.Monto.ToString("C"))
+            </span>
+
+            <small class="mov-fecha">@Movimiento.FechaDelMovimiento.ToString("dd/MM HH:mm")</small>
+        </div>
+
+        <i class="bi bi-chevron-@(abierto ? "down" : "right")"></i>
+    </div>
+
+    @if (abierto)
+    {
+        <div class="mov-detalle">
+            <p class="descripcion">@Movimiento.Descripcion</p>
+
+            <p>
+                <strong>Estado:</strong>
+                <span class="badge bg-secondary">@Movimiento.EstadoMovimiento</span>
+            </p>
+
+            @if (Movimiento.ProveedorNombre != null)
+            {
+                <p><strong>Proveedor:</strong> @Movimiento.ProveedorNombre</p>
+            }
+
+            @if (Movimiento.PedidoDescripcion != null)
+            {
+                <p><strong>Pedido:</strong> @Movimiento.PedidoDescripcion</p>
+            }
+
+            @if (Movimiento.Pagos.Any())
+            {
+                <p><strong>Pagos:</strong> @Movimiento.Pagos.Count</p>
+            }
+
+            <div class="d-flex justify-content-between mt-2 mb-2">
+                <span class="badge bg-primary">
+                    Pagado: $@Movimiento.TotalPagado
+                </span>
+
+                <span class="badge bg-warning text-dark">
+                    Restante: $@Movimiento.SaldoPendiente
+                </span>
+            </div>
+
+            @if (Movimiento.Pagos != null && Movimiento.Pagos.Any())
+            {
+                <table class="table table-sm mt-2">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Monto</th>
+                            <th>Situación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pago in Movimiento.Pagos)
+                        {
+                            <tr>
+                                <td>@pago.FechaRealizado.ToShortDateString()</td>
+                                <td>@pago.TipoPagoNombre</td>
+                                <td>$@pago.Monto</td>
+                                <td>@pago.Situacion</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">Este movimiento aún no tiene pagos.</p>
+            }
+
+            <div class="acciones">
+                <button class="btn btn-sm btn-primary"
+                        @onclick="() => OnEditar.InvokeAsync(Movimiento)">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+
+                <button class="btn btn-sm btn-warning"
+                        @onclick="() => OnAgregarPago.InvokeAsync(Movimiento)">
+                    <i class="bi bi-cash"></i> Agregar Pago
+                </button>
+
+                <button class="btn btn-sm btn-warning"
+                        @onclick="() => OnCambiarEstado.InvokeAsync(Movimiento)">
+                    <i class="bi bi-flag"></i> Estado
+                </button>
+
+                <button class="btn btn-sm btn-danger"
+                        @onclick="() => OnEliminar.InvokeAsync(Movimiento)">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public GetMovimientoDTO Movimiento { get; set; } = null!;
+    [Parameter] public EventCallback<GetMovimientoDTO> OnEditar { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnCambiarEstado { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnEliminar { get; set; }
+    [Parameter] public EventCallback<GetMovimientoDTO> OnAgregarPago { get; set; }
+
+    bool abierto = false;
+
+    void Toggle() => abierto = !abierto;
+}

@@ -1,0 +1,39 @@
+﻿.mov-item {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: white;
+    overflow: hidden;
+}
+
+.mov-header {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    align-items: center;
+    background: #f7f7f7;
+}
+
+    .mov-header .left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+.mov-titulo {
+    font-weight: bold;
+}
+
+.mov-detalle {
+    padding: 15px;
+    background: white;
+}
+
+.descripcion {
+    margin-bottom: 10px;
+}
+
+.acciones button {
+    margin-right: 10px;
+}

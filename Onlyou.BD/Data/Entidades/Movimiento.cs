@@ -35,7 +35,6 @@ namespace Onlyou.BD.Data.Entidades
 
         // Descripción ---------------------------------------------------------------
 
-        [Required(ErrorMessage = "La descripción es obligatoria.")]
         [StringLength(500, ErrorMessage = "Máximo {1} caracteres.")]
         [Display(Name = "Descripción",
                  Description = "Detalle breve del motivo del movimiento.")]

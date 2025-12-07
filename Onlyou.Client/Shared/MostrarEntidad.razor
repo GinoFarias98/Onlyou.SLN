@@ -3,7 +3,6 @@
     <div class="modal-fondo">
         <div class="modal-contenido">
             <h3>@Titulo</h3>
-
             @foreach (var campo in Campos)
             {
                 <div class="mb-2">
@@ -11,7 +10,10 @@
 
                     @if (campo.EsImagen)
                     {
-                        <InputFile OnChange="(e) => SubirImagen(e, campo)" class="form-control" />
+                        <InputFile OnChange="(e) => SubirImagen(e, campo)"
+                                   class="form-control"
+                                   disabled="@campo.SoloLectura" />
+
                         @if (!string.IsNullOrEmpty(campo.Valor))
                         {
                             <div class="mt-2">
@@ -21,7 +23,9 @@
                     }
                     else if (campo.TipoCampo == TipoCampo.Select && campo.Opciones != null)
                     {
-                        <InputSelect class="form-control" @bind-Value="campo.Valor">
+                        <InputSelect class="form-control"
+                                     @bind-Value="campo.Valor"
+                                     disabled="@campo.SoloLectura">
                             <option value="">Seleccione...</option>
                             @foreach (var op in campo.Opciones)
                             {
@@ -31,10 +35,14 @@
                     }
                     else
                     {
-                        <input class="form-control" @bind="campo.Valor" placeholder="@campo.Placeholder" />
+                        <input class="form-control"
+                               @bind="campo.Valor"
+                               placeholder="@campo.Placeholder"
+                               readonly="@campo.SoloLectura" />
                     }
                 </div>
             }
+
 
             <div class="d-flex gap-2 mt-3">
                 <button class="btn btn-success" @onclick="Guardar">Guardar</button>
@@ -63,6 +71,9 @@
         // Para combobox/select
         public TipoCampo TipoCampo { get; set; } = TipoCampo.Texto;
         public List<string> Opciones { get; set; } = new();
+
+        public bool SoloLectura { get; set; } = false;
+
     }
 
     [Parameter] public bool Mostrar { get; set; }

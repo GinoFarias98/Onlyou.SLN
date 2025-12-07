@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +12,9 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración ANTES de los servicios
+// =============================================
+// CONFIGURACIÓN INICIAL
+// =============================================
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 builder.Services.AddOutputCache(options =>
@@ -21,27 +22,47 @@ builder.Services.AddOutputCache(options =>
     options.DefaultExpirationTimeSpan = TimeSpan.FromMinutes(60);
 });
 
-// Add services to the container.
+// =============================================
+//  CORS (NETLIFY + LOCALHOST)
+// =============================================
+var MyCors = "MyCors";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyCors, policy =>
+    {
+        policy.WithOrigins(
+                "https://onlyou2025.netlify.app", // tu front productivo
+                "https://onlyou2.netlify.app",    // por si usas el segundo
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://localhost:4200",
+                "http://localhost:5258"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();   // requerido si mandás tokens
+    });
+});
+
+// =============================================
+// SERVICIOS
+// =============================================
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddControllers().AddJsonOptions(x =>
+    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
-builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
-// Servicio para el Client
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Conexión con la BD / Context - VERIFICAR QUE "conn" EXISTA EN appsettings.json
 builder.Services.AddDbContext<Context>(op => op.UseSqlServer("name=conn"));
 
-// Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<Context>().AddDefaultTokenProviders();
 
-// JWT Configuration - VERIFICAR QUE "JwtKey" EXISTA EN appsettings.json
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
+    .AddJwtBearer(options =>
+    {
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
             ValidateIssuer = false,
@@ -54,18 +75,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Servicios
-
-builder.Services.AddScoped<IImagenValidator, ImagenValidator>();
-builder.Services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosLocal>();
-builder.Services.AddHttpContextAccessor();
-
-//AUTOMAPPER
-
+// Repos, servicios, automapper
 builder.Services.AddAutoMapper(typeof(Program));
-
-// REPOSITORIOS
-
 builder.Services.AddScoped(typeof(IRepositorio<>), typeof(Repositorio<>));
 builder.Services.AddScoped<IRepositorioProveedor, RepositorioProveedor>();
 builder.Services.AddScoped<IRepositorioProducto, RepositorioProducto>();
@@ -86,58 +97,44 @@ builder.Services.AddScoped<IRepositorioObservacionCaja, RepositorioObservacionCa
 builder.Services.AddScoped<IRepositorioTipoPago, RepositorioTipoPago>();
 builder.Services.AddScoped<IRepositorioObservacionPago, RepositorioObservacionPago>();
 
-
-// Servicios
-
-
 builder.Services.AddScoped<ICajaService, CajaService>();
 builder.Services.AddScoped<IMovimientoService, MovimientoService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 
 
-// =====================================================================================================================================
-
-
+// =============================================
+// APP
+// =============================================
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Redirección HTTPS
-//app.UseHttpsRedirection();
-
-// Archivos estáticos y Blazor
 app.UseStaticFiles();
 app.UseBlazorFrameworkFiles();
 
 // Routing
 app.UseRouting();
 
-//corso front visualcode
-// CORS actualizado para incluir todos los puertos que uses
-app.UseCors(policy => policy
-    .WithOrigins("http://127.0.0.1:5500",
-                 "http://localhost:5500",
-                 "http://localhost:5258",     // ? Tu API
-                 "http://localhost:4200")     // ? Angular (si lo usas)
-    .AllowAnyMethod()
-    .AllowAnyHeader()
-    .AllowCredentials());
+// =============================================
+//  Aplicar CORS ANTES de Auth
+// =============================================
+app.UseCors(MyCors);
 
-// Identity / Autenticación
+// Auth
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Output Cache
+// Cache
 app.UseOutputCache();
 
-// Mapeo de endpoints
-app.MapControllers();        // ? Tus endpoints api/... deben ir antes del fallback
-app.MapRazorPages();         // Razor pages
-app.MapFallbackToFile("index.html"); // Blazor SPA fallback
+// Endpoints
+app.MapControllers();
+app.MapRazorPages();
+app.MapFallbackToFile("index.html");
 
 app.Run();

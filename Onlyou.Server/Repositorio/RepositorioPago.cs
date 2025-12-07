@@ -10,12 +10,14 @@ namespace Onlyou.Server.Repositorio
         private readonly Context context;
         private readonly IMapper mapper;
         private readonly IRepositorioCaja repositorioCaja;
+        private readonly IRepositorioMovimiento repositorioMovimiento;
 
-        public RepositorioPago(Context context, IMapper mapper, IRepositorioCaja repositorioCaja) : base(context, mapper)
+        public RepositorioPago(Context context, IMapper mapper, IRepositorioCaja repositorioCaja, IRepositorioMovimiento repositorioMovimiento) : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
             this.repositorioCaja = repositorioCaja;
+            this.repositorioMovimiento = repositorioMovimiento;
         }
 
         public async Task<List<Pago>> SelectConRelaciones()
@@ -23,7 +25,6 @@ namespace Onlyou.Server.Repositorio
             return await context.Pagos
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -33,7 +34,6 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.MovimientoId == movimientoId)
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -43,7 +43,6 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.Id == id)
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .FirstOrDefaultAsync();
         }
 
@@ -53,7 +52,6 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.FechaRealizado >= inicio && p.FechaRealizado <= fin)
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -63,7 +61,6 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.Situacion == situacion)
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -73,14 +70,15 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => p.TipoPagoId == tipoPagoId)
                 .Include(p => p.Movimiento)
                 .Include(p => p.TipoPago)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
         public async Task<decimal> SelectTotalPagosPorMovimientoAsync(int movimientoId)
         {
             return await context.Pagos
-                .Where(p => p.MovimientoId == movimientoId)
+                .Where(p => p.MovimientoId == movimientoId
+                    && p.Estado == true
+                    && p.Situacion != Situacion.Anulado)
                 .SumAsync(p => p.Monto);
         }
 
@@ -90,7 +88,6 @@ namespace Onlyou.Server.Repositorio
                 .Where(p => !p.Estado)
                 .Include(p => p.TipoPago)
                 .Include(p => p.Movimiento)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -112,7 +109,6 @@ namespace Onlyou.Server.Repositorio
                 .ThenInclude(m => m.Pedido)
                 .Include(p => p.Movimiento)
                 .ThenInclude(m => m.TipoMovimiento)
-                .Include(p => p.Observaciones)
                 .ToListAsync();
         }
 
@@ -124,7 +120,7 @@ namespace Onlyou.Server.Repositorio
         {
             try
             {
-                // 1️⃣ Traer movimiento con todo lo necesario
+                // 1️⃣ Traer movimiento con relaciones
                 var movimiento = await context.Movimientos
                     .Include(m => m.Pagos)
                     .Include(m => m.TipoMovimiento)
@@ -133,40 +129,33 @@ namespace Onlyou.Server.Repositorio
                 if (movimiento == null)
                     throw new InvalidOperationException("El movimiento no existe.");
 
-                // 2️⃣ Validar caja donde impacta el PAGO (NO la del movimiento)
+                // 2️⃣ Validar caja donde impacta el PAGO
                 await repositorioCaja.ValidarCajaHabilitadaParaOperar(pagoNuevo.CajaId);
 
                 // 3️⃣ Validar que no se pague de más
                 var totalPagado = movimiento.Pagos
-                    .Where(p => p.Situacion == Situacion.Completo)
+                    .Where(p => p.Estado && p.Situacion != Situacion.Anulado)
                     .Sum(p => p.Monto);
 
-                if (totalPagado + pagoNuevo.Monto > movimiento.Monto)
+                if (totalPagado + pagoNuevo.Monto > Math.Abs(movimiento.Monto))
                     throw new InvalidOperationException("El pago supera el total del movimiento.");
 
                 // 4️⃣ Crear el pago
                 pagoNuevo.FechaRealizado = DateTime.UtcNow;
-                pagoNuevo.Situacion = totalPagado + pagoNuevo.Monto == movimiento.Monto
+                pagoNuevo.Situacion = totalPagado + pagoNuevo.Monto == Math.Abs(movimiento.Monto)
                     ? Situacion.Completo
                     : Situacion.Parcial;
 
                 await context.Pagos.AddAsync(pagoNuevo);
 
-                // 5️⃣ Impactar el saldo en la caja
+                // 5️⃣ Impactar el saldo en la caja correctamente según signo
                 var caja = await context.Cajas.FirstAsync(c => c.Id == pagoNuevo.CajaId);
 
-                if (movimiento.TipoMovimiento.signo == Signo.Suma)
-                    caja.SaldoInicial += pagoNuevo.Monto;
-                else
-                    caja.SaldoInicial -= pagoNuevo.Monto;
+                // ✅ Para egresos, restamos del saldo; para ingresos, sumamos
+                caja.SaldoInicial += (movimiento.TipoMovimiento.signo == Signo.Suma ? 1 : -1) * pagoNuevo.Monto;
 
-                // 6️⃣ Recalcular el estado del MOVIMIENTO
-                var totalActualizado = totalPagado + pagoNuevo.Monto;
-
-                if (totalActualizado == movimiento.Monto)
-                    movimiento.EstadoMovimiento = EstadoMovimiento.Pagado;
-                else
-                    movimiento.EstadoMovimiento = EstadoMovimiento.Parcial;
+                // 6️⃣ Recalcular el estado del movimiento usando método central
+                await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(movimiento.Id);
 
                 // 7️⃣ Guardar TODO
                 await context.SaveChangesAsync();
@@ -185,13 +174,13 @@ namespace Onlyou.Server.Repositorio
 
 
 
+
         public async Task<Pago> CambiarSituacionPagoAsync(int idPago, Situacion nuevaSituacion, string? observacion = null)
         {
             try
             {
                 var pago = await context.Pagos
                     .Include(p => p.Movimiento)
-                    .Include(p => p.Observaciones)
                     .FirstOrDefaultAsync(p => p.Id == idPago);
 
                 if (pago == null)
@@ -207,18 +196,15 @@ namespace Onlyou.Server.Repositorio
                 pago.Estado = nuevaSituacion switch
                 {
                     Situacion.Anulado => false,
-                    Situacion.Completo => false,
+                    Situacion.Completo => true,
                     Situacion.Parcial => true,
                     _ => pago.Estado
                 };
 
+
                 if (!string.IsNullOrWhiteSpace(observacion))
                 {
-                    pago.Observaciones.Add(new ObservacionPago
-                    {
-                        FechaCreacion = DateTime.UtcNow,
-                        Texto = observacion.Trim()
-                    });
+                    pago.Descripcion += " | | PAGOS ANULADOS AUTOMÁTICAMENTE AL ANULAR EL MOVIMIENTO. | |";
                 }
 
                 if (nuevaSituacion == Situacion.Anulado)

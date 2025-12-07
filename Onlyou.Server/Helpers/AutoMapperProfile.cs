@@ -273,8 +273,7 @@ namespace Onlyou.Server.Helpers
             CreateMap<Pago, GetPagoDTO>()
                 .ForMember(d => d.Situacion, o => o.MapFrom(s => (SituacionPagoDto)s.Situacion))
                 .ForMember(d => d.TipoPagoNombre, o => o.MapFrom(s => s.TipoPago.Nombre))
-                .ForMember(d => d.MovimientoDescripcion, o => o.MapFrom(s => s.Movimiento.Descripcion))
-                .ForMember(d => d.Observaciones, o => o.MapFrom(s => s.Observaciones));
+                .ForMember(d => d.MovimientoDescripcion, o => o.MapFrom(s => s.Movimiento.Descripcion));
 
             CreateMap<PostPagoDTO, Pago>()
              .ForMember(d => d.Id, o => o.Ignore())
@@ -300,8 +299,7 @@ namespace Onlyou.Server.Helpers
 
             CreateMap<ObservacionPago, GetObservacionPagoDTO>();
             CreateMap<GetObservacionPagoDTO, ObservacionPago>(); // opcional
-            CreateMap<Pago, GetPagoDTO>()
-                .ForMember(d => d.Observaciones, o => o.MapFrom(s => s.Observaciones));
+            CreateMap<Pago, GetPagoDTO>();
             CreateMap<PostObservacionPagoDTO, ObservacionPago>();
 
         }
