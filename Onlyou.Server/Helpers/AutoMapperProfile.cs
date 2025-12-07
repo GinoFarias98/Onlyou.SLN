@@ -246,8 +246,7 @@ namespace Onlyou.Server.Helpers
 
             CreateMap<PutMovimientoDTO, Movimiento>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.Pagos, opt => opt.Ignore())
-                .ForMember(dest => dest.EstadoMovimiento, opt => opt.MapFrom(src => src.EstadoMovimiento));
+                .ForMember(dest => dest.Pagos, opt => opt.Ignore());
 
 
             // PUT Estado → DTO ▼ Movimiento (solo estado y nota/desc)
@@ -259,6 +258,12 @@ namespace Onlyou.Server.Helpers
                                $"{(dest.Descripcion ?? "").Trim()} | Nota: {src.Descripcion.Trim()}"
                            ));
 
+
+
+            // mapeo de enums de movimento
+
+            CreateMap<EstadoMovimientoDto, EstadoMovimiento>().ConvertUsing(src => (EstadoMovimiento)src);
+            CreateMap<EstadoMovimiento, EstadoMovimientoDto>().ConvertUsing(src => (EstadoMovimientoDto)src);
 
             // Tipo Pago
 
@@ -301,6 +306,8 @@ namespace Onlyou.Server.Helpers
             CreateMap<GetObservacionPagoDTO, ObservacionPago>(); // opcional
             CreateMap<Pago, GetPagoDTO>();
             CreateMap<PostObservacionPagoDTO, ObservacionPago>();
+
+
 
         }
     }

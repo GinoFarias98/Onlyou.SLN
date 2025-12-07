@@ -83,7 +83,7 @@ namespace Onlyou.Server.Repositorio
                     .Include(m => m.Pedido)
                     .Include(m => m.Pagos)
                     .ToListAsync();
-               
+
             }
             catch (Exception ex)
             {
@@ -157,7 +157,7 @@ namespace Onlyou.Server.Repositorio
                 var ids = movimientosFiltrados.Select(p => p.Id).ToList();
 
                 var productosConRelaciones = await context.Movimientos
-                    .Where(m => ids.Contains(m.Id)) 
+                    .Where(m => ids.Contains(m.Id))
                     .Include(m => m.TipoMovimiento)
                     .Include(m => m.Proveedor)
                     .Include(m => m.Pedido)
@@ -203,8 +203,11 @@ namespace Onlyou.Server.Repositorio
                 if (nuevoEstado == EstadoMovimiento.Anulado)
                 {
                     await context.Pagos
-                        .Where(p => p.MovimientoId == movimiento.Id && p.Estado == true)
-                        .ExecuteUpdateAsync(u => u.SetProperty(p => p.Estado, false));
+                                .Where(p => p.MovimientoId == movimiento.Id && p.Estado == true)
+                                .ExecuteUpdateAsync(u => u
+                                    .SetProperty(p => p.Estado, false)
+                                    .SetProperty(p => p.Situacion, Situacion.Anulado)
+                                );
 
                     movimiento.Descripcion += " | | PAGOS ANULADOS AUTOMÁTICAMENTE AL ANULAR EL MOVIMIENTO. | |";
                 }

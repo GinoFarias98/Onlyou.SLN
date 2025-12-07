@@ -227,34 +227,33 @@
 
 	private async Task CambiarEstadoMovimiento(GetMovimientoDTO mov)
 	{
-		var result = await swal.FireAsync(new SweetAlertOptions
+		// Crear los campos del modal
+		camposModal = new()
+	{
+		new()
 		{
-			Title = $"Estado de Movimiento #{mov.Id}",
-			Input = "select",
-			InputOptions = Enum.GetNames(typeof(EstadoMovimientoDto))
-				.ToDictionary(x => x, x => x),
-			InputValue = mov.EstadoMovimiento.ToString(),
-			ShowCancelButton = true
-		});
+			Label = "Estado Movimiento",
+			TipoCampo = MostrarEntidad.TipoCampo.Select,
+			Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
+			Valor = mov.EstadoMovimiento.ToString()
+		},
 
-		if (result.IsConfirmed)
+		new()
 		{
-			var nuevoEstado = Enum.Parse<EstadoMovimientoDto>(result.Value);
-
-			var dto = new PutEstadoMovimientoDTO
-			{
-				EstadoMovimiento = nuevoEstado
-			};
-
-			var resp = await httpServicio.Put<PutEstadoMovimientoDTO, bool>(
-				$"/Movimientos/{mov.Id}/cambiar-estado", dto);
-
-			if (!resp.Error)
-				await swal.FireAsync("Estado actualizado", "", SweetAlertIcon.Success);
-
-			await CargarCaja();
+			Label = "Descripcion",
+			TipoCampo = MostrarEntidad.TipoCampo.Texto,
+			Placeholder = "Motivo del cambio",
+			Valor = ""
 		}
+	};
+
+		modalTitulo = $"Cambiar Estado - Movimiento #{mov.Id}";
+		movimientoCambiandoEstado = mov;  // guardar referencia
+
+		mostrarModal = true;
 	}
+
+
 
 	private async Task EditarMovimiento(GetMovimientoDTO mov)
 	{
@@ -361,38 +360,25 @@
 			.Respuesta ?? new();
 
 		camposModal = new()
-			{
-				new() { Label = "Monto", Placeholder = "Ej: 1500.00" },
-				new() { Label = "Descripción", Placeholder = "Descripción del movimiento" },
+	{
+		new() { Label = "Monto", Placeholder = "Ej: 1500.00" },
+		new() { Label = "Descripción", Placeholder = "Descripción del movimiento" },
 
-				new()
-				{
-					Label = "Estado del Movimiento",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
-					Valor = EstadoMovimientoDto.Pendiente.ToString()
-				},
+		new()
+		{
+			Label = "TipoMovimientoId",
+			TipoCampo = MostrarEntidad.TipoCampo.Select,
+			Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+		},
 
-				new()
-				{
-					Label = "TipoMovimientoId",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList()
-				},
-
-				new()
-				{
-					Label = "Tipo De Pago",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList()
-				}
-		};
+	};
 
 		modalTitulo = "Nuevo Movimiento";
 		mostrarModal = true;
 
 		await InvokeAsync(StateHasChanged);
 	}
+
 
 
 	private DateTime FechaPago { get; set; } = DateTime.Now;
@@ -438,16 +424,33 @@
 
 	private async Task CrearMovimiento(Dictionary<string, string> datos)
 	{
+		// ✅ Validar y parsear monto
+		if (!decimal.TryParse(datos["Monto"], out decimal monto))
+		{
+			await swal.FireAsync("Error", "El monto ingresado no es válido.", SweetAlertIcon.Error);
+			return;
+		}
+
+		// ✅ Validar y parsear tipo de movimiento
+		var tipoMovimientoSplit = datos["TipoMovimientoId"].Split('|');
+		if (tipoMovimientoSplit.Length == 0 || !int.TryParse(tipoMovimientoSplit[0], out int tipoMovimientoId))
+		{
+			await swal.FireAsync("Error", "Debe seleccionar un tipo de movimiento válido.", SweetAlertIcon.Error);
+			return;
+		}
+
+
+		// Crear DTO con valores parseados
 		var dto = new PostMovimientoDTO
 		{
-			Monto = decimal.Parse(datos["Monto"]),
+			Monto = monto,
 			Descripcion = datos["Descripción"],
-			EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado del Movimiento"]),
-			CajaId = caja!.Id,
-			TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0]),
-			//CajaId = caja!.Id
+			EstadoMovimiento = EstadoMovimientoDto.Pendiente,
+			TipoMovimientoId = tipoMovimientoId,
+			CajaId = caja!.Id
 		};
 
+		// Enviar al backend
 		var resp = await httpServicio.Post<PostMovimientoDTO, GetMovimientoDTO>("/Movimientos", dto);
 
 		if (!resp.Error)
@@ -462,6 +465,7 @@
 				SweetAlertIcon.Error);
 		}
 	}
+
 	#endregion
 
 	#region Modal Crear Entidad
@@ -571,6 +575,7 @@
 	}
 
 
+	GetMovimientoDTO? movimientoCambiandoEstado = null;
 
 
 	private async Task OnEntidadCreada(Dictionary<string, string> datos)
@@ -582,6 +587,38 @@
 			return;
 		}
 
+		// 🟦 CAMBIAR ESTADO MOVIMIENTO
+		if (movimientoCambiandoEstado != null)
+		{
+			var dto = new PutEstadoMovimientoDTO
+			{
+				EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado Movimiento"]),
+				Descripcion = string.IsNullOrWhiteSpace(datos["Descripcion"])
+					? "Cambio de estado sin descripción"
+					: datos["Descripcion"].Trim()
+			};
+
+			Console.WriteLine("==== ENVÍO PUT ESTADO MOVIMIENTO ====");
+			Console.WriteLine($"EstadoMovimiento: {dto.EstadoMovimiento}");
+			Console.WriteLine($"Descripcion: '{dto.Descripcion}'");
+			Console.WriteLine("=====================================");
+
+			var resp = await httpServicio.Put<PutEstadoMovimientoDTO, GetMovimientoDTO>(
+				$"/Movimientos/{movimientoCambiandoEstado.Id}/cambiar-estado",
+				dto);
+
+			movimientoCambiandoEstado = null;
+			mostrarModal = false;
+
+			if (!resp.Error)
+				await swal.FireAsync("Éxito", "Estado actualizado correctamente", SweetAlertIcon.Success);
+
+			await CargarCaja();
+			return;
+		}
+
+
+
 		// 🟦 1) ESTAMOS EDITANDO UN MOVIMIENTO
 		if (movimientoEditando != null)
 		{
@@ -590,9 +627,10 @@
 				Id = movimientoEditando.Id,
 				Monto = decimal.Parse(datos["Monto"]),
 				Descripcion = datos["Descripción"],
-				EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado del Movimiento"]),
 				TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0])
 			};
+
+
 
 			var resp = await httpServicio.Put<PutMovimientoDTO, GetMovimientoDTO>(
 				$"/Movimientos/{movimientoEditando.Id}", dto);
@@ -617,7 +655,7 @@
 					SweetAlertIcon.Error);
 			}
 
-			return;                         // 🔥 IMPORTANTE: NO SIGUE AL SWITCH
+			return;                       
 		}
 
 

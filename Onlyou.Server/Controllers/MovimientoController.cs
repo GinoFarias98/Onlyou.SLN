@@ -217,8 +217,20 @@ namespace Onlyou.Server.Controllers
         [HttpPut("{id:int}/cambiar-estado")]
         public async Task<ActionResult<GetMovimientoDTO>> CambiarEstado(int id, [FromBody] PutEstadoMovimientoDTO dto)
         {
+
+
             try
             {
+
+                Console.WriteLine("==== API RECIBE DTO ====");
+                Console.WriteLine($"EstadoMovimiento: {dto.EstadoMovimiento}");
+                Console.WriteLine($"Descripcion: '{dto.Descripcion}'");
+                Console.WriteLine("========================");
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
                 var nuevoEstado = mapper.Map<EstadoMovimiento>(dto.EstadoMovimiento);
                 var mov = await repositorioMovimiento.CambiarEstadoMovimientoAsync(id, nuevoEstado, dto.Descripcion);
 

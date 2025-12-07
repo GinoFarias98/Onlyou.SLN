@@ -83,26 +83,27 @@
             }
 
             <div class="acciones">
+
                 <button class="btn btn-sm btn-primary"
+                        disabled="@EstaDeshabilitado"
                         @onclick="() => OnEditar.InvokeAsync(Movimiento)">
                     <i class="bi bi-pencil"></i> Editar
                 </button>
 
                 <button class="btn btn-sm btn-warning"
+                        disabled="@EstaDeshabilitado"
                         @onclick="() => OnAgregarPago.InvokeAsync(Movimiento)">
                     <i class="bi bi-cash"></i> Agregar Pago
                 </button>
 
                 <button class="btn btn-sm btn-warning"
+                        disabled="@EstaDeshabilitado"
                         @onclick="() => OnCambiarEstado.InvokeAsync(Movimiento)">
-                    <i class="bi bi-flag"></i> Estado
+                    <i class="bi bi-arrow-repeat"></i> Cambiar Estado
                 </button>
 
-                <button class="btn btn-sm btn-danger"
-                        @onclick="() => OnEliminar.InvokeAsync(Movimiento)">
-                    <i class="bi bi-trash"></i> Eliminar
-                </button>
             </div>
+
         </div>
     }
 </div>
@@ -117,4 +118,7 @@
     bool abierto = false;
 
     void Toggle() => abierto = !abierto;
+
+    private bool EstaDeshabilitado =>
+    Movimiento.EstadoMovimiento == EstadoMovimientoDto.Anulado;
 }
