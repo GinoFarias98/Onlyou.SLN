@@ -100,10 +100,6 @@
                     <i class="bi bi-graph-up"></i> Reportes
                 </a>
 
-                <a class="nav-link" href="/CrearPedido">
-                    <i class="bi bi-graph-up"></i> Reportes
-                </a>
-
             </Authorized>
         </AuthorizeView>
 
@@ -122,23 +118,8 @@
     <!-- Footer -->
     <div class="navmenu-footer">
         <AuthorizeView>
-
-            @* <Authorized>
             <Authorized>
                 <div class="logout-container">
-                    <ControlAutorizacion AbrirModal="AbrirModal" /> *@
-
-            <Authorized Context="authContext">
-                <!-- Información del usuario -->
-                <!-- Acciones del usuario -->
-                <div class="user-actions ">
-                    <!-- Control de autorización -->
-                    <div class="logout-container">
-                        <ControlAutorizacion AbrirModal="AbrirModal" />
-                    </div>
-
-
-                </div>
                     <ControlAutorizacion AbrirModal="AbrirModal" />
                 </div>
             </Authorized>
@@ -157,9 +138,6 @@
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-
-
-<!-- Modal Container -->
 
 @if (mostrarModal)
 {
@@ -226,20 +204,6 @@
         }
     }
 
-    private void AbrirLoginModal() => AbrirModal("login");
-    private void AbrirRegistroModal() => AbrirModal("registrar");
-
-
-	/* ------------------------- MODALES ------------------------- */
-
-	
-
-	private void CerrarModal()
-	{
-		mostrarModal = false;
-		StateHasChanged();
-	}
-
     private void CerrarModal() => mostrarModal = false;
     private void AbrirLoginModal() => AbrirModal("login");
     private void AbrirRegistroModal() => AbrirModal("registrar");
@@ -265,14 +229,6 @@
         builder.CloseComponent();
     }
 
-	protected override void OnInitialized()
-	{
-		Navigation.LocationChanged += (sender, args) => CloseAllMenus();
-	}
-
-}
-
-}
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += (sender, args) => CloseAllMenus();

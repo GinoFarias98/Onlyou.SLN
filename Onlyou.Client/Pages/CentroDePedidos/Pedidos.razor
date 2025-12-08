@@ -1571,7 +1571,7 @@
     {
         if (!string.IsNullOrEmpty(pedido.Telefono))
         {
-            var mensaje = $"Hola {pedido.NombreCliente}! Te contactamos por tu pedido #{pedido.Id}.";
+            var mensaje = $"Hola {pedido.NombreCliente}! Te contactamos por tu pedido en Onlyou-Web.";
             var url = $"https://wa.me/{pedido.Telefono}?text={Uri.EscapeDataString(mensaje)}";
             JSRuntime.InvokeVoidAsync("open", url, "_blank");
         }
