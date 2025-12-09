@@ -59,6 +59,7 @@ namespace Onlyou.BD.Migrations
                     FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    SaldoActual = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     estadoCaja = table.Column<int>(type: "int", nullable: false),
                     Estado = table.Column<bool>(type: "bit", nullable: false)
                 },

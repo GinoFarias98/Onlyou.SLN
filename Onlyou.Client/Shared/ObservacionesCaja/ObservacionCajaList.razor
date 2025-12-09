@@ -1,23 +1,203 @@
 ﻿@using Onlyou.Shared.DTOS.ObservacionCaja
+@using System.Linq
 
-<div class="obs-container">
-    @foreach (var o in Observaciones)
+<div class="observaciones-container-compacto">
+    @foreach (var o in Observaciones.OrderByDescending(x => x.FechaCreacion))
     {
-        <div class="pill">
-            <span class="pill-text">
-                <b>@o.FechaCreacion.ToString("dd/MM HH:mm"):</b> @o.Texto
-            </span>
+        <div class="observacion-item-compacto @(expandidas.Contains(o.Id) ? "expanded" : "")">
+            <div class="observacion-header-compacto">
+                <span class="observacion-fecha-compacto">
+                    <i class="bi bi-clock me-1"></i>
+                    @o.FechaCreacion.ToString("dd/MM/yyyy")
+                </span>
+@*                 @if (o.UsuarioNombre != null)
+                {
+                    <span class="observacion-usuario-compacto">
+                        <i class="bi bi-person me-1"></i>
+                        @o.UsuarioNombre
+                    </span>
+                } *@
+            </div>
 
-            <button class="pill-close"
-                    title="Archivar"
-                    @onclick="() => OnArchivar.InvokeAsync(o.Id)">
-                ×
-            </button>
+            <div class="observacion-texto-compacto" @onclick="() => ToggleExpandir(o.Id)">
+                @o.Texto
+            </div>
+
+            <div class="observacion-footer-compacto d-flex justify-content-between align-items-center">
+                <button class="btn btn-sm btn-outline-secondary btn-archivar-compacto"
+                        title="Archivar"
+                        @onclick="() => OnArchivar.InvokeAsync(o.Id)">
+                    <i class="bi bi-archive"></i>
+                </button>
+            </div>
         </div>
     }
 </div>
 
+<style>
+    /* ===================== OBSERVACIONES COMPACTAS ===================== */
+    .observaciones-container-compacto {
+        display: flex;
+        flex-direction: column;
+        gap: 8px; /* Reducido de 12px */
+    }
+
+    .observacion-item-compacto {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px; /* Reducido de 8px */
+        padding: 10px 12px; /* Reducido de 15px */
+        transition: all 0.2s ease;
+        animation: slideInCompacto 0.2s ease forwards;
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+        .observacion-item-compacto:hover {
+            background: #ffffff;
+            border-color: #dee2e6;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05); /* Reducido */
+        }
+
+    .observacion-header-compacto {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px; /* Reducido de 10px */
+        padding-bottom: 5px; /* Reducido de 8px */
+        border-bottom: 1px dashed #dee2e6;
+    }
+
+    .observacion-fecha-compacto {
+        font-size: 0.75rem; /* Reducido de 0.85rem */
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+    }
+
+    .observacion-usuario-compacto {
+        font-size: 0.75rem; /* Reducido de 0.85rem */
+        color: #495057;
+        background: #e9ecef;
+        padding: 2px 6px; /* Reducido de 3px 8px */
+        border-radius: 3px; /* Reducido de 4px */
+        display: flex;
+        align-items: center;
+    }
+
+    .observacion-texto-compacto {
+        color: #212529;
+        line-height: 1.4; /* Reducido de 1.5 */
+        margin-bottom: 6px; /* Reducido de 10px */
+        font-size: 0.9rem; /* Reducido de 0.95rem */
+        max-height: 40px; /* Limitar altura máxima */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Mostrar máximo 2 líneas */
+        -webkit-box-orient: vertical;
+    }
+
+    .observacion-footer-compacto {
+        text-align: right;
+    }
+
+    /* Botón más compacto */
+    .btn-archivar-compacto {
+        padding: 3px 8px !important; /* Más pequeño */
+        font-size: 0.75rem !important;
+        border-radius: 4px !important;
+    }
+
+    /* Animación de entrada más rápida */
+    @@keyframes slideInCompacto {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    /* Estilo especial para la observación más reciente */
+    .observacion-item-compacto:first-child {
+        border-left: 2px solid #0d6efd; /* Reducido de 3px */
+    }
+
+    /* Alternar para mostrar texto completo */
+    .observacion-item-compacto.expanded .observacion-texto-compacto {
+        max-height: none;
+        -webkit-line-clamp: unset;
+        overflow: visible;
+    }
+
+    /* Botón para expandir/colapsar */
+    .btn-expandir-compacto {
+        background: transparent;
+        border: none;
+        color: #6c757d;
+        font-size: 0.7rem;
+        padding: 2px 5px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+        .btn-expandir-compacto:hover {
+            color: #0d6efd;
+        }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .observacion-header-compacto
+
+    {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px; /* Reducido de 5px */
+    }
+
+    .observacion-usuario-compacto {
+        align-self: flex-start;
+    }
+
+    .observacion-footer-compacto {
+        text-align: left;
+        margin-top: 4px;
+    }
+
+    }
+
+    /* Para mostrar más observaciones en menos espacio */
+    .observacion-item-compacto.compact-mode {
+        padding: 8px 10px; /* Aún más compacto */
+    }
+
+        .observacion-item-compacto.compact-mode .observacion-texto-compacto {
+            font-size: 0.85rem;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+</style>
+
 @code {
     [Parameter] public List<GetObservacionCajaDTO> Observaciones { get; set; } = new();
     [Parameter] public EventCallback<int> OnArchivar { get; set; }
+
+    private HashSet<int> expandidas = new HashSet<int>();
+
+    private void ToggleExpandir(int id)
+    {
+        if (expandidas.Contains(id))
+            expandidas.Remove(id);
+        else
+            expandidas.Add(id);
+    }
 }

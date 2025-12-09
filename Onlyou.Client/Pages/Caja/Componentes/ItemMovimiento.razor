@@ -1,112 +1,236 @@
 ﻿@using Onlyou.Shared.DTOS.Movimiento
 @using Onlyou.Shared.Enums
 
-<div class="mov-item">
-    <div class="mov-header" @onclick="Toggle">
-        <div class="left">
-            <i class="bi @(Movimiento.TipoMovimientoSigno == SignoTipoMovimientoDto.Suma
-                                              ? "bi-arrow-up-circle text-success"
-                                              : "bi-arrow-down-circle text-danger")"></i>
+<div class="movimiento-item @(abierto ? "expanded" : "")" @onclick="Toggle">
+    <!-- Vista compacta -->
+    <div class="movimiento-compacto">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="movimiento-info-basica">
+                <i class="bi @GetIcono() me-2" style="font-size: 1.2rem;"></i>
+                <span class="movimiento-nombre">@Movimiento.TipoMovimientoNombre</span>
+                <small class="text-muted ms-2">
+                    #@Movimiento.Id • @Movimiento.FechaDelMovimiento.ToString("dd/MM HH:mm")
+                </small>
+            </div>
 
-            <span class="mov-titulo">
-                @Movimiento.TipoMovimientoNombre (@Movimiento.Monto.ToString("C"))
-            </span>
-
-            <small class="mov-fecha">@Movimiento.FechaDelMovimiento.ToString("dd/MM HH:mm")</small>
+            <div class="d-flex align-items-center gap-2">
+                <span class="movimiento-monto @GetClaseMonto()">
+                    @(Movimiento.TipoMovimientoSigno == SignoTipoMovimientoDto.Suma ? "+" : "-")
+                    $@Math.Abs(Movimiento.Monto)
+                </span>
+                <i class="bi bi-chevron-@(abierto ? "up" : "down") text-muted"></i>
+            </div>
         </div>
-
-        <i class="bi bi-chevron-@(abierto ? "down" : "right")"></i>
     </div>
 
+    <!-- Detalles expandidos -->
     @if (abierto)
     {
-        <div class="mov-detalle">
-            <p class="descripcion">@Movimiento.Descripcion</p>
+        <div class="movimiento-detalle mt-3 animate__animated animate__fadeIn">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Información del movimiento -->
+                    <div class="mb-3">
+                        <h6 class="text-muted">Descripción</h6>
+                        <p>@(!string.IsNullOrEmpty(Movimiento.Descripcion) ? Movimiento.Descripcion : "Sin descripción")</p>
+                    </div>
 
-            <p>
-                <strong>Estado:</strong>
-                <span class="badge bg-secondary">@Movimiento.EstadoMovimiento</span>
-            </p>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <h6 class="text-muted">Estado</h6>
+                            <span class="badge @GetEstadoClass(Movimiento.EstadoMovimiento)">
+                                @Movimiento.EstadoMovimiento
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Saldo Pendiente</h6>
+                            <div class="fw-bold @(Movimiento.SaldoPendiente > 0 ? "text-warning" : "text-success")">
+                                $@Movimiento.SaldoPendiente
+                            </div>
+                        </div>
+                    </div>
 
-            @if (Movimiento.ProveedorNombre != null)
-            {
-                <p><strong>Proveedor:</strong> @Movimiento.ProveedorNombre</p>
-            }
+                    <!-- Información adicional -->
+                    @if (!string.IsNullOrEmpty(Movimiento.ProveedorNombre))
+                    {
+                        <div class="mb-2">
+                            <span class="text-muted">Proveedor:</span>
+                            <span class="ms-2">@Movimiento.ProveedorNombre</span>
+                        </div>
+                    }
 
-            @if (Movimiento.PedidoDescripcion != null)
-            {
-                <p><strong>Pedido:</strong> @Movimiento.PedidoDescripcion</p>
-            }
+                    @if (!string.IsNullOrEmpty(Movimiento.PedidoDescripcion))
+                    {
+                        <div class="mb-2">
+                            <span class="text-muted">Pedido:</span>
+                            <span class="ms-2">@Movimiento.PedidoDescripcion</span>
+                        </div>
+                    }
 
-            @if (Movimiento.Pagos.Any())
-            {
-                <p><strong>Pagos:</strong> @Movimiento.Pagos.Count</p>
-            }
+                    <!-- Lista de pagos -->
+                    @if (Movimiento.Pagos.Any())
+                    {
+                        <div class="mt-3">
+                            <h6 class="text-muted">
+                                <i class="bi bi-cash me-1"></i>
+                                Pagos (@Movimiento.Pagos.Count())
+                            </h6>
+                            <div class="pagos-list">
+                                @foreach (var pago in Movimiento.Pagos.Take(3))
+                                {
+                                    <div class="pago-item">
+                                        <small>@pago.FechaRealizado.ToString("dd/MM HH:mm")</small>
+                                        <small class="ms-2">@pago.TipoPagoNombre</small>
+                                        <small class="ms-2 text-success">$@pago.Monto</small>
+                                    </div>
+                                }
+                                @if (Movimiento.Pagos.Count() > 3)
+                                {
+                                    <small class="text-muted">+ @(Movimiento.Pagos.Count() - 3) más</small>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
 
-            <div class="d-flex justify-content-between mt-2 mb-2">
-                <span class="badge bg-primary">
-                    Pagado: $@Movimiento.TotalPagado
-                </span>
+                <div class="col-md-4">
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm"
+                                disabled="@EstaDeshabilitado"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => OnEditar.InvokeAsync(Movimiento)">
+                            <i class="bi bi-pencil me-1"></i> Editar
+                        </button>
 
-                <span class="badge bg-warning text-dark">
-                    Restante: $@Movimiento.SaldoPendiente
-                </span>
+                        <button class="btn btn-outline-success btn-sm"
+                                disabled="@(EstaDeshabilitado || Movimiento.SaldoPendiente <= 0)"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => OnAgregarPago.InvokeAsync(Movimiento)">
+                            <i class="bi bi-cash-coin me-1"></i> Agregar Pago
+                        </button>
+
+                        <button class="btn btn-outline-warning btn-sm"
+                                disabled="@EstaDeshabilitado"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => OnCambiarEstado.InvokeAsync(Movimiento)">
+                            <i class="bi bi-arrow-repeat me-1"></i> Cambiar Estado
+                        </button>
+                    </div>
+
+                    <!-- Resumen -->
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-between small">
+                            <span>Total Pagado:</span>
+                            <span class="fw-bold text-success">$@Movimiento.TotalPagado</span>
+                        </div>
+@*                         <div class="d-flex justify-content-between small">
+                            <span>Creado por:</span>
+                            <span>@Movimiento.UsuarioNombre</span>
+                        </div> *@
+                    </div>
+                </div>
             </div>
-
-            @if (Movimiento.Pagos != null && Movimiento.Pagos.Any())
-            {
-                <table class="table table-sm mt-2">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Monto</th>
-                            <th>Situación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var pago in Movimiento.Pagos)
-                        {
-                            <tr>
-                                <td>@pago.FechaRealizado.ToShortDateString()</td>
-                                <td>@pago.TipoPagoNombre</td>
-                                <td>$@pago.Monto</td>
-                                <td>@pago.Situacion</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p class="text-muted">Este movimiento aún no tiene pagos.</p>
-            }
-
-            <div class="acciones">
-
-                <button class="btn btn-sm btn-primary"
-                        disabled="@EstaDeshabilitado"
-                        @onclick="() => OnEditar.InvokeAsync(Movimiento)">
-                    <i class="bi bi-pencil"></i> Editar
-                </button>
-
-                <button class="btn btn-sm btn-warning"
-                        disabled="@EstaDeshabilitado"
-                        @onclick="() => OnAgregarPago.InvokeAsync(Movimiento)">
-                    <i class="bi bi-cash"></i> Agregar Pago
-                </button>
-
-                <button class="btn btn-sm btn-warning"
-                        disabled="@EstaDeshabilitado"
-                        @onclick="() => OnCambiarEstado.InvokeAsync(Movimiento)">
-                    <i class="bi bi-arrow-repeat"></i> Cambiar Estado
-                </button>
-
-            </div>
-
         </div>
     }
 </div>
+
+<style>
+    .movimiento-item {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .movimiento-item:hover {
+            border-color: #adb5bd;
+            background-color: #f8f9fa;
+        }
+
+        .movimiento-item.expanded {
+            border-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+        }
+
+    .movimiento-compacto {
+        user-select: none;
+    }
+
+    .movimiento-nombre {
+        font-weight: 500;
+    }
+
+    .movimiento-monto {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .monto-ingreso {
+        color: #198754;
+    }
+
+    .monto-egreso {
+        color: #dc3545;
+    }
+
+    .movimiento-detalle {
+        border-top: 1px dashed #dee2e6;
+        padding-top: 15px;
+    }
+
+    .pagos-list {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+
+    .pago-item {
+        padding: 5px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .pago-item:last-child {
+            border-bottom: none;
+        }
+
+    /* Estados */
+    .badge-estado-pendiente {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .badge-estado-completado {
+        background-color: #198754;
+        color: white;
+    }
+
+    .badge-estado-anulado {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .movimiento-info-basica {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .movimiento-nombre {
+            font-size: 0.95rem;
+        }
+
+        .movimiento-monto {
+            font-size: 1rem;
+        }
+    }
+</style>
 
 @code {
     [Parameter] public GetMovimientoDTO Movimiento { get; set; } = null!;
@@ -115,10 +239,35 @@
     [Parameter] public EventCallback<GetMovimientoDTO> OnEliminar { get; set; }
     [Parameter] public EventCallback<GetMovimientoDTO> OnAgregarPago { get; set; }
 
-    bool abierto = false;
+    private bool abierto = false;
 
-    void Toggle() => abierto = !abierto;
+    private void Toggle() => abierto = !abierto;
+
+    private string GetIcono()
+    {
+        return Movimiento.TipoMovimientoSigno == SignoTipoMovimientoDto.Suma
+            ? "bi-arrow-up-circle text-success"
+            : "bi-arrow-down-circle text-danger";
+    }
+
+    private string GetClaseMonto()
+    {
+        return Movimiento.TipoMovimientoSigno == SignoTipoMovimientoDto.Suma
+            ? "monto-ingreso"
+            : "monto-egreso";
+    }
+
+    private string GetEstadoClass(EstadoMovimientoDto estado)
+    {
+        return estado switch
+        {
+            EstadoMovimientoDto.Pendiente => "badge-estado-pendiente",
+            EstadoMovimientoDto.Pagado => "badge-estado-completado",
+            EstadoMovimientoDto.Anulado => "badge-estado-anulado",
+            _ => "badge bg-secondary"
+        };
+    }
 
     private bool EstaDeshabilitado =>
-    Movimiento.EstadoMovimiento == EstadoMovimientoDto.Anulado;
+        Movimiento.EstadoMovimiento == EstadoMovimientoDto.Anulado;
 }

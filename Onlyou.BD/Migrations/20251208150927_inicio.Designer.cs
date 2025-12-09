@@ -12,7 +12,7 @@ using Onlyou.BD.Data;
 namespace Onlyou.BD.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20251207145447_inicio")]
+    [Migration("20251208150927_inicio")]
     partial class inicio
     {
         /// <inheritdoc />
@@ -239,6 +239,9 @@ namespace Onlyou.BD.Migrations
 
                     b.Property<DateTime>("FechaInicio")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("SaldoActual")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("SaldoInicial")
                         .HasColumnType("decimal(18,2)");

@@ -1,4 +1,4 @@
-﻿@page "/caja"
+﻿@page "/Caja"
 
 @inject IHttpServicios httpServicio
 @inject SweetAlertService swal
@@ -14,792 +14,1507 @@
 @using Onlyou.Shared.Enums
 @using Onlyou.Client.Pages.Caja
 
-<h2 class="titulo-seccion mb-4">Gestión de Caja</h2>
+<style>
+    /* ===================== ESTILOS GENERALES ===================== */
+/*     .page-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 20px;
+    } */
 
-<div class="dashboard">
+    .titulo-seccion {
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 2.2rem;
+        text-align: center;
+        margin-bottom: 2rem !important;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #3498db;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-	<!-- =====================  ESTADO DE LA CAJA  ===================== -->
-	<div class="card card-dash sombra p-4">
-		@if (caja == null)
-		{
-			<div class="text-center">
-				<h4 class="mb-3">No hay caja abierta</h4>
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
-				<EditForm Model="@nuevaCaja" OnValidSubmit="AbrirCaja">
-					<DataAnnotationsValidator />
-					<div class="mb-3">
-						<label class="form-label">Saldo Inicial</label>
-						<InputNumber @bind-Value="nuevaCaja.SaldoInicial" class="form-control form-control-lg" />
-					</div>
-					<button class="btn btn-success btn-lg px-5">
-						<i class="bi bi-unlock"></i> Abrir Caja
-					</button>
-				</EditForm>
-			</div>
-		}
-		else
-		{
-			<div class="d-flex justify-content-between align-items-center mb-3">
-				<h4>Caja Abierta</h4>
-				<span class="badge bg-success fs-5">@caja.EstadoCaja</span>
-			</div>
+    /* ===================== TARJETAS ===================== */
+    .card-dash {
+        background: white;
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+    }
 
-			<div class="row mb-3">
-				<div class="col-md-3"><strong>ID:</strong> @caja.Id</div>
-				<div class="col-md-3"><strong>Inicio:</strong> @caja.FechaInicio</div>
-				<div class="col-md-3"><strong>Saldo Inicial:</strong> $@caja.SaldoInicial</div>
-			</div>
+        .card-dash:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
 
-			<div class="d-flex gap-2 mt-3">
-				<button class="btn btn-outline-primary" @onclick="IrCajaAbierta">
-					<i class="bi bi-box-arrow-in-right"></i> Ver detalle completo
-				</button>
+        .card-dash::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+        }
 
-				<button class="btn btn-warning" @onclick="() => MostrarCambiarEstado(true)">
-					<i class="bi bi-pencil-square"></i> Cambiar estado
-				</button>
-			</div>
-		}
-	</div>
+        .card-dash.panel-cambio-estado {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+            border-left: 5px solid #ff9800;
+        }
 
-	<!-- =====================   PANEL CAMBIO ESTADO ===================== -->
-	@if (panelCambiarEstado)
-	{
-		<div class="card card-dash sombra p-4 mt-3">
-			<h5 class="mb-3">Cambiar estado de la caja</h5>
+    /* ===================== KPI / ESTADÍSTICAS ===================== */
+    /* =====================   RESUMEN - KPIs CORREGIDOS ===================== */
+    .resumen-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
 
-			<EditForm Model="@putEstado" OnValidSubmit="CambiarEstado">
-				<DataAnnotationsValidator />
-				<div class="mb-3">
-					<label class="form-label">Nuevo Estado</label>
-					<InputSelect @bind-Value="putEstado.EstadoCaja" class="form-control">
-						<option value="">Seleccione...</option>
-						<option value="@EstadoCajaDto.Abierta">Abierta</option>
-						<option value="@EstadoCajaDto.Cerrada">Cerrada</option>
-						<option value="@EstadoCajaDto.Anulada">Anulada</option>
-					</InputSelect>
-				</div>
+    .kpi-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 150px;
+        border: 1px solid #e9ecef;
+    }
 
-				<div class="mb-3">
-					<label class="form-label">Observación</label>
-					<InputTextArea @bind-Value="putEstado.Observacion" class="form-control"></InputTextArea>
-				</div>
+        .kpi-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
 
-				<button class="btn btn-primary">Guardar</button>
-				<button type="button" class="btn btn-secondary ms-2" @onclick="() => MostrarCambiarEstado(false)">
-					Cancelar
-				</button>
-			</EditForm>
-		</div>
-	}
+    .kpi-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        font-weight: 600;
+        display: block;
+    }
 
-	<!-- =====================   ACCIONES RÁPIDAS ===================== -->
-	@if (caja != null)
-	{
-		<div class="card card-dash sombra p-4">
-			<h5 class="mb-3">Acciones rápidas</h5>
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.2;
+        display: block;
+        margin: 5px 0;
+    }
 
-			<div class="d-flex gap-3">
+        .kpi-value.text-success {
+            color: #198754 !important;
+        }
 
-				<button type="button" class="btn btn-outline-secondary" @onclick="MostrarModalNuevoMovimiento">
-					<i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
-				</button>
+        .kpi-value.text-danger {
+            color: #dc3545 !important;
+        }
 
-				<button class="btn btn-outline-secondary" @onclick='() => AbrirModalEntidad("Tipo de Pago")'>
-					<i class="bi bi-credit-card me-1"></i> Tipos de Pago
-				</button>
+    .kpi-extra {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 8px;
+        display: block;
+    }
 
-				<button class="btn btn-outline-secondary" @onclick='() => AbrirModalEntidad("Tipo de Movimiento")'>
-					<i class="bi bi-sliders me-1"></i> Tipos de Movimiento
-				</button>
-			</div>
-		</div>
-	}
+    /* Responsive para KPIs */
+    @@media (max-width: 768px) {
+        .resumen-grid
 
-	<!-- =====================   RESUMEN ===================== -->
-	@if (caja != null)
-	{
-		var ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => x.Monto) ?? 0;
-		var egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => x.Monto) ?? 0;
-		var saldoNeto = ingresos + egresos;
+    {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
 
-		<div class="card card-dash sombra p-4">
-			<h5 class="mb-3">Resumen</h5>
+    .kpi-item {
+        padding: 15px;
+        min-height: 130px;
+    }
 
-			<div class="row text-center">
-				<div class="col-md-3">
-					<div class="kpi">
-						<span class="kpi-titulo">Movimientos</span>
-						<span class="kpi-valor">@caja.Movimientos?.Count() ?? 0</span>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="kpi">
-						<span class="kpi-titulo">Ingresos</span>
-						<span class="kpi-valor text-success">$@ingresos</span>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="kpi">
-						<span class="kpi-titulo">Egresos</span>
-						<span class="kpi-valor text-danger">$@egresos</span>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="kpi">
-						<span class="kpi-titulo">Saldo Neto</span>
-						<span class="kpi-valor @(saldoNeto >= 0 ? "text-success" : "text-danger")">$@saldoNeto</span>
-						<p><strong>Saldo actual:</strong> @caja.SaldoActual</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	}
+    .kpi-value {
+        font-size: 1.7rem;
+    }
 
-	<!-- =====================  MOVIMIENTOS ASOCIADOS A LA CAJA ===================== -->
-	@if (caja != null)
-	{
-		<div class="card card-dash sombra p-4">
-			<h5 class="mb-3">Movimientos</h5>
+    }
 
-			<ListaMovimientos Movimientos="@caja.Movimientos"
-							  OnEditar="EditarMovimiento"
-							  OnCambiarEstado="CambiarEstadoMovimiento"
+    @@media (max-width: 576px) {
+        .resumen-grid
 
-							  OnAgregarPago="AgregarPago" />
-		</div>
-	}
+    {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
 
-	<!-- =====================  OBSERVACIONES ===================== -->
-	@if (caja != null)
-	{
-		<div class="card card-dash sombra p-4">
-			<div class="d-flex justify-content-between mb-3">
-				<h5>Observaciones</h5>
-				<p>Cant obs: @caja?.Observaciones?.Count()</p>
-				<button class="btn btn-primary" @onclick="() => modalObs.Abrir()">
-					<i class="bi bi-plus"></i> Nueva Observación
-				</button>
-			</div>
+    }
+    /* =====================   RESUMEN - KPIs COMPACTOS ===================== */
+    .resumen-compacto {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
 
-			<ModalObservacion @ref="modalObs"
-							  Titulo="Nueva Observación"
-							  OnConfirmar="GuardarObservacion" />
+    .kpi-compacto {
+        background: white;
+        border-radius: 10px;
+        padding: 15px 10px;
+        text-align: center;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 110px;
+        transition: all 0.2s ease;
+    }
 
-			@if (caja.Observaciones != null && caja.Observaciones.Any())
-			{
-				<ObservacionCajaList Observaciones="@caja.Observaciones"
-									 OnArchivar="ArchivarObservacion" />
-			}
-			else
-			{
-				<p class="text-muted">Sin observaciones.</p>
-			}
-		</div>
-	}
+        .kpi-compacto:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+        }
+
+    .kpi-label-compacto {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        display: block;
+        line-height: 1.2;
+    }
+
+    .kpi-value-compacto {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        display: block;
+        margin: 3px 0;
+    }
+
+        .kpi-value-compacto.text-success {
+            color: #198754 !important;
+        }
+
+        .kpi-value-compacto.text-danger {
+            color: #dc3545 !important;
+        }
+
+    .kpi-extra-compacto {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 5px;
+        display: block;
+        opacity: 0.8;
+    }
+
+    /* Responsive para KPIs compactos */
+    @@media (max-width: 768px) {
+        .resumen-compacto
+
+    {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .kpi-compacto {
+        padding: 12px 8px;
+        min-height: 100px;
+    }
+
+    .kpi-value-compacto {
+        font-size: 1.3rem;
+    }
+
+    }
+
+    @@media (max-width: 576px) {
+        .resumen-compacto
+
+    {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .kpi-compacto {
+        min-height: 90px;
+    }
+
+    .kpi-label-compacto {
+        font-size: 0.75rem;
+    }
+
+    }
+
+    /* ===================== BOTONES ===================== */
+    .btn-accion-rapida {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+        .btn-accion-rapida:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(106, 17, 203, 0.4);
+            color: white;
+        }
+
+    .btn-outline-primary {
+        border: 2px solid #3498db;
+        color: #3498db;
+        font-weight: 600;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+    .btn-success {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        border: none;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    /* ===================== FORMULARIOS ===================== */
+    .form-control, .form-select {
+        border: 2px solid #e3e8f0;
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background: white;
+        }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    /* ===================== BADGES ===================== */
+    .badge-estado {
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @@media (max-width: 768px) {
+        .dashboard {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .titulo-seccion {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .kpi-valor {
+            font-size: 1.8rem;
+        }
+
+        .d-flex.gap-3 {
+            flex-direction: column;
+            gap: 10px !important;
+        }
+
+        .btn-accion-rapida {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .row.mb-3 {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .col-md-3 {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    }
+
+    @@media (min-width: 769px) and (max-width: 1200px) {
+        .dashboard {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .card-dash:nth-child(1),
+        .card-dash:nth-child(2) {
+            grid-column: span 2;
+        }
+    }
+
+    /* ===================== ANIMACIONES ===================== */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .slide-down {
+        animation: slideDown 0.4s ease-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ===================== UTILIDADES ===================== */
+    .sombra {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-muted {
+        color: #7f8c8d !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 2rem !important;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
+    .gap-2 {
+        gap: 0.8rem;
+    }
+
+    .gap-3 {
+        gap: 1.2rem;
+    }
+
+    /* ===================== ESTADO CAJA ===================== */
+    .estado-caja-container {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .icono-caja {
+        font-size: 4rem;
+        color: #3498db;
+        margin-bottom: 20px;
+        opacity: 0.9;
+    }
+
+    /* ===================== LISTA MOVIMIENTOS ===================== */
+    .lista-movimientos {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+        .lista-movimientos::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .lista-movimientos::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .lista-movimientos::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            border-radius: 10px;
+        }
+
+
+    /* Estilos adicionales para la sección de movimientos */
+    .movimientos-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .section-header {
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+        .section-header h5 {
+            color: #2c3e50;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .section-header h5 i {
+                color: #0d6efd;
+            }
+
+    /* Animaciones */
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .movimiento-card {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    /* Estilos para tooltips */
+    .tooltip-inner {
+        background-color: #2c3e50;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .tooltip.bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: #2c3e50;
+    }
+
+    /* Filtros y controles */
+    .movimientos-controls {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Responsive específico para movimientos */
+    @@media (max-width: 768px) {
+        .movimientos-grid
+
+    {
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+    }
+
+    .movimiento-card {
+        margin-bottom: 1rem;
+    }
+
+    }
+
+    @@media (min-width: 992px) {
+        .movimiento-card
+
+    {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .movimiento-card .card-body {
+        flex-grow: 1;
+    }
+
+    }
+    /* ===================== LOADING STATES ===================== */
+    .loading {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @@keyframes loading {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    /* ===================== ESTADOS Y COLORES ===================== */
+    .text-success {
+        color: #27ae60 !important;
+        font-weight: 700;
+    }
+
+    .text-danger {
+        color: #e74c3c !important;
+        font-weight: 700;
+    }
+
+    .text-warning {
+        color: #f39c12 !important;
+        font-weight: 700;
+    }
+
+    /* ===================== GRADIENTES ESPECIALES ===================== */
+    .gradiente-profesional {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .gradiente-exito {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    }
+
+    .gradiente-alerta {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+
+    .gradiente-peligro {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+
+    /* HEADER*/
+    .header-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="page-container">
+    <!-- HEADER MODERNO -->
+    <div class="header-modern slide-in">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center flex-wrap gap-3">
+                    <div>
+                        <h1 class="h3 fw-bold mb-2">
+                            <i class="fas fa-cash-register me-2"></i>
+                             Gestion de Caja
+                        </h1>
+                        <p class="mb-0 opacity-90">
+                            <i class="fas fa-box me-1"></i>
+                            Revisa, gestiona y crea tu caja...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard slide-down">
+
+        <!-- =====================  ESTADO DE LA CAJA  ===================== -->
+        <div class="card card-dash sombra p-4">
+            @if (caja == null)
+            {
+                <div class="estado-caja-container">
+                    <div class="icono-caja">
+                        <i class="bi bi-safe"></i>
+                    </div>
+                    <h4 class="mb-4">No hay caja abierta</h4>
+
+                    <EditForm Model="@nuevaCaja" OnValidSubmit="AbrirCaja" class="fade-in">
+                        <DataAnnotationsValidator />
+                        <div class="mb-4">
+                            <label class="form-label">Saldo Inicial</label>
+                            <InputNumber @bind-Value="nuevaCaja.SaldoInicial"
+                                         class="form-control form-control-lg"
+                                         placeholder="0.00" />
+                        </div>
+                        <button class="btn btn-success btn-lg px-5 btn-accion-rapida">
+                            <i class="bi bi-unlock"></i> Abrir Caja
+                        </button>
+                    </EditForm>
+                </div>
+            }
+            else
+            {
+                <div class="fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Caja Abierta</h4>
+                        <span class="badge bg-success badge-estado fs-5">@caja.EstadoCaja</span>
+                    </div>
+
+                    <div class="row mb-4">
+@*                         <div class="col-md-4 mb-3">
+                            <strong class="text-muted">ID:</strong>
+                            <div class="fw-bold">@caja.Id</div>
+                        </div> *@
+                        <div class="col-md-4 mb-3">
+                            <strong class="text-muted">Inicio:</strong>
+                            <div class="fw-bold">@caja.FechaInicio</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <strong class="text-muted">Saldo Inicial:</strong>
+                            <div class="fw-bold text-success">$@caja.SaldoInicial</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4 flex-wrap">
+@*                         <button class="btn btn-outline-primary px-4" @onclick="IrCajaAbierta">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Ver detalle completo
+                        </button> *@
+
+                        <button class="btn btn-warning px-4" @onclick="() => MostrarCambiarEstado(true)">
+                            <i class="bi bi-pencil-square me-2"></i> Cambiar estado
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- =====================   PANEL CAMBIO ESTADO ===================== -->
+        @if (panelCambiarEstado)
+        {
+            <div class="card card-dash sombra p-4 mt-3 panel-cambio-estado slide-down">
+                <h5 class="mb-4">Cambiar estado de la caja</h5>
+
+                <EditForm Model="@putEstado" OnValidSubmit="CambiarEstado" class="fade-in">
+                    <DataAnnotationsValidator />
+                    <div class="mb-4">
+                        <label class="form-label">Nuevo Estado</label>
+                        <InputSelect @bind-Value="putEstado.EstadoCaja" class="form-control">
+                            <option value="">Seleccione...</option>
+                            <option value="@EstadoCajaDto.Abierta">Abierta</option>
+                            <option value="@EstadoCajaDto.Cerrada">Cerrada</option>
+                            <option value="@EstadoCajaDto.Anulada">Anulada</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Observación</label>
+                        <InputTextArea @bind-Value="putEstado.Observacion"
+                                       class="form-control"
+                                       rows="3"
+                                       placeholder="Ingrese el motivo del cambio..."></InputTextArea>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle me-2"></i> Guardar
+                        </button>
+                        <button type="button" class="btn btn-secondary px-4" @onclick="() => MostrarCambiarEstado(false)">
+                            <i class="bi bi-x-circle me-2"></i> Cancelar
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
+
+        <!-- =====================   ACCIONES RÁPIDAS ===================== -->
+        @if (caja != null)
+        {
+            <div class="card card-dash sombra p-4">
+                <h5 class="mb-4">Acciones rápidas</h5>
+
+                <div class="d-flex gap-3 flex-wrap">
+@*                     <button type="button" class="btn-accion-rapida" @onclick="MostrarModalNuevoMovimiento">
+                        <i class="bi bi-plus-circle me-1"></i> Nuevo Movimiento
+                    </button> *@
+
+                    <button class="btn-accion-rapida gradiente-profesional" @onclick='() => AbrirModalEntidad("Tipo de Pago")'>
+                        <i class="bi bi-credit-card me-1"></i> Nuevo Tipos de Pago
+                    </button>
+
+                    <button class="btn-accion-rapida gradiente-alerta" @onclick='() => AbrirModalEntidad("Tipo de Movimiento")'>
+                        <i class="bi bi-sliders me-1"></i> Nuevo Tipos de Movimiento
+                    </button>
+                    <button class="btn btn-outline-primary me-2"
+                            @onclick="@(() => Navigation.NavigateTo("/caja/historial"))">
+                        <i class="bi bi-clock-history me-1"></i>
+                        Historial de Cajas
+                    </button>
+                </div>
+            </div>
+        }
+
+
+        <!-- =====================   RESUMEN ===================== -->
+        @if (caja != null)
+        {
+            var ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => x.Monto) ?? 0;
+            var egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => x.Monto) ?? 0;
+            var saldoNeto = ingresos + egresos;
+
+            <div class="card card-dash sombra p-4">
+                <h5 class="mb-4">Resumen</h5>
+
+                <div class="resumen-compacto">
+                    <!-- Movimientos -->
+@*                      <div class="kpi-compacto">
+                        <span class="kpi-label-compacto">Movimientos</span>
+                        <span class="kpi-value-compacto">@caja.Movimientos?.Count() </span>
+                    </div> *@
+
+                    <!-- Ingresos -->
+                    <div class="kpi-compacto">
+                        <span class="kpi-label-compacto">Ingresos</span>
+                        <span class="kpi-value-compacto text-success">$@ingresos.ToString("N2")</span>
+                    </div>
+
+                    <!-- Egresos -->
+                    <div class="kpi-compacto">
+                        <span class="kpi-label-compacto">Egresos</span>
+                        <span class="kpi-value-compacto text-danger">$@Math.Abs(egresos).ToString("N2")</span>
+                    </div>
+
+                    <!-- Saldo Neto -->
+                    <div class="kpi-compacto">
+                        <span class="kpi-label-compacto">Saldo Neto</span>
+                        <span class="kpi-value-compacto @(saldoNeto >= 0 ? "text-success" : "text-danger")">
+                            $@saldoNeto.ToString("N2")
+                        </span>
+                        <span class="kpi-extra-compacto">
+                            Saldo actual: @caja.SaldoActual.ToString("N2")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- =====================  MOVIMIENTOS ASOCIADOS A LA CAJA ===================== -->
+        @if (caja != null)
+        {
+            int totalMov = caja.Movimientos?.Count() ?? 0;
+
+            <div class="card card-dash sombra p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  
+                        <h5 class="mb-0">
+                            <i class="bi bi-arrow-left-right me-2"></i>
+                            Movimientos (@totalMov)
+                        </h5>
+                          
+                    <button class="btn btn-sm btn-outline-primary" @onclick="MostrarModalNuevoMovimiento">
+                        <i class="bi bi-plus"></i> Nuevo
+                    </button>
+                </div>
+
+                <div class="movimientos-container">
+                    <ListaMovimientos Movimientos="@caja.Movimientos"
+                                      OnEditar="EditarMovimiento"
+                                      OnCambiarEstado="CambiarEstadoMovimiento"
+                                      OnAgregarPago="AgregarPago" />
+                </div>
+            </div>
+        }
+
+        <!-- =====================  OBSERVACIONES ===================== -->
+        @if (caja != null)
+        {
+            <div class="card card-dash sombra p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="bi bi-chat-left-text me-2"></i>
+                            Observaciones
+                        </h5>
+                        <small class="text-muted">
+                            <i class="bi bi-list-check me-1"></i>
+                            @caja?.Observaciones?.Count() @(caja?.Observaciones?.Count() == 1 ? "observación" : "observaciones")
+                        </small>
+                    </div>
+                    <button class="btn btn-primary mt-2 mt-md-0" @onclick="() => modalObs.Abrir()">
+                        <i class="bi bi-plus-circle me-1"></i> Nueva Observación
+                    </button>
+                </div>
+
+                <ModalObservacion @ref="modalObs"
+                                  Titulo="Nueva Observación"
+                                  OnConfirmar="GuardarObservacion" />
+
+                @if (caja.Observaciones != null && caja.Observaciones.Any())
+                {
+                    <ObservacionCajaList Observaciones="@caja.Observaciones"
+                                         OnArchivar="ArchivarObservacion" />
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-left-text fs-1 text-muted mb-3 opacity-50"></i>
+                        <p class="text-muted mb-0">No hay observaciones registradas</p>
+                        <small class="text-muted">Haz clic en "Nueva Observación" para agregar una</small>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 <!-- ===================== MODAL REUTILIZABLE GENÉRICO ===================== -->
 <MostrarEntidad @bind-Mostrar="mostrarModal"
-				Titulo="@modalTitulo"
-				Campos="camposModal"
-				EntidadCreada="OnEntidadCreada" />
+                Titulo="@modalTitulo"
+                Campos="camposModal"
+                EntidadCreada="OnEntidadCreada" />
 
 <MostrarEntidad @bind-Mostrar="mostrarModalPago"
-				Titulo="Registrar Pago"
-				Campos="CamposPago"
-				EntidadCreada="OnPagoConfirmado" />
+                Titulo="Registrar Pago"
+                Campos="CamposPago"
+                EntidadCreada="OnPagoConfirmado" />
 
 
 @code {
-	private bool mostrarModalPago = false;
-
-	private GetCajaDTO? caja;
-	private PostCajaDTO nuevaCaja = new();
-	private PutEstadoCajaDTO putEstado = new();
-
-	private bool panelCambiarEstado = false;
-	private ModalObservacion modalObs;
-
-	#region Nuevo Movimiento (Modal)
-	private List<GetTipoMovimeintoDTO> tiposMovimientos = new();
-	private List<TipoPagoDTO> tiposPago = new();
-	private GetMovimientoDTO? movimientoEditando = null;
-
-	private async Task CambiarEstadoMovimiento(GetMovimientoDTO mov)
-	{
-		// Crear los campos del modal
-		camposModal = new()
-	{
-		new()
-		{
-			Label = "Estado Movimiento",
-			TipoCampo = MostrarEntidad.TipoCampo.Select,
-			Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
-			Valor = mov.EstadoMovimiento.ToString()
-		},
-
-		new()
-		{
-			Label = "Descripcion",
-			TipoCampo = MostrarEntidad.TipoCampo.Texto,
-			Placeholder = "Motivo del cambio",
-			Valor = ""
-		}
-	};
-
-		modalTitulo = $"Cambiar Estado - Movimiento #{mov.Id}";
-		movimientoCambiandoEstado = mov;  // guardar referencia
-
-		mostrarModal = true;
-	}
-
-
-
-	private async Task EditarMovimiento(GetMovimientoDTO mov)
-	{
-		// Cargar tipos (ya lo hacías en Crear)
-		tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos")).Respuesta ?? new();
-		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new();
-
-		// Crear los campos con valores precargados
-		camposModal = new()
-			{
-				new() { Label = "Monto", Valor = mov.Monto.ToString() },
-				new() { Label = "Descripción", Valor = mov.Descripcion },
-
-				new()
-				{
-					Label = "Estado del Movimiento",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
-					Valor = mov.EstadoMovimiento.ToString()
-				},
-
-				new()
-				{
-					Label = "TipoMovimientoId",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
-					Valor = $"{mov.TipoMovimientoId}|{mov.TipoMovimientoNombre}"
-				},
-
-				new()
-				{
-					Label = "Tipo De Pago",
-					TipoCampo = MostrarEntidad.TipoCampo.Select,
-					Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
-					Valor = mov.Pagos.Any() ? $"{mov.Pagos.First().TipoPagoId}|{mov.Pagos.First().TipoPagoNombre}" : ""
-				}
-			};
-
-		modalTitulo = $"Editar Movimiento #{mov.Id}";
-		movimientoEditando = mov; // ← Guardamos el movimiento actual
-		mostrarModal = true;
-	}
-
-	private List<MostrarEntidad.CampoModal> CamposPago = new();
-
-	private void ConstruirCamposModalPago()
-	{
-		CamposPago = new()
-		{
-			new MostrarEntidad.CampoModal
-			{
-				Label = "FechaRealizado",
-				Valor = FechaPago.ToString("yyyy-MM-dd HH:mm"),
-				Placeholder = "Fecha",
-				TipoCampo = MostrarEntidad.TipoCampo.Texto
-			},
-
-			new MostrarEntidad.CampoModal
-			{
-				Label = "Monto",
-				Valor = "",
-				Placeholder = "Monto del pago"
-			},
-
-			new MostrarEntidad.CampoModal
-			{
-				Label = "Descripcion",
-				Valor = "",
-				Placeholder = "Descripción (opcional)"
-			},
-
-			new MostrarEntidad.CampoModal
-			{
-				Label = "Tipo De Pago",
-				Valor = "", // o setear a $"{tiposPago.First().Id}|{tiposPago.First().Nombre}" para preseleccionar
-				TipoCampo = MostrarEntidad.TipoCampo.Select,
-				Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList()
-			},
-
-			new MostrarEntidad.CampoModal
-			{
-				Label = "Saldo Restante",
-				Valor = SaldoPendienteMovimiento.ToString("0.00"),
-				Placeholder = "Saldo restante",
-				TipoCampo = MostrarEntidad.TipoCampo.Texto,
-				SoloLectura = true
-			},
-
-		};
-	}
-
-	private async Task MostrarModalNuevoMovimiento()
-	{
-		if (caja == null)
-		{
-			await swal.FireAsync("Error", "Debes abrir una caja primero.", SweetAlertIcon.Error);
-			return;
-		}
-
-		tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos"))
-			.Respuesta ?? new();
-
-		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago"))
-			.Respuesta ?? new();
-
-		camposModal = new()
-	{
-		new() { Label = "Monto", Placeholder = "Ej: 1500.00" },
-		new() { Label = "Descripción", Placeholder = "Descripción del movimiento" },
-
-		new()
-		{
-			Label = "TipoMovimientoId",
-			TipoCampo = MostrarEntidad.TipoCampo.Select,
-			Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList()
-		},
-
-	};
-
-		modalTitulo = "Nuevo Movimiento";
-		mostrarModal = true;
-
-		await InvokeAsync(StateHasChanged);
-	}
-
-
-
-	private DateTime FechaPago { get; set; } = DateTime.Now;
-	private decimal MontoPago { get; set; }
-	private string DescripcionPago { get; set; } = "";
-	private int TipoPagoIdSeleccionado { get; set; }
-	private int MovimientoId { get; set; }
-	private int CajaIdSeleccionada { get; set; }
-	private bool modoPago = false;
-	private decimal SaldoPendienteMovimiento;
-
-
-	private async Task AgregarPago(GetMovimientoDTO mov)
-	{
-		modoPago = true;
-
-		MovimientoId = mov.Id;
-		CajaIdSeleccionada = caja!.Id;
-		SaldoPendienteMovimiento = mov.SaldoPendiente;
-
-		// traer tipos de pago actualizados
-		tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new List<TipoPagoDTO>();
-
-		if (!tiposPago.Any())
-		{
-			await swal.FireAsync("Atención", "No se encontraron tipos de pago. Crea uno o recarga la página.", SweetAlertIcon.Warning);
-			// igual permitir abrir modal si querés, o cancelar:
-			// return;
-		}
-
-		FechaPago = DateTime.Now;
-		MontoPago = SaldoPendienteMovimiento;
-		MontoPago = 0;
-		DescripcionPago = "";
-		TipoPagoIdSeleccionado = 0;
-
-		ConstruirCamposModalPago();
-
-		mostrarModal = false;
-		mostrarModalPago = true;
-	}
-
-
-	private async Task CrearMovimiento(Dictionary<string, string> datos)
-	{
-		// ✅ Validar y parsear monto
-		if (!decimal.TryParse(datos["Monto"], out decimal monto))
-		{
-			await swal.FireAsync("Error", "El monto ingresado no es válido.", SweetAlertIcon.Error);
-			return;
-		}
-
-		// ✅ Validar y parsear tipo de movimiento
-		var tipoMovimientoSplit = datos["TipoMovimientoId"].Split('|');
-		if (tipoMovimientoSplit.Length == 0 || !int.TryParse(tipoMovimientoSplit[0], out int tipoMovimientoId))
-		{
-			await swal.FireAsync("Error", "Debe seleccionar un tipo de movimiento válido.", SweetAlertIcon.Error);
-			return;
-		}
-
-
-		// Crear DTO con valores parseados
-		var dto = new PostMovimientoDTO
-		{
-			Monto = monto,
-			Descripcion = datos["Descripción"],
-			EstadoMovimiento = EstadoMovimientoDto.Pendiente,
-			TipoMovimientoId = tipoMovimientoId,
-			CajaId = caja!.Id
-		};
-
-		// Enviar al backend
-		var resp = await httpServicio.Post<PostMovimientoDTO, GetMovimientoDTO>("/Movimientos", dto);
-
-		if (!resp.Error)
-		{
-			await swal.FireAsync("Éxito", "Movimiento creado correctamente", SweetAlertIcon.Success);
-			await CargarCaja();
-		}
-		else
-		{
-			await swal.FireAsync("Error",
-				await resp.ObtenerErrorAsync(),
-				SweetAlertIcon.Error);
-		}
-	}
-
-	#endregion
-
-	#region Modal Crear Entidad
-	private bool mostrarModal = false;
-	private string modalTitulo = "";
-	private List<MostrarEntidad.CampoModal> camposModal = new();
-
-
-	private void AbrirModalEntidad(string entidad)
-	{
-		modalTitulo = entidad;
-
-		camposModal = entidad switch
-		{
-			"Tipo de Pago" => new()
-				{
-					new() { Label = "Nombre", Placeholder = "Ej: Tarjeta, Efectivo, Transferencia" }
-				},
-
-			"Tipo de Movimiento" => new()
-				{
-					new() { Label = "Nombre", Placeholder = "Nombre del movimiento" },
-					new() { Label = "Descripción", Placeholder = "Opcional" },
-					new()
-					{
-						Label = "Tipo",
-						TipoCampo = MostrarEntidad.TipoCampo.Select,
-						Opciones = new List<string> { "Ingreso", "Egreso" }
-					}
-				},
-
-			_ => new()
-		};
-
-		mostrarModal = true;
-	}
-
-	private async Task OnPagoConfirmado(Dictionary<string, string> datos)
-	{
-		try
-		{
-			// 1️⃣ PARSEOS SEGUROS
-			FechaPago = DateTime.Parse(datos["FechaRealizado"]);
-			MontoPago = decimal.Parse(datos["Monto"]);
-			DescripcionPago = datos.ContainsKey("Descripcion") ? datos["Descripcion"] : "";
-
-			// ✅ VIENE COMO "ID|NOMBRE"
-			TipoPagoIdSeleccionado = int.Parse(datos["Tipo De Pago"].Split('|')[0]);
-
-			// 2️⃣ VALIDACIONES FUNCIONALES
-			if (MontoPago <= 0)
-			{
-				await swal.FireAsync("Error", "El monto del pago debe ser mayor a 0.", SweetAlertIcon.Error);
-				return;
-			}
-
-			if (TipoPagoIdSeleccionado == 0)
-			{
-				await swal.FireAsync("Error", "Debe seleccionar un tipo de pago válido.", SweetAlertIcon.Error);
-				return;
-			}
-
-
-			if (MontoPago > SaldoPendienteMovimiento)
-			{
-				await swal.FireAsync(
-					"Error",
-					$"El monto supera el saldo pendiente.\nRestante: ${SaldoPendienteMovimiento}",
-					SweetAlertIcon.Error);
-
-				return;
-			}
-
-			// 3️⃣ ARMADO FINAL DEL DTO
-			var dto = new PostPagoDTO
-			{
-				FechaRealizado = FechaPago,
-				Monto = MontoPago,
-				Situacion = SituacionPagoDto.Pendiente,
-				Descripcion = string.IsNullOrWhiteSpace(DescripcionPago) ? null : DescripcionPago.Trim(),
-				MovimientoId = MovimientoId,
-				TipoPagoId = TipoPagoIdSeleccionado,
-				CajaId = CajaIdSeleccionada
-			};
-
-
-			// 4️⃣ POST AL BACKEND
-			var resp = await httpServicio.Post("/Pagos", dto);
-
-			if (resp.HttpResponseMessage.IsSuccessStatusCode)
-			{
-				await swal.FireAsync("Éxito", "Pago registrado correctamente", SweetAlertIcon.Success);
-				await CargarCaja();
-			}
-			else
-			{
-				var error = await resp.HttpResponseMessage.Content.ReadAsStringAsync();
-				await swal.FireAsync("Error", error, SweetAlertIcon.Error);
-			}
-
-
-		}
-		catch (Exception ex)
-		{
-			await swal.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
-		}
-	}
-
-
-	GetMovimientoDTO? movimientoCambiandoEstado = null;
-
-
-	private async Task OnEntidadCreada(Dictionary<string, string> datos)
-	{
-		if (modoPago)
-		{
-			modoPago = false;
-			await OnPagoConfirmado(datos);
-			return;
-		}
-
-		// 🟦 CAMBIAR ESTADO MOVIMIENTO
-		if (movimientoCambiandoEstado != null)
-		{
-			var dto = new PutEstadoMovimientoDTO
-			{
-				EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado Movimiento"]),
-				Descripcion = string.IsNullOrWhiteSpace(datos["Descripcion"])
-					? "Cambio de estado sin descripción"
-					: datos["Descripcion"].Trim()
-			};
-
-			Console.WriteLine("==== ENVÍO PUT ESTADO MOVIMIENTO ====");
-			Console.WriteLine($"EstadoMovimiento: {dto.EstadoMovimiento}");
-			Console.WriteLine($"Descripcion: '{dto.Descripcion}'");
-			Console.WriteLine("=====================================");
-
-			var resp = await httpServicio.Put<PutEstadoMovimientoDTO, GetMovimientoDTO>(
-				$"/Movimientos/{movimientoCambiandoEstado.Id}/cambiar-estado",
-				dto);
-
-			movimientoCambiandoEstado = null;
-			mostrarModal = false;
-
-			if (!resp.Error)
-				await swal.FireAsync("Éxito", "Estado actualizado correctamente", SweetAlertIcon.Success);
-
-			await CargarCaja();
-			return;
-		}
-
-
-
-		// 🟦 1) ESTAMOS EDITANDO UN MOVIMIENTO
-		if (movimientoEditando != null)
-		{
-			var dto = new PutMovimientoDTO
-			{
-				Id = movimientoEditando.Id,
-				Monto = decimal.Parse(datos["Monto"]),
-				Descripcion = datos["Descripción"],
-				TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0])
-			};
-
-
-
-			var resp = await httpServicio.Put<PutMovimientoDTO, GetMovimientoDTO>(
-				$"/Movimientos/{movimientoEditando.Id}", dto);
-
-			movimientoEditando = null;      // limpiar modo edición
-			mostrarModal = false;
-
-			if (!resp.Error)
-			{
-				await swal.FireAsync(
-					"Movimiento actualizado",
-					"Se guardaron los cambios.",
-					SweetAlertIcon.Success);
-
-				await CargarCaja();         // refrescar datos
-			}
-			else
-			{
-				await swal.FireAsync(
-					"Error",
-					await resp.ObtenerErrorAsync(),
-					SweetAlertIcon.Error);
-			}
-
-			return;                       
-		}
-
-
-		// 🟩 2) NUEVO MOVIMIENTO
-		if (modalTitulo == "Nuevo Movimiento")
-		{
-			await CrearMovimiento(datos);
-			mostrarModal = false;
-			return;
-		}
-
-
-		// 🟨 3) NUEVAS ENTIDADES (TIPO PAGO / TIPO MOVIMIENTO)
-		switch (modalTitulo)
-		{
-			case "Tipo de Pago":
-				var dtoPago = new TipoPagoDTO
-				{
-					Nombre = datos["Nombre"]
-				};
-
-				var respPago =
-					await httpServicio.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dtoPago);
-
-				if (!respPago.Error)
-				{
-					await swal.FireAsync(
-						"Éxito",
-						$"Tipo de Pago '{respPago.Respuesta!.Nombre}' creado correctamente",
-						SweetAlertIcon.Success);
-				}
-				break;
-
-
-			case "Tipo de Movimiento":
-				var dtoMov = new PostTipoMovimientoDTO
-				{
-					Nombre = datos["Nombre"],
-					Descripcion = datos.ContainsKey("Descripción") ? datos["Descripción"] : null,
-					Signo = datos["Tipo"] == "Egreso"
-						? SignoTipoMovimientoDto.Resta
-						: SignoTipoMovimientoDto.Suma
-				};
-
-				var respMov =
-					await httpServicio.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>(
-						"/TipoMovimientos", dtoMov);
-
-				if (!respMov.Error)
-				{
-					await swal.FireAsync(
-						"Éxito",
-						$"Tipo de Movimiento '{respMov.Respuesta!.Nombre}' creado correctamente",
-						SweetAlertIcon.Success);
-				}
-				break;
-		}
-
-		// 🟥 CERRAR EL MODAL SIEMPRE AL FINAL
-		mostrarModal = false;
-	}
-
-	#endregion
-
-	protected override async Task OnInitializedAsync()
-	{
-		await CargarCaja();
-	}
-
-	private async Task CargarCaja()
-	{
-		var resp = await httpServicio.Get<GetCajaDTO>("Cajas/abierta");
-		var cajaTemp = resp.Error ? null : resp.Respuesta;
-
-		if (cajaTemp != null)
-		{
-			// Observaciones
-			var obsResp = await httpServicio.Get<List<GetObservacionCajaDTO>>(
-				$"Cajas/{cajaTemp.Id}/Observaciones");
-			cajaTemp.Observaciones = obsResp.Error ? new() : obsResp.Respuesta;
-
-			// MOVIMIENTOS 
-			var movResp = await httpServicio.Get<List<GetMovimientoDTO>>(
-				$"Movimientos/por-caja/{cajaTemp.Id}");
-
-			cajaTemp.Movimientos = movResp.Error ? new() : movResp.Respuesta;
-		}
-
-		caja = cajaTemp;
-	}
-
-
-	private async Task AbrirCaja()
-	{
-		var resp =
-			await httpServicio.Post<PostCajaDTO, GetCajaDTO>("Cajas/abrir", nuevaCaja);
-
-		if (!resp.Error)
-			caja = resp.Respuesta;
-	}
-
-	private void MostrarCambiarEstado(bool mostrar)
-	{
-		panelCambiarEstado = mostrar;
-		putEstado = new PutEstadoCajaDTO();
-	}
-
-	private async Task CambiarEstado()
-	{
-		if (caja == null)
-			return;
-
-		var resp =
-			await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
-				$"Cajas/{caja.Id}/cambiar-estado", putEstado);
-
-		if (!resp.Error)
-		{
-			panelCambiarEstado = false;
-			await CargarCaja();
-		}
-	}
-
-	private async Task GuardarObservacion(string texto)
-	{
-		var dto = new PostObservacionCajaDTO { Texto = texto };
-
-		await httpServicio.Post<PostObservacionCajaDTO, GetObservacionCajaDTO>(
-			$"Cajas/{caja.Id}/Observaciones", dto);
-
-		await CargarCaja();
-	}
-
-	private async Task ArchivarObservacion(int id)
-	{
-		await httpServicio.Put<object, bool>(
-			$"Cajas/{caja.Id}/Observaciones/Archivados/{id}", null);
-
-		await CargarCaja();
-	}
-
-	private void IrCajaAbierta()
-	{
-		Navigation.NavigateTo("/CajaAbierta");
-	}
+    // El código C# permanece exactamente igual
+    private bool mostrarModalPago = false;
+
+    private GetCajaDTO? caja;
+    private PostCajaDTO nuevaCaja = new();
+    private PutEstadoCajaDTO putEstado = new();
+
+    private bool panelCambiarEstado = false;
+    private ModalObservacion modalObs;
+
+    #region Nuevo Movimiento (Modal)
+    private List<GetTipoMovimeintoDTO> tiposMovimientos = new();
+    private List<TipoPagoDTO> tiposPago = new();
+    private GetMovimientoDTO? movimientoEditando = null;
+
+    private async Task CambiarEstadoMovimiento(GetMovimientoDTO mov)
+    {
+        // Crear los campos del modal
+        camposModal = new()
+        {
+            new()
+            {
+                Label = "Estado Movimiento",
+                TipoCampo = MostrarEntidad.TipoCampo.Select,
+                Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
+                Valor = mov.EstadoMovimiento.ToString()
+            },
+
+            new()
+            {
+                Label = "Descripcion",
+                TipoCampo = MostrarEntidad.TipoCampo.Texto,
+                Placeholder = "Motivo del cambio",
+                Valor = ""
+            }
+        };
+
+        modalTitulo = $"Cambiar Estado - Movimiento #{mov.Id}";
+        movimientoCambiandoEstado = mov;  // guardar referencia
+
+        mostrarModal = true;
+    }
+
+
+
+    private async Task EditarMovimiento(GetMovimientoDTO mov)
+    {
+        // Cargar tipos (ya lo hacías en Crear)
+        tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos")).Respuesta ?? new();
+        tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new();
+
+        // Crear los campos con valores precargados
+        camposModal = new()
+            {
+                new() { Label = "Monto", Valor = mov.Monto.ToString() },
+                new() { Label = "Descripción", Valor = mov.Descripcion },
+
+                new()
+                {
+                    Label = "Estado del Movimiento",
+                    TipoCampo = MostrarEntidad.TipoCampo.Select,
+                    Opciones = Enum.GetNames(typeof(EstadoMovimientoDto)).ToList(),
+                    Valor = mov.EstadoMovimiento.ToString()
+                },
+
+                new()
+                {
+                    Label = "TipoMovimientoId",
+                    TipoCampo = MostrarEntidad.TipoCampo.Select,
+                    Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
+                    Valor = $"{mov.TipoMovimientoId}|{mov.TipoMovimientoNombre}"
+                },
+
+                new()
+                {
+                    Label = "Tipo De Pago",
+                    TipoCampo = MostrarEntidad.TipoCampo.Select,
+                    Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList(),
+                    Valor = mov.Pagos.Any() ? $"{mov.Pagos.First().TipoPagoId}|{mov.Pagos.First().TipoPagoNombre}" : ""
+                }
+            };
+
+        modalTitulo = $"Editar Movimiento #{mov.Id}";
+        movimientoEditando = mov; // ← Guardamos el movimiento actual
+        mostrarModal = true;
+    }
+
+    private List<MostrarEntidad.CampoModal> CamposPago = new();
+
+    private void ConstruirCamposModalPago()
+    {
+        CamposPago = new()
+        {
+            new MostrarEntidad.CampoModal
+            {
+                Label = "FechaRealizado",
+                Valor = FechaPago.ToString("yyyy-MM-dd HH:mm"),
+                Placeholder = "Fecha",
+                TipoCampo = MostrarEntidad.TipoCampo.Texto
+            },
+
+            new MostrarEntidad.CampoModal
+            {
+                Label = "Monto",
+                Valor = "",
+                Placeholder = "Monto del pago"
+            },
+
+            new MostrarEntidad.CampoModal
+            {
+                Label = "Descripcion",
+                Valor = "",
+                Placeholder = "Descripción (opcional)"
+            },
+
+            new MostrarEntidad.CampoModal
+            {
+                Label = "Tipo De Pago",
+                Valor = "", // o setear a $"{tiposPago.First().Id}|{tiposPago.First().Nombre}" para preseleccionar
+                TipoCampo = MostrarEntidad.TipoCampo.Select,
+                Opciones = tiposPago.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+            },
+
+            new MostrarEntidad.CampoModal
+            {
+                Label = "Saldo Restante",
+                Valor = SaldoPendienteMovimiento.ToString("0.00"),
+                Placeholder = "Saldo restante",
+                TipoCampo = MostrarEntidad.TipoCampo.Texto,
+                SoloLectura = true
+            },
+
+        };
+    }
+
+    private async Task MostrarModalNuevoMovimiento()
+    {
+        if (caja == null)
+        {
+            await swal.FireAsync("Error", "Debes abrir una caja primero.", SweetAlertIcon.Error);
+            return;
+        }
+
+        tiposMovimientos = (await httpServicio.Get<List<GetTipoMovimeintoDTO>>("/TipoMovimientos"))
+            .Respuesta ?? new();
+
+        tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago"))
+            .Respuesta ?? new();
+
+        camposModal = new()
+        {
+            new() { Label = "Monto", Placeholder = "Ej: 1500.00" },
+            new() { Label = "Descripción", Placeholder = "Descripción del movimiento" },
+
+            new()
+            {
+                Label = "TipoMovimientoId",
+                TipoCampo = MostrarEntidad.TipoCampo.Select,
+                Opciones = tiposMovimientos.Select(x => $"{x.Id}|{x.Nombre}").ToList()
+            },
+
+        };
+
+        modalTitulo = "Nuevo Movimiento";
+        mostrarModal = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
+    private DateTime FechaPago { get; set; } = DateTime.Now;
+    private decimal MontoPago { get; set; }
+    private string DescripcionPago { get; set; } = "";
+    private int TipoPagoIdSeleccionado { get; set; }
+    private int MovimientoId { get; set; }
+    private int CajaIdSeleccionada { get; set; }
+    private bool modoPago = false;
+    private decimal SaldoPendienteMovimiento;
+
+
+    private async Task AgregarPago(GetMovimientoDTO mov)
+    {
+        modoPago = true;
+
+        MovimientoId = mov.Id;
+        CajaIdSeleccionada = caja!.Id;
+        SaldoPendienteMovimiento = mov.SaldoPendiente;
+
+        // traer tipos de pago actualizados
+        tiposPago = (await httpServicio.Get<List<TipoPagoDTO>>("/TipoPago")).Respuesta ?? new List<TipoPagoDTO>();
+
+        if (!tiposPago.Any())
+        {
+            await swal.FireAsync("Atención", "No se encontraron tipos de pago. Crea uno o recarga la página.", SweetAlertIcon.Warning);
+            // igual permitir abrir modal si querés, o cancelar:
+            // return;
+        }
+
+        FechaPago = DateTime.Now;
+        MontoPago = SaldoPendienteMovimiento;
+        MontoPago = 0;
+        DescripcionPago = "";
+        TipoPagoIdSeleccionado = 0;
+
+        ConstruirCamposModalPago();
+
+        mostrarModal = false;
+        mostrarModalPago = true;
+    }
+
+
+    private async Task CrearMovimiento(Dictionary<string, string> datos)
+    {
+        //  Validar y parsear monto
+        if (!decimal.TryParse(datos["Monto"], out decimal monto))
+        {
+            await swal.FireAsync("Error", "El monto ingresado no es válido.", SweetAlertIcon.Error);
+            return;
+        }
+
+        //  Validar y parsear tipo de movimiento
+        var tipoMovimientoSplit = datos["TipoMovimientoId"].Split('|');
+        if (tipoMovimientoSplit.Length == 0 || !int.TryParse(tipoMovimientoSplit[0], out int tipoMovimientoId))
+        {
+            await swal.FireAsync("Error", "Debe seleccionar un tipo de movimiento válido.", SweetAlertIcon.Error);
+            return;
+        }
+
+
+        // Crear DTO con valores parseados
+        var dto = new PostMovimientoDTO
+        {
+            Monto = monto,
+            Descripcion = datos["Descripción"],
+            EstadoMovimiento = EstadoMovimientoDto.Pendiente,
+            TipoMovimientoId = tipoMovimientoId,
+            CajaId = caja!.Id
+        };
+
+        // Enviar al backend
+        var resp = await httpServicio.Post<PostMovimientoDTO, GetMovimientoDTO>("/Movimientos", dto);
+
+        if (!resp.Error)
+        {
+            await swal.FireAsync("Éxito", "Movimiento creado correctamente", SweetAlertIcon.Success);
+            await CargarCaja();
+        }
+        else
+        {
+            await swal.FireAsync("Error",
+                await resp.ObtenerErrorAsync(),
+                SweetAlertIcon.Error);
+        }
+    }
+
+    #endregion
+
+    #region Modal Crear Entidad
+    private bool mostrarModal = false;
+    private string modalTitulo = "";
+    private List<MostrarEntidad.CampoModal> camposModal = new();
+
+
+    private void AbrirModalEntidad(string entidad)
+    {
+        modalTitulo = entidad;
+
+        camposModal = entidad switch
+        {
+            "Tipo de Pago" => new()
+                {
+                    new() { Label = "Nombre", Placeholder = "Ej: Tarjeta, Efectivo, Transferencia" }
+                },
+
+            "Tipo de Movimiento" => new()
+                {
+                    new() { Label = "Nombre", Placeholder = "Nombre del movimiento" },
+                    new() { Label = "Descripción", Placeholder = "Opcional" },
+                    new()
+                    {
+                        Label = "Tipo",
+                        TipoCampo = MostrarEntidad.TipoCampo.Select,
+                        Opciones = new List<string> { "Ingreso", "Egreso" }
+                    }
+                },
+
+            _ => new()
+        };
+
+        mostrarModal = true;
+    }
+
+    private async Task OnPagoConfirmado(Dictionary<string, string> datos)
+    {
+        try
+        {
+            // 1️- PARSEOS SEGUROS
+            FechaPago = DateTime.Parse(datos["FechaRealizado"]);
+            MontoPago = decimal.Parse(datos["Monto"]);
+            DescripcionPago = datos.ContainsKey("Descripcion") ? datos["Descripcion"] : "";
+
+            //  VIENE COMO "ID|NOMBRE"
+            TipoPagoIdSeleccionado = int.Parse(datos["Tipo De Pago"].Split('|')[0]);
+
+            // 2️- VALIDACIONES FUNCIONALES
+            if (MontoPago <= 0)
+            {
+                await swal.FireAsync("Error", "El monto del pago debe ser mayor a 0.", SweetAlertIcon.Error);
+                return;
+            }
+
+            if (TipoPagoIdSeleccionado == 0)
+            {
+                await swal.FireAsync("Error", "Debe seleccionar un tipo de pago válido.", SweetAlertIcon.Error);
+                return;
+            }
+
+
+            if (MontoPago > SaldoPendienteMovimiento)
+            {
+                await swal.FireAsync(
+                    "Error",
+                    $"El monto supera el saldo pendiente.\nRestante: ${SaldoPendienteMovimiento}",
+                    SweetAlertIcon.Error);
+
+                return;
+            }
+
+            // 3️- ARMADO FINAL DEL DTO
+            var dto = new PostPagoDTO
+            {
+                FechaRealizado = FechaPago,
+                Monto = MontoPago,
+                Situacion = SituacionPagoDto.Pendiente,
+                Descripcion = string.IsNullOrWhiteSpace(DescripcionPago) ? null : DescripcionPago.Trim(),
+                MovimientoId = MovimientoId,
+                TipoPagoId = TipoPagoIdSeleccionado,
+                CajaId = CajaIdSeleccionada
+            };
+
+
+            // 4️- POST AL BACKEND
+            var resp = await httpServicio.Post("/Pagos", dto);
+
+            if (resp.HttpResponseMessage.IsSuccessStatusCode)
+            {
+                await swal.FireAsync("Éxito", "Pago registrado correctamente", SweetAlertIcon.Success);
+                await CargarCaja();
+            }
+            else
+            {
+                var error = await resp.HttpResponseMessage.Content.ReadAsStringAsync();
+                await swal.FireAsync("Error", error, SweetAlertIcon.Error);
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            await swal.FireAsync("Error", ex.Message, SweetAlertIcon.Error);
+        }
+    }
+
+
+    GetMovimientoDTO? movimientoCambiandoEstado = null;
+
+
+    private async Task OnEntidadCreada(Dictionary<string, string> datos)
+    {
+        if (modoPago)
+        {
+            modoPago = false;
+            await OnPagoConfirmado(datos);
+            return;
+        }
+
+        // - CAMBIAR ESTADO MOVIMIENTO
+        if (movimientoCambiandoEstado != null)
+        {
+            var dto = new PutEstadoMovimientoDTO
+            {
+                EstadoMovimiento = Enum.Parse<EstadoMovimientoDto>(datos["Estado Movimiento"]),
+                Descripcion = string.IsNullOrWhiteSpace(datos["Descripcion"])
+                    ? "Cambio de estado sin descripción"
+                    : datos["Descripcion"].Trim()
+            };
+
+            Console.WriteLine("==== ENVÍO PUT ESTADO MOVIMIENTO ====");
+            Console.WriteLine($"EstadoMovimiento: {dto.EstadoMovimiento}");
+            Console.WriteLine($"Descripcion: '{dto.Descripcion}'");
+            Console.WriteLine("=====================================");
+
+            var resp = await httpServicio.Put<PutEstadoMovimientoDTO, GetMovimientoDTO>(
+                $"/Movimientos/{movimientoCambiandoEstado.Id}/cambiar-estado",
+                dto);
+
+            movimientoCambiandoEstado = null;
+            mostrarModal = false;
+
+            if (!resp.Error)
+                await swal.FireAsync("Éxito", "Estado actualizado correctamente", SweetAlertIcon.Success);
+
+            await CargarCaja();
+            return;
+        }
+
+
+
+        // 🟦 1) ESTAMOS EDITANDO UN MOVIMIENTO
+        if (movimientoEditando != null)
+        {
+            var dto = new PutMovimientoDTO
+            {
+                Id = movimientoEditando.Id,
+                Monto = decimal.Parse(datos["Monto"]),
+                Descripcion = datos["Descripción"],
+                TipoMovimientoId = int.Parse(datos["TipoMovimientoId"].Split('|')[0])
+            };
+
+
+
+            var resp = await httpServicio.Put<PutMovimientoDTO, GetMovimientoDTO>(
+                $"/Movimientos/{movimientoEditando.Id}", dto);
+
+            movimientoEditando = null;      // limpiar modo edición
+            mostrarModal = false;
+
+            if (!resp.Error)
+            {
+                await swal.FireAsync(
+                    "Movimiento actualizado",
+                    "Se guardaron los cambios.",
+                    SweetAlertIcon.Success);
+
+                await CargarCaja();         // refrescar datos
+            }
+            else
+            {
+                await swal.FireAsync(
+                    "Error",
+                    await resp.ObtenerErrorAsync(),
+                    SweetAlertIcon.Error);
+            }
+
+            return;
+        }
+
+
+        // - 2) NUEVO MOVIMIENTO
+        if (modalTitulo == "Nuevo Movimiento")
+        {
+            await CrearMovimiento(datos);
+            mostrarModal = false;
+            return;
+        }
+
+
+        // - 3) NUEVAS ENTIDADES (TIPO PAGO / TIPO MOVIMIENTO)
+        switch (modalTitulo)
+        {
+            case "Tipo de Pago":
+                var dtoPago = new TipoPagoDTO
+                {
+                    Nombre = datos["Nombre"]
+                };
+
+                var respPago =
+                    await httpServicio.Post<TipoPagoDTO, TipoPagoDTO>("/TipoPago", dtoPago);
+
+                if (!respPago.Error)
+                {
+                    await swal.FireAsync(
+                        "Éxito",
+                        $"Tipo de Pago '{respPago.Respuesta!.Nombre}' creado correctamente",
+                        SweetAlertIcon.Success);
+                }
+                break;
+
+
+            case "Tipo de Movimiento":
+                var dtoMov = new PostTipoMovimientoDTO
+                {
+                    Nombre = datos["Nombre"],
+                    Descripcion = datos.ContainsKey("Descripción") ? datos["Descripción"] : null,
+                    Signo = datos["Tipo"] == "Egreso"
+                        ? SignoTipoMovimientoDto.Resta
+                        : SignoTipoMovimientoDto.Suma
+                };
+
+                var respMov =
+                    await httpServicio.Post<PostTipoMovimientoDTO, GetTipoMovimeintoDTO>(
+                        "/TipoMovimientos", dtoMov);
+
+                if (!respMov.Error)
+                {
+                    await swal.FireAsync(
+                        "Éxito",
+                        $"Tipo de Movimiento '{respMov.Respuesta!.Nombre}' creado correctamente",
+                        SweetAlertIcon.Success);
+                }
+                break;
+        }
+
+        // - CERRAR EL MODAL SIEMPRE AL FINAL
+        mostrarModal = false;
+    }
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCaja();
+    }
+
+    private async Task CargarCaja()
+    {
+        var resp = await httpServicio.Get<GetCajaDTO>("Cajas/abierta");
+        var cajaTemp = resp.Error ? null : resp.Respuesta;
+
+        if (cajaTemp != null)
+        {
+            // Observaciones
+            var obsResp = await httpServicio.Get<List<GetObservacionCajaDTO>>(
+                $"Cajas/{cajaTemp.Id}/Observaciones");
+            cajaTemp.Observaciones = obsResp.Error ? new() : obsResp.Respuesta;
+
+            // MOVIMIENTOS
+            var movResp = await httpServicio.Get<List<GetMovimientoDTO>>(
+                $"Movimientos/por-caja/{cajaTemp.Id}");
+
+            cajaTemp.Movimientos = movResp.Error ? new() : movResp.Respuesta;
+        }
+
+        caja = cajaTemp;
+    }
+
+
+    private async Task AbrirCaja()
+    {
+        var resp =
+            await httpServicio.Post<PostCajaDTO, GetCajaDTO>("Cajas/abrir", nuevaCaja);
+
+        if (!resp.Error)
+            caja = resp.Respuesta;
+    }
+
+    private void MostrarCambiarEstado(bool mostrar)
+    {
+        panelCambiarEstado = mostrar;
+        putEstado = new PutEstadoCajaDTO();
+    }
+
+    private async Task CambiarEstado()
+    {
+        if (caja == null)
+            return;
+
+        var resp =
+            await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
+                $"Cajas/{caja.Id}/cambiar-estado", putEstado);
+
+        if (!resp.Error)
+        {
+            panelCambiarEstado = false;
+            await CargarCaja();
+        }
+    }
+
+    private async Task GuardarObservacion(string texto)
+    {
+        var dto = new PostObservacionCajaDTO { Texto = texto };
+
+        await httpServicio.Post<PostObservacionCajaDTO, GetObservacionCajaDTO>(
+            $"Cajas/{caja.Id}/Observaciones", dto);
+
+        await CargarCaja();
+    }
+
+    private async Task ArchivarObservacion(int id)
+    {
+        await httpServicio.Put<object, bool>(
+            $"Cajas/{caja.Id}/Observaciones/Archivados/{id}", null);
+
+        await CargarCaja();
+    }
+
+    private void IrCajaAbierta()
+    {
+        Navigation.NavigateTo("/CajaAbierta");
+    }
 }

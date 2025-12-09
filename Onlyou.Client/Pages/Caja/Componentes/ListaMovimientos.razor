@@ -2,16 +2,24 @@
 
 @if (Movimientos == null)
 {
-    <p>Cargando movimientos...</p>
+    <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 small text-muted">Cargando movimientos...</p>
+    </div>
 }
 else if (!Movimientos.Any())
 {
-    <p class="text-muted">No hay movimientos registrados en esta caja.</p>
+    <div class="text-center py-5">
+        <i class="bi bi-receipt fs-4 text-muted mb-3"></i>
+        <p class="text-muted">No hay movimientos registrados</p>
+    </div>
 }
 else
 {
-    <div class="movimientos-container">
-        @foreach (var mov in Movimientos)
+    <div class="movimientos-lista">
+        @foreach (var mov in Movimientos.OrderByDescending(m => m.FechaDelMovimiento))
         {
             <ItemMovimiento Movimiento="mov"
                             OnEditar="OnEditar"
@@ -21,6 +29,32 @@ else
         }
     </div>
 }
+
+<style>
+    .movimientos-lista {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+        .movimientos-lista::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .movimientos-lista::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .movimientos-lista::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+            .movimientos-lista::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+</style>
 
 @code {
     [Parameter] public List<GetMovimientoDTO> Movimientos { get; set; } = new();
