@@ -4,6 +4,7 @@
 @inject IHttpServicios http
 @inject NavigationManager nav
 @inject SweetAlertService swal
+@attribute [Authorize(Roles = "Admin")]
 
 <h3>Productos Archivados</h3>
 

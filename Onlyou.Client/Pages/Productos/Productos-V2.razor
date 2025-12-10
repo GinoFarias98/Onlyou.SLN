@@ -9,6 +9,7 @@
 @inject IHttpServicios http
 @inject SweetAlertService swal
 @inject NavigationManager nav
+@attribute [Authorize(Roles = "Admin")]
 
 
 <style>

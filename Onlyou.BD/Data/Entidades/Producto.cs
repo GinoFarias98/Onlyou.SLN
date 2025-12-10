@@ -53,7 +53,7 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha de última modificación es obligatoria.")]
         [Display(Name = "Fecha última modificación",
                  Description = "Fecha en la que se modificó el producto por última vez.")]
-        public DateTime FecUltimaModificacion { get; set; } = DateTime.UtcNow;
+        public DateTime FecUltimaModificacion { get; set; } = DateTime.Now;
 
         // Costo --------------------------------------------------------------------
 

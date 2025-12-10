@@ -15,7 +15,7 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha de generación es obligatoria.")]
         [Display(Name = "Fecha de generación",
                  Description = "Fecha en la que se generó el pedido.")]
-        public DateTime FechaGenerado { get; set; } = DateTime.UtcNow;
+        public DateTime FechaGenerado { get; set; } = DateTime.Now;
 
 
 
@@ -37,7 +37,7 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha de pedido al proveedor es obligatoria.")]
         [Display(Name = "Fecha de pedido al proveedor",
                  Description = "Fecha en la que se realizó el pedido al proveedor.")]
-        public DateTime FechaPedidoAProveedor { get; set; }
+        public DateTime FechaPedidoAProveedor { get; set; } = DateTime.Now;
 
 
 
@@ -157,6 +157,10 @@ namespace Onlyou.BD.Data.Entidades
         [Display(Name = "Movimientos de caja",
                  Description = "Movimientos de caja asociados a este pedido.")]
         public ICollection<Movimiento> Movimientos { get; set; } = new List<Movimiento>();
+
+
+        public ICollection<ObservacionPedido> Observaciones { get; set; } = new List<ObservacionPedido>();
+
 
 
     }

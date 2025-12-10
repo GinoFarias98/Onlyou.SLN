@@ -1,0 +1,56 @@
+﻿.obs-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pill {
+    background: #f7faff;
+    border: 1px solid #cfdfff;
+    padding: 8px 14px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: background 0.25s, transform 0.1s;
+}
+
+    .pill:hover {
+        background: #e8f1ff;
+        transform: translateY(-1px);
+    }
+
+.pill-text {
+    font-size: 14px;
+    color: #333;
+}
+
+/* Botón de cerrar moderno, redondo, sin estilo feo */
+.pill-close {
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: #d7e3ff;
+    color: #2a4a78;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+    .pill-close:hover {
+        background: #ffdddd;
+        color: #a30000;
+    }
+
+
+
+.pill {
+    background: red !important;
+}

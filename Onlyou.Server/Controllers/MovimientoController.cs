@@ -15,17 +15,20 @@ namespace Onlyou.Server.Controllers
         private readonly IRepositorioMovimiento repositorioMovimiento;
         private readonly IRepositorioTipoMovimiento repositorioTipoMovimiento;
         private readonly IRepositorioPago repositorioPago;
+        private readonly IRepositorioCaja repositorioCaja;
         private readonly IMapper mapper;
 
         public MovimientoController(
             IRepositorioMovimiento repositorioMovimiento,
             IRepositorioTipoMovimiento repositorioTipoMovimiento,
             IRepositorioPago repositorioPago,
+            IRepositorioCaja repositorioCaja,
             IMapper mapper)
         {
             this.repositorioMovimiento = repositorioMovimiento;
             this.repositorioTipoMovimiento = repositorioTipoMovimiento;
             this.repositorioPago = repositorioPago;
+            this.repositorioCaja = repositorioCaja;
             this.mapper = mapper;
         }
 
@@ -179,6 +182,51 @@ namespace Onlyou.Server.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpPost("DesdePedido")]
+        public async Task<ActionResult<GetMovimientoDTO>> CrearDesdePedido(PostMovimientoDesdePedidoDTO dto)
+        {
+            try
+            {
+                var caja = await repositorioCaja.SelectCajaAbiertaAsync();
+                if (caja == null)
+                    return Conflict("No hay una caja abierta");
+
+                // 🔥 Validar si ya existe uno pendiente/parcial
+                var movimientos = await repositorioMovimiento.SelectMovimientosPorPedidoIdAsync(dto.PedidoId);
+
+                if (movimientos.Any(m =>
+                    m.EstadoMovimiento == EstadoMovimiento.Pendiente ||
+                    m.EstadoMovimiento == EstadoMovimiento.Parcial))
+                {
+                    return Conflict("El pedido ya tiene un movimiento pendiente o parcial.");
+                }
+
+                var movimiento = new Movimiento
+                {
+                    CajaId = caja.Id,
+                    PedidoId = dto.PedidoId,
+                    TipoMovimientoId = dto.TipoMovimientoId,
+                    Monto = dto.Monto,
+                    Descripcion = dto.Descripcion ?? $"Venta Pedido #{dto.PedidoId}",
+                    FechaDelMovimiento = dto.FechaDelMovimiento ?? DateTime.Now,
+                    EstadoMovimiento = EstadoMovimiento.Pendiente
+                };
+
+                await repositorioMovimiento.Insert(movimiento);
+                await repositorioCaja.RecalcularSaldoAsync(caja.Id);
+
+                var movDTO = mapper.Map<GetMovimientoDTO>(movimiento);
+                return Ok(movDTO);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+
 
         // ============================================================
         // PUT: Editar Movimiento + Actualizar estado según pagos

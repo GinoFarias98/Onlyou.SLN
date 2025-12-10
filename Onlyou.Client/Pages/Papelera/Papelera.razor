@@ -1,4 +1,5 @@
 ﻿@page "/Papelera"
+@using Microsoft.AspNetCore.Authorization
 @using Onlyou.Shared.DTOS.Categorias
 @using Onlyou.Shared.DTOS.Color
 @using Onlyou.Shared.DTOS.Producto
@@ -7,7 +8,7 @@
 @using Onlyou.Shared.DTOS.TipoProducto
 @inject IHttpServicios http
 @inject NavigationManager nav
-
+@attribute [Authorize(Roles = "Admin")]
 <h3>Papelera</h3>
 
 @if (entidadesArchivadas.Any())

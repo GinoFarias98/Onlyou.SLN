@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Onlyou.BD.Data;
 using Onlyou.BD.Data.Entidades;
+using Onlyou.Client.Autorizacion;
 using Onlyou.Client.Servicios;
 using Onlyou.Server.Helpers;
 using Onlyou.Server.Repositorio;
@@ -98,10 +100,16 @@ builder.Services.AddScoped<IRepositorioCaja, RepositorioCaja>();
 builder.Services.AddScoped<IRepositorioObservacionCaja, RepositorioObservacionCaja>();
 builder.Services.AddScoped<IRepositorioTipoPago, RepositorioTipoPago>();
 builder.Services.AddScoped<IRepositorioObservacionPago, RepositorioObservacionPago>();
+builder.Services.AddScoped<IRepositorioObservacionPedido, RepositorioObservacionPedido>();
+
 
 builder.Services.AddScoped<ICajaService, CajaService>();
 builder.Services.AddScoped<IMovimientoService, MovimientoService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
+
+
+
+
 
 var app = builder.Build();
 

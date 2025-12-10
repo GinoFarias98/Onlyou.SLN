@@ -17,5 +17,6 @@ namespace Onlyou.Server.Repositorio
         Task RecalcularEstadoMovimientoPorPagosAsync(int movimientoId);
         Task RegistrarImpactoEnCajaPorPagoAsync(Movimiento movimiento, decimal monto);
         Task<int> InsertMovimientoConObservacionAsync(Movimiento entidad);
+        Task<List<Movimiento>> SelectMovimientosPorPedidoIdAsync(int pedidoId);
     }
 }

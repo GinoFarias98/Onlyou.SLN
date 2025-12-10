@@ -16,6 +16,9 @@ namespace Onlyou.Server.Repositorio
             this.mapper = mapper;
         }
 
+
+
+
         // Obtener pedido por ID incluyendo items y movimientos
         public async Task<Pedido?> SelectPedidoPorIdAsync(int pedidoId)
         {

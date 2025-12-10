@@ -475,6 +475,35 @@ namespace Onlyou.BD.Migrations
                     b.ToTable("ObservacionPagos");
                 });
 
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionPedido", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PedidoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PedidoId");
+
+                    b.ToTable("ObservacionPedidos");
+                });
+
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
                 {
                     b.Property<int>("Id")
@@ -1021,6 +1050,17 @@ namespace Onlyou.BD.Migrations
                     b.Navigation("Pago");
                 });
 
+            modelBuilder.Entity("Onlyou.BD.Data.Entidades.ObservacionPedido", b =>
+                {
+                    b.HasOne("Onlyou.BD.Data.Entidades.Pedido", "Pedido")
+                        .WithMany("Observaciones")
+                        .HasForeignKey("PedidoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pedido");
+                });
+
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pago", b =>
                 {
                     b.HasOne("Onlyou.BD.Data.Entidades.Caja", "Caja")
@@ -1198,6 +1238,8 @@ namespace Onlyou.BD.Migrations
             modelBuilder.Entity("Onlyou.BD.Data.Entidades.Pedido", b =>
                 {
                     b.Navigation("Movimientos");
+
+                    b.Navigation("Observaciones");
 
                     b.Navigation("PedidoItems");
                 });

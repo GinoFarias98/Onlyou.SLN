@@ -1,10 +1,12 @@
 ﻿@page "/Pedidos1"
 @using Onlyou.Shared.DTOS.Pedidos
 @using Onlyou.Shared.DTOS.Pedidos.EstadoPedido
+
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject SweetAlertService Swal
+@attribute [Authorize(Roles = "Admin")]
 
 <style>
     /* Estilos para las nuevas clases del sistema de filtros */

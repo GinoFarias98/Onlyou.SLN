@@ -1,5 +1,8 @@
 ﻿@page "/pedidos"
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.JSInterop
+@attribute [Authorize(Roles = "Admin")]
+
 
 <div class="content">
     <!-- Header -->

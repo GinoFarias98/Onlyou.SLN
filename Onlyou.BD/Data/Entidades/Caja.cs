@@ -16,13 +16,13 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha de inicio es obligatoria.")]
         [Display(Name = "Fecha de inicio",
                  Description = "Fecha en que se abrió o inició la caja.")]
-        public DateTime FechaInicio { get; set; } = DateTime.UtcNow;
+        public DateTime FechaInicio { get; set; } = DateTime.Now;
 
         // Fecha de fin ---------------------------------------------------------------
 
         [Display(Name = "Fecha de fin",
                  Description = "Fecha en que se cerró o finalizó la caja.")]
-        public DateTime? FechaFin { get; set; }
+        public DateTime? FechaFin { get; set; } = DateTime.Now;
 
         // Saldo inicial --------------------------------------------------------------
 

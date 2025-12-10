@@ -22,7 +22,7 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha del movimiento es obligatoria.")]
         [Display(Name = "Fecha del movimiento",
                  Description = "Indica el día en que se registró el ingreso o egreso.")]
-        public DateTime FechaDelMovimiento { get; set; }
+        public DateTime FechaDelMovimiento { get; set; } = DateTime.Now;
 
         // Monto ---------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 @inject IHttpServicios http
 @inject IJSRuntime JS
 @inject SweetAlertService swal
+@attribute [Authorize(Roles = "Admin")]
 
 <div class="content">
     <!-- Header -->

@@ -20,6 +20,6 @@ namespace Onlyou.BD.Data.Entidades
         [MaxLength(500)]
         public string Texto { get; set; } = string.Empty;
 
-        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
     }
 }

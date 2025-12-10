@@ -11,6 +11,8 @@
 @inject IHttpServicios http
 @inject SweetAlertService swal
 @inject NavigationManager nav
+@attribute [Authorize(Roles = "Admin")]
+
 
 <!-- Header mejorado con gradiente -->
 <style>

@@ -22,7 +22,7 @@ namespace Onlyou.BD.Data.Entidades
         [Required(ErrorMessage = "La fecha del pago es obligatoria.")]
         [Display(Name = "Fecha realizado",
                  Description = "Día en el que se efectuó el pago.")]
-        public DateTime FechaRealizado { get; set; }
+        public DateTime FechaRealizado { get; set; } = DateTime.Now;
 
         // Monto ----------------------------------------------------------------------
 

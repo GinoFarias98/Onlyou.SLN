@@ -2,6 +2,7 @@
 @using Onlyou.Shared.DTOS.Color
 @inject IHttpServicios http
 @inject SweetAlertService swal
+@attribute [Authorize(Roles = "Admin")]
 
 <div class="content">
     <!-- Header -->

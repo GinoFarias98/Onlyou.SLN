@@ -17,6 +17,7 @@ namespace Onlyou.Server.Controllers
         private readonly IRepositorioPedido _repoPedido;
         private readonly IRepositorioPedidoItem _repoPedidoItem;
         private readonly IRepositorioEstadoPedido _repoEstadoPedido;
+        private readonly IRepositorioMovimiento repositorioMovimiento;
         private readonly IMapper _mapper;
         private readonly Context _context;
 
@@ -24,12 +25,14 @@ namespace Onlyou.Server.Controllers
             IRepositorioPedido repoPedido,
             IRepositorioPedidoItem repoPedidoItem,
             IRepositorioEstadoPedido repoEstadoPedido,
+            IRepositorioMovimiento repositorioMovimiento,
             IMapper mapper,
             Context context)
         {
             _repoPedido = repoPedido;
             _repoPedidoItem = repoPedidoItem;
             _repoEstadoPedido = repoEstadoPedido;
+            this.repositorioMovimiento = repositorioMovimiento;
             _mapper = mapper;
             _context = context;
         }
@@ -93,7 +96,13 @@ namespace Onlyou.Server.Controllers
                     Console.WriteLine($"   ProveedorId: {item.Producto?.ProveedorId}");
                     Console.WriteLine($"   Proveedor es null: {item.Producto?.Proveedor == null}");
                 }
+                var movimientos = await repositorioMovimiento.SelectMovimientosPorPedidoIdAsync(pedido.Id);
 
+                foreach (var m in movimientos)
+                {
+                    if (!pedido.Movimientos.Contains(m))
+                        pedido.Movimientos.Add(m);
+                }
                 var pedidoDTO = _mapper.Map<GetPedidosDTO>(pedido);
 
                 // DEBUG: Verificar datos DESPUÉS del mapeo

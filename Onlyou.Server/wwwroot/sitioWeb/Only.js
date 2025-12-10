@@ -6,6 +6,7 @@ const BACKEND_URL = window.location.origin;
 
 const API_PRODUCTOS = `${BACKEND_URL}/Productos/ProductosPublicados`;
 const API_CATEGORIAS = `${BACKEND_URL}/api/Categorias`;
+const API_TIPOPAGO = `${BACKEND_URL}/TipoPago`;
 
 const BACKEND_CONFIG = {
     URL: BACKEND_URL,
@@ -895,39 +896,64 @@ function showCheckout() {
 function hideCheckoutModal() {
     checkoutModal.classList.add('hidden');
 }
+const dniInput = document.getElementById('customerDNI');
+
+// Formateo mientras escribe
+dniInput.addEventListener('input', (e) => {
+    let value = e.target.value;
+
+    // Quitar todo lo que no sea número
+    value = value.replace(/\D/g, '');
+
+    // Limitar a 8 dígitos
+    if (value.length > 8) value = value.slice(0, 8);
+
+    // Aplicar formato 12.345.678
+    if (value.length > 5) {
+        value = value.replace(/(\d{2})(\d{3})(\d{0,3})/, "$1.$2.$3");
+    } else if (value.length > 2) {
+        value = value.replace(/(\d{2})(\d{0,3})/, "$1.$2");
+    }
+
+    e.target.value = value;
+});
+
 async function processOrder(e) {
     e.preventDefault();
-    
+
     const name = document.getElementById('customerName').value;
     const phone = document.getElementById('customerPhone').value;
-    const dni = document.getElementById('customerDNI').value;
+
+    const dniFormateado = dniInput.value;   // EJ: "12.345.678"
+    const dniLimpio = dniFormateado.replace(/\D/g, ""); // EJ: "12345678"
+
     const shippingOption = document.getElementById('shippingOption').value;
     const paymentMethod = document.getElementById('paymentMethod').value;
-    
-    let address = '';
-    let city = '';
-    
-    if (shippingOption === 'envio') {
+
+    // Validar formato
+    const dniRegex = /^\d{2}\.\d{3}\.\d{3}$/;
+    if (!dniRegex.test(dniFormateado)) {
+        mostrarNotificacion('DNI inválido', 'Debe ingresarse en formato 12.345.678', 'advertencia');
+        return;
+    }
+
+    // Validaciones envío...
+    let address = "";
+    let city = "";
+    if (shippingOption === "envio") {
         address = document.getElementById('customerAddress').value;
         city = document.getElementById('customerCity').value;
-        
         if (!address || !city) {
             mostrarNotificacion('Datos incompletos', 'Por favor completa la dirección y ciudad para el envío', 'advertencia');
             return;
         }
     }
-    
-    // Validar DNI
-    if (!dni) {
-        mostrarNotificacion('DNI requerido', 'Por favor ingresa tu DNI', 'advertencia');
-        return;
-    }
 
-    // Construir objeto de datos del pedido
+    // Aquí enviamos el DNI como número limpio
     const pedidoData = {
         nombre: name,
         telefono: phone,
-        dni: dni,
+        dni: parseInt(dniLimpio),   // 👉 Entra perfecto al backend como INT
         envio: shippingOption,
         direccion: address,
         ciudad: city,
@@ -937,19 +963,13 @@ async function processOrder(e) {
         idPedido: generarIdUnico()
     };
 
-    // 1. Enviar pedido al panel administrativo
     const enviadoAlPanel = await enviarPedidoAlPanel(pedidoData);
-    
+
     if (enviadoAlPanel) {
-        // 2. Redirigir a WhatsApp
         redirigirAWhatsApp(pedidoData);
-        
-        // 3. Limpiar carrito
         cart = [];
         updateCartCount();
         hideCheckoutModal();
-        
-        // 4. Mostrar notificación de éxito
         mostrarNotificacion('¡Pedido enviado!', 'Te redirigimos a WhatsApp para completar la compra', 'exito');
     } else {
         mostrarNotificacion('Error', 'No se pudo enviar el pedido. Revise la info cargada e intente nuevamente.', 'error');
@@ -1305,7 +1325,6 @@ function construirMensajeWhatsApp(pedidoData) {
     }
     
     // ID del pedido
-    message += `\n*🆔 ID de Pedido:* ${pedidoData.idPedido || 'N/A'}\n\n`;
     message += `¡Gracias por tu compra! 💕\n`;
     message += `Te contactaremos pronto para confirmar tu pedido.`;
     
@@ -1775,6 +1794,37 @@ function verificarEstructuraBackend() {
     
     console.log('=== FIN VERIFICACIÓN ===');
 }
+
+
+
+// Forma de TipoPago
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const select = document.getElementById("paymentMethod");
+
+    try {
+        const response = await fetch(API_TIPOPAGO); // tu endpoint GET
+        if (!response.ok) throw new Error("Error al obtener tipos de pago");
+
+        const tiposPago = await response.json();
+
+        tiposPago.forEach(tp => {
+            const option = document.createElement("option");
+            option.value = tp.id;        // o tp.nombre si preferís
+            option.textContent = tp.nombre;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error cargando formas de pago:", error);
+    }
+});
+
+
+
+//
+
+
 
 // =============================================
 // FUNCIÓN DE NOTIFICACIÓN ELEGANTE

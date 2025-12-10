@@ -12,8 +12,8 @@ namespace Onlyou.Shared.DTOS.Caja
     public class GetCajaDTO
     {
         public int Id { get; set; }
-        public DateTime FechaInicio { get; set; }
-        public DateTime? FechaFin { get; set; }
+        public DateTime FechaInicio { get; set; } = DateTime.Now;
+        public DateTime? FechaFin { get; set; } = DateTime.Now;
         public decimal SaldoInicial { get; set; }
         public EstadoCajaDto EstadoCaja { get; set; }
         public bool Estado { get; set; }

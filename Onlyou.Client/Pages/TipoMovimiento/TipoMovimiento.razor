@@ -3,6 +3,7 @@
 @using Onlyou.Shared.Enums
 @inject IHttpServicios http
 @inject SweetAlertService swal
+@attribute [Authorize(Roles = "Admin")]
 
 <div class="content">
     <!-- Header -->

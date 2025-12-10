@@ -1,4 +1,6 @@
-﻿using Onlyou.Shared.DTOS.Pedidos.PedidoItem;
+﻿using Onlyou.Shared.DTOS.Movimiento;
+using Onlyou.Shared.DTOS.ObservacionPedido;
+using Onlyou.Shared.DTOS.Pedidos.PedidoItem;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -69,5 +71,13 @@ namespace Onlyou.Shared.DTOS.Pedidos
         [Display(Name = "Items del pedido")]
         public List<GetPedidoItemDTO> PedidoItems { get; set; } = new List<GetPedidoItemDTO>();
         //public List<PedidoItemconProveedorDTO> PedidoItemsconProveedor { get; set; } = new List<PedidoItemconProveedorDTO>();
+
+
+        // observaciones 
+        public List<GetObservacionPedidoDTO>? Observaciones { get; set; }
+
+        public List<GetMovimientoDTO>? Movimientos { get; set; }
+
+
     }
 }

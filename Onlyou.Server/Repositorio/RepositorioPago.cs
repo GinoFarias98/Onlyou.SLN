@@ -118,72 +118,76 @@ namespace Onlyou.Server.Repositorio
 
         public async Task<Pago> RegistrarPagoConImpactoAsync(Pago pagoNuevo)
         {
-            try
+            // 1️⃣ Traer movimiento con relaciones
+            var movimiento = await context.Movimientos
+                .Include(m => m.Pagos)
+                .Include(m => m.TipoMovimiento)
+                .FirstOrDefaultAsync(m => m.Id == pagoNuevo.MovimientoId);
+
+            if (movimiento == null)
+                throw new InvalidOperationException("El movimiento no existe.");
+
+            // 2️⃣ Validar caja habilitada (usa la caja del movimiento)
+            var caja = await context.Cajas
+                .FirstOrDefaultAsync(c => c.Id == movimiento.CajaId);
+
+            if (caja == null)
+                throw new InvalidOperationException("La caja del movimiento no existe.");
+
+            await repositorioCaja.ValidarCajaHabilitadaParaOperar(movimiento.CajaId);
+
+            // 3️⃣ Validar que no se pague de más sobre el movimiento
+            var totalPagado = movimiento.Pagos
+                .Where(p => p.Estado && p.Situacion != Situacion.Anulado)
+                .Sum(p => p.Monto);
+
+            if (totalPagado + pagoNuevo.Monto > Math.Abs(movimiento.Monto))
+                throw new InvalidOperationException("El pago supera el total del movimiento.");
+
+            // 4️⃣ VALIDACIÓN CRUCIAL: verificar que haya saldo suficiente en caja para egresos
+            if (movimiento.TipoMovimiento.signo == Signo.Resta)
             {
-                // 1️⃣ Traer movimiento con relaciones
-                var movimiento = await context.Movimientos
-                    .Include(m => m.Pagos)
-                    .Include(m => m.TipoMovimiento)
-                    .FirstOrDefaultAsync(m => m.Id == pagoNuevo.MovimientoId);
-
-                if (movimiento == null)
-                    throw new InvalidOperationException("El movimiento no existe.");
-
-                // 2️⃣ Validar caja habilitada (usa la caja del movimiento, NO la del pago enviado)
-                await repositorioCaja.ValidarCajaHabilitadaParaOperar(movimiento.CajaId);
-
-                // 3️⃣ Validar que no se pague de más
-                var totalPagado = movimiento.Pagos
-                    .Where(p => p.Estado && p.Situacion != Situacion.Anulado)
-                    .Sum(p => p.Monto);
-
-                if (totalPagado + pagoNuevo.Monto > Math.Abs(movimiento.Monto))
-                    throw new InvalidOperationException("El pago supera el total del movimiento.");
-
-                // 4️⃣ Crear el pago
-                pagoNuevo.FechaRealizado = DateTime.UtcNow;
-                pagoNuevo.CajaId = movimiento.CajaId; // ✅ SIEMPRE impacta la caja del movimiento
-
-                pagoNuevo.Situacion =
-                    totalPagado + pagoNuevo.Monto == Math.Abs(movimiento.Monto)
-                        ? Situacion.Completo
-                        : Situacion.Parcial;
-
-                await context.Pagos.AddAsync(pagoNuevo);
-
-                // 5️⃣ Impactar el saldo de caja según signo del movimiento
-                await repositorioMovimiento.RegistrarImpactoEnCajaPorPagoAsync(
-                    movimiento,
-                    pagoNuevo.Monto
-                );
-
-                // 6️⃣ Recalcular el estado del movimiento por pagos
-                await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(movimiento.Id);
-
-                // ✅ 7️⃣ REGISTRAR OBSERVACIÓN EN CAJA
-                var caja = await context.Cajas
-                    .Include(c => c.Observaciones)
-                    .FirstAsync(c => c.Id == movimiento.CajaId);
-
-                var tipo = movimiento.TipoMovimiento?.Nombre ?? "Movimiento";
-
-                caja.Observaciones.Add(new ObservacionCaja
-                {
-                    Texto = $"Pago registrado: ${pagoNuevo.Monto} para {tipo} (Movimiento #{movimiento.Id}).",
-                    FechaCreacion = DateTime.UtcNow
-                });
-
-                // 8️⃣ Guardar TODO junto
-                await context.SaveChangesAsync();
-
-                return pagoNuevo;
+                var saldoActualCaja = await repositorioCaja.RecalcularSaldoAsync(caja.Id); // recalcula saldo real
+                if (saldoActualCaja.SaldoActual < pagoNuevo.Monto)
+                    throw new InvalidOperationException(
+                        $"No hay saldo suficiente en la caja para realizar este egreso. Saldo actual: {saldoActualCaja.SaldoActual}");
             }
-            catch (Exception ex)
+
+            // 5️⃣ Crear el pago
+            pagoNuevo.FechaRealizado = DateTime.UtcNow;
+            pagoNuevo.CajaId = movimiento.CajaId;
+
+            pagoNuevo.Situacion =
+                totalPagado + pagoNuevo.Monto == Math.Abs(movimiento.Monto)
+                    ? Situacion.Completo
+                    : Situacion.Parcial;
+
+            await context.Pagos.AddAsync(pagoNuevo);
+
+            // 6️⃣ Impactar el saldo de caja según signo del movimiento
+            await repositorioMovimiento.RegistrarImpactoEnCajaPorPagoAsync(
+                movimiento,
+                pagoNuevo.Monto
+            );
+
+            // 7️⃣ Recalcular el estado del movimiento por pagos
+            await repositorioMovimiento.RecalcularEstadoMovimientoPorPagosAsync(movimiento.Id);
+
+            // 8️⃣ Registrar observación en caja
+            var tipo = movimiento.TipoMovimiento?.Nombre ?? "Movimiento";
+
+            caja.Observaciones.Add(new ObservacionCaja
             {
-                ImprimirError(ex);
-                throw;
-            }
+                Texto = $"Pago registrado: ${pagoNuevo.Monto} para {tipo} (Movimiento #{movimiento.Id}).",
+                FechaCreacion = DateTime.UtcNow
+            });
+
+            // 9️⃣ Guardar todo
+            await context.SaveChangesAsync();
+
+            return pagoNuevo;
         }
+
 
 
 

@@ -69,6 +69,7 @@ namespace Onlyou.Server.Controllers
                 if (pago == null)
                     return BadRequest($"No se encontró un Pago con ID '{id}'");
 
+
                 var pagoDTO = mapper.Map<GetPagoDTO>(pago);
                 return Ok(pagoDTO);
             }

@@ -8,6 +8,7 @@ using Onlyou.Shared.DTOS.Marca;
 using Onlyou.Shared.DTOS.Movimiento;
 using Onlyou.Shared.DTOS.ObservacionCaja;
 using Onlyou.Shared.DTOS.ObservacionPago;
+using Onlyou.Shared.DTOS.ObservacionPedido;
 using Onlyou.Shared.DTOS.Pago;
 using Onlyou.Shared.DTOS.Pedidos;
 using Onlyou.Shared.DTOS.Pedidos.EstadoPedido;
@@ -308,6 +309,12 @@ namespace Onlyou.Server.Helpers
             CreateMap<PostObservacionPagoDTO, ObservacionPago>();
 
 
+            // Obs de pedido
+
+            CreateMap<ObservacionPedido, GetObservacionPedidoDTO>();
+            CreateMap<PostObservacionPedidoDTO, ObservacionPedido>(); // opcional
+            CreateMap<Pedido, GetPedidosDTO>()
+                .ForMember(d => d.Observaciones, o => o.MapFrom(s => s.Observaciones));
 
         }
     }

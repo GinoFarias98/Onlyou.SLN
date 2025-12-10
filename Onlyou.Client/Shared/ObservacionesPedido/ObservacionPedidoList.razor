@@ -1,0 +1,22 @@
+﻿@using Onlyou.Shared.DTOS.ObservacionPedido
+<div class="obs-container">
+    @foreach (var o in Observaciones)
+    {
+        <div class="pill">
+            <span class="pill-text">
+                <b>@o.FechaCreacion.ToString("dd/MM HH:mm"):</b> @o.Texto
+            </span>
+
+            <button class="pill-close"
+                    title="Archivar"
+                    @onclick="() => OnArchivar.InvokeAsync(o.Id)">
+                ×
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<GetObservacionPedidoDTO> Observaciones { get; set; } = new();
+    [Parameter] public EventCallback<int> OnArchivar { get; set; }
+}

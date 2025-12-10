@@ -19,6 +19,16 @@ namespace Onlyou.Server.Repositorio
             this.repositorioCaja = repositorioCaja;
         }
 
+
+        public async Task<List<Movimiento>> SelectMovimientosPorPedidoIdAsync(int pedidoId)
+        {
+            return await context.Movimientos
+                .Where(m => m.PedidoId == pedidoId)
+                .Include(m => m.Pagos)
+                .ToListAsync();
+        }
+
+
         public async Task<Movimiento> SelectMovimientoPorIdAsync(int idMovimiento)
         {
             try
@@ -227,6 +237,7 @@ namespace Onlyou.Server.Repositorio
         {
             var movimiento = await context.Movimientos
                 .Include(m => m.Pagos)
+                .Include(m => m.Pedido)
                 .FirstOrDefaultAsync(m => m.Id == movimientoId);
 
             if (movimiento == null)
@@ -244,6 +255,16 @@ namespace Onlyou.Server.Repositorio
                 movimiento.EstadoMovimiento = EstadoMovimiento.Parcial;
             else
                 movimiento.EstadoMovimiento = EstadoMovimiento.Pagado;
+
+            if (movimiento.Pedido != null)
+            {
+                if (totalPagado == 0)
+                    movimiento.Pedido.EstadoPago = EstadoPago.NoPagado;
+                else if (totalPagado < totalMovimiento)
+                    movimiento.Pedido.EstadoPago = EstadoPago.Parcial;
+                else
+                    movimiento.Pedido.EstadoPago = EstadoPago.Pagado;
+            }
 
             await context.SaveChangesAsync();
 
