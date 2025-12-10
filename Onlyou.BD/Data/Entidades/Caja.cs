@@ -22,7 +22,7 @@ namespace Onlyou.BD.Data.Entidades
 
         [Display(Name = "Fecha de fin",
                  Description = "Fecha en que se cerró o finalizó la caja.")]
-        public DateTime? FechaFin { get; set; } = DateTime.Now;
+        public DateTime? FechaFin { get; set; }
 
         // Saldo inicial --------------------------------------------------------------
 
