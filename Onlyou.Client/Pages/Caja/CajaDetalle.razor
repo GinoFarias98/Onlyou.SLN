@@ -2,11 +2,12 @@
 @inject IHttpServicios httpServicio
 @inject NavigationManager Navigation
 @inject SweetAlertService swal
+@using Microsoft.AspNetCore.Authorization
 @using Onlyou.Shared.DTOS.Caja
 @using Onlyou.Shared.DTOS.Movimiento
 @using Onlyou.Shared.DTOS.ObservacionCaja
 @using Onlyou.Shared.Enums
-
+@attribute [Authorize(Roles = "Admin")] 
 <style>
     /* ===================== DETALLE DE CAJA ===================== */
     .detalle-container {
@@ -383,15 +384,20 @@
                 </button>
             </div>
 
-            <!-- Grid de información -->
             @{
-                var ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => x.Monto) ?? 0;
-                var egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => x.Monto) ?? 0;
-                var saldoNeto = ingresos + egresos;
-                var saldoFinal = caja.SaldoActual.ToString("N2");
+                decimal ingresos = caja.Movimientos?.Where(x => x.Monto > 0)
+                .Sum(x => x.Monto) ?? 0m;
+
+                decimal egresos = caja.Movimientos?.Where(x => x.Monto < 0)
+                .Sum(x => x.Monto) ?? 0m;
+
+                decimal saldoNeto = ingresos + egresos;
+
+                decimal saldoFinal = caja.SaldoActual; // decimal simple, no formateado acá
             }
 
             <div class="info-grid">
+
                 <div class="info-card">
                     <div class="info-label">Saldo Inicial</div>
                     <div class="info-value">$@caja.SaldoInicial.ToString("N2")</div>
@@ -416,15 +422,16 @@
 
                 <div class="info-card">
                     <div class="info-label">Saldo Final</div>
-                    <div class="info-value">@($"${saldoFinal:N2}")</div>
+                    <div class="info-value">$@saldoFinal.ToString("N2")</div>
                 </div>
-
 
                 <div class="info-card">
                     <div class="info-label">Movimientos</div>
-                    <div class="info-value">@caja.Movimientos?.Count() ?? 0</div>
+                    <div class="info-value">@((caja.Movimientos?.Count()) ?? 0)</div>
                 </div>
+
             </div>
+
 
             <!-- Información adicional -->
             <div class="row mt-3">
@@ -457,11 +464,11 @@
             <div class="tabs-header">
                 <button class="tab-btn @(tabActivo == 1 ? "active" : "")" @onclick="() => CambiarTab(1)">
                     <i class="bi bi-arrow-left-right me-2"></i>
-                    Movimientos (@caja.Movimientos?.Count() ?? 0)
+                    Movimientos @((caja.Movimientos?.Count()) ?? 0)
                 </button>
                 <button class="tab-btn @(tabActivo == 2 ? "active" : "")" @onclick="() => CambiarTab(2)">
                     <i class="bi bi-chat-left-text me-2"></i>
-                    Observaciones (@caja.Observaciones?.Count() ?? 0)
+                    Observaciones @((@caja.Observaciones?.Count())?? 0)
                 </button>
                 <button class="tab-btn @(tabActivo == 3 ? "active" : "")" @onclick="() => CambiarTab(3)">
                     <i class="bi bi-graph-up me-2"></i>

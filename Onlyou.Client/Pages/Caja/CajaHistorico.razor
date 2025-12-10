@@ -2,11 +2,12 @@
 @inject IHttpServicios httpServicio
 @inject NavigationManager Navigation
 @inject SweetAlertService swal
+@using Microsoft.AspNetCore.Authorization
 @using Onlyou.Shared.DTOS.Caja
 @using Onlyou.Shared.DTOS.Movimiento
 @using Onlyou.Shared.DTOS.ObservacionCaja
 @using Onlyou.Shared.Enums
-
+ @attribute [Authorize(Roles = "Admin")] 
 <style>
     /* ===================== HISTORIAL DE CAJAS ===================== */
     .page-container-historial {
@@ -354,7 +355,7 @@
             <div class="col-md-4">
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                     <NavLink class="btn btn-light btn-sm action-btn mt-3" href="/Caja">
-                        <i class="fas fa-shopping-cart me-2"></i> Volver a Caja Actual
+                        <i class="bi bi-arrow-left"></i> Volver a Caja Actual
                     </NavLink>
                 </div>
             </div>
@@ -480,12 +481,12 @@
                             <button class="btn-detalle" @onclick="() => VerDetalleCaja(caja.Id)">
                                 <i class="bi bi-eye"></i> Ver Detalle
                             </button>
-                            @if (caja.EstadoCaja == EstadoCajaDto.Cerrada)
+                           @*  @if (caja.EstadoCaja == EstadoCajaDto.Cerrada)
                             {
                                 <button class="btn-reabrir" @onclick="() => ReabrirCaja(caja.Id)">
                                     <i class="bi bi-unlock"></i> Reabrir
                                 </button>
-                            }
+                            } *@
                         </div>
                     </div>
                 </div>
@@ -666,48 +667,48 @@
         Navigation.NavigateTo($"/CajaDetalle/{id}");
     }
 
-    private async Task ReabrirCaja(int id)
-    {
-        var result = await swal.FireAsync(new SweetAlertOptions
-        {
-            Title = "¿Reabrir caja?",
-            Text = "Esta acción reabrirá la caja cerrada. ¿Continuar?",
-            Icon = SweetAlertIcon.Question,
-            ShowCancelButton = true,
-            ConfirmButtonText = "Sí, reabrir",
-            CancelButtonText = "Cancelar"
-        });
+    // private async Task ReabrirCaja(int id)
+    // {
+    //     var result = await swal.FireAsync(new SweetAlertOptions
+    //     {
+    //         Title = "¿Reabrir caja?",
+    //         Text = "Esta acción reabrirá la caja cerrada. ¿Continuar?",
+    //         Icon = SweetAlertIcon.Question,
+    //         ShowCancelButton = true,
+    //         ConfirmButtonText = "Sí, reabrir",
+    //         CancelButtonText = "Cancelar"
+    //     });
 
-        if (result.IsConfirmed)
-        {
-            try
-            {
-                var dto = new PutEstadoCajaDTO
-                {
-                    EstadoCaja = EstadoCajaDto.Abierta,
-                    Observacion = "Caja reabierta desde historial"
-                };
+    //     if (result.IsConfirmed)
+    //     {
+    //         try
+    //         {
+    //             var dto = new PutEstadoCajaDTO
+    //             {
+    //                 EstadoCaja = EstadoCajaDto.Abierta,
+    //                 Observacion = "Caja reabierta desde historial"
+    //             };
 
-                var resp = await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
-                    $"Cajas/{id}/cambiar-estado", dto);
+    //             var resp = await httpServicio.Put<PutEstadoCajaDTO, GetCajaDTO>(
+    //                 $"Cajas/{id}/cambiar-estado", dto);
 
-                if (!resp.Error)
-                {
-                    await swal.FireAsync("Éxito", "Caja reabierta correctamente", SweetAlertIcon.Success);
-                    await CargarCajas();
-                    AplicarFiltros();
-                }
-                else
-                {
-                    await swal.FireAsync("Error", "No se pudo reabrir la caja", SweetAlertIcon.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                await swal.FireAsync("Error", $"Error: {ex.Message}", SweetAlertIcon.Error);
-            }
-        }
-    }
+    //             if (!resp.Error)
+    //             {
+    //                 await swal.FireAsync("Éxito", "Caja reabierta correctamente", SweetAlertIcon.Success);
+    //                 await CargarCajas();
+    //                 AplicarFiltros();
+    //             }
+    //             else
+    //             {
+    //                 await swal.FireAsync("Error", "No se pudo reabrir la caja", SweetAlertIcon.Error);
+    //             }
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             await swal.FireAsync("Error", $"Error: {ex.Message}", SweetAlertIcon.Error);
+    //         }
+    //     }
+    // }
 
     private void Volver()
     {

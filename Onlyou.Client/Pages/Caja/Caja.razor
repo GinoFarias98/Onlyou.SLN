@@ -1,8 +1,11 @@
-﻿@page "/Caja"
+﻿
+
+@page "/Caja"
 
 @inject IHttpServicios httpServicio
 @inject SweetAlertService swal
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Authorization
 @using Onlyou.Client.Pages.Caja.Componentes
 @using Onlyou.Client.Shared.ObservacionesCaja
 @using Onlyou.Shared.DTOS.Caja
@@ -13,6 +16,8 @@
 @using Onlyou.Shared.DTOS.TipoPago
 @using Onlyou.Shared.Enums
 @using Onlyou.Client.Pages.Caja
+
+@attribute [Authorize(Roles = "Admin")] 
 
 <style>
     /* ===================== ESTILOS GENERALES ===================== */
@@ -804,45 +809,45 @@
         <!-- =====================   RESUMEN ===================== -->
         @if (caja != null)
         {
-            var ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => x.Monto) ?? 0;
-            var egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => x.Monto) ?? 0;
-            var saldoNeto = ingresos + egresos;
+            decimal? ingresos = caja.Movimientos?.Where(x => x.Monto > 0).Sum(x => (decimal?)x.Monto);
+            decimal? egresos = caja.Movimientos?.Where(x => x.Monto < 0).Sum(x => (decimal?)x.Monto);
+            decimal saldo = (ingresos ?? 0m) + (egresos ?? 0m); // saldo como decimal no-nullable
 
             <div class="card card-dash sombra p-4">
                 <h5 class="mb-4">Resumen</h5>
 
                 <div class="resumen-compacto">
-                    <!-- Movimientos -->
-@*                      <div class="kpi-compacto">
-                        <span class="kpi-label-compacto">Movimientos</span>
-                        <span class="kpi-value-compacto">@caja.Movimientos?.Count() </span>
-                    </div> *@
-
                     <!-- Ingresos -->
                     <div class="kpi-compacto">
                         <span class="kpi-label-compacto">Ingresos</span>
-                        <span class="kpi-value-compacto text-success">$@ingresos.ToString("N2")</span>
+                        <span class="kpi-value-compacto text-success">
+                            @((ingresos.HasValue && ingresos.Value != 0m) ? $"${ingresos.Value:N2}" : "")
+                        </span>
                     </div>
 
                     <!-- Egresos -->
                     <div class="kpi-compacto">
                         <span class="kpi-label-compacto">Egresos</span>
-                        <span class="kpi-value-compacto text-danger">$@Math.Abs(egresos).ToString("N2")</span>
+                        <span class="kpi-value-compacto text-danger">
+                            @((egresos.HasValue && egresos.Value != 0m) ? $"${Math.Abs(egresos.Value):N2}" : "")
+                        </span>
                     </div>
 
                     <!-- Saldo Neto -->
                     <div class="kpi-compacto">
                         <span class="kpi-label-compacto">Saldo Neto</span>
-                        <span class="kpi-value-compacto @(saldoNeto >= 0 ? "text-success" : "text-danger")">
-                            $@saldoNeto.ToString("N2")
+                        <span class="kpi-value-compacto @(saldo >= 0 ? "text-success" : "text-danger")">
+                            @($"${saldo:N2}")
                         </span>
+
                         <span class="kpi-extra-compacto">
-                            Saldo actual: @caja.SaldoActual.ToString("N2")
+                            Saldo actual: @($"${caja.SaldoActual:N2}")
                         </span>
                     </div>
                 </div>
             </div>
         }
+
 
         <!-- =====================  MOVIMIENTOS ASOCIADOS A LA CAJA ===================== -->
         @if (caja != null)
