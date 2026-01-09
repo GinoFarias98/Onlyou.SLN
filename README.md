@@ -12,5 +12,5 @@ Sistema para un emprendimiento de lencería con gestión administrativa y vista 
 - JavaScript
 
 ## Descripción
-Aplicación desarrollada como parte de mi formación y práctica profesional.
+Aplicación desarrollada como parte de nuestra formación y práctica profesional.
 Incluye gestión de categorías y productos, y una tienda online conectada a un emprendimiento real.
